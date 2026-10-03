@@ -1,9 +1,13 @@
 # Validation
 
 Assessment: **ready with stated limitations for the documented local Apple-silicon
-stdio use case**. GitHub publication is blocked by this execution environment's
-network restriction. No remote repository, public visibility, or hosted CI run is
-claimed. Validation date: 2026-10-03.
+stdio use case**. The public GitHub repository is accessible. Authenticated API
+requests and a Git read of the configured SSH remote succeeded; local `main` and
+remote `main` both pointed to `0b904c7f420670eca6e5834feb186dd3a69c23d5` at the
+access verification checkpoint, before the documentation follow-up commit.
+See [GitHub access](GITHUB_ACCESS.md) for the earlier conflicting results and
+verified permission settings. Hosted CI results were not inspected during this
+follow-up. Validation date: 2026-10-03.
 
 ## Environment and actual integrations
 
@@ -69,7 +73,7 @@ Idempotent setup, both SDK protocol modes, all six tools, installed plugin disco
 the compatibility launcher, the full harmless suite, and the synthetic report check
 passed. The final reporting-only changes were checked with the affected tests.
 The GitHub Actions workflow is configured for harmless Python 3.12/3.13 tests on Linux;
-it has not run on GitHub. Linux host analysis, Windows hosts, other MCP clients,
+its hosted execution status has not been verified here. Linux host analysis, Windows hosts, other MCP clients,
 Linux/macOS guest analysis, and pristine online prerequisite installation remain
 unverified (Windows hosts currently require implementation changes).
 
@@ -102,7 +106,11 @@ run. Both were fixed with exact reverse-link checks and passing regression tests
 The clean-clone journey and scoped repair verification passed. No further review
 cycle was started. The tracked tree and all local history were inspected for
 private data; only original source/docs/tests and explicitly synthetic artifacts
-are included. Publication remains withheld because GitHub cannot be reached.
+are included. The initial publication attempt was withheld after GitHub commands
+failed. Later verification confirmed the repository was public and the remote
+branch contained the local implementation commit. This supersedes the earlier
+publication blocker; it does not establish why the original commands failed.
+The documentation follow-up did not rerun setup, tests, or memory analysis.
 
 ## Practical limits
 

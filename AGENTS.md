@@ -18,6 +18,9 @@ to invoke analysis tools; do not generate reports as a tool-call side effect.
 - Update relevant documentation when behavior changes. See
   [architecture](docs/ARCHITECTURE.md), [security](SECURITY.md), and
   [contributing](CONTRIBUTING.md).
+- Before declaring GitHub unavailable or requesting reauthentication, follow
+  [the GitHub access checks](docs/GITHUB_ACCESS.md). Distinguish actual authenticated
+  API/Git results from DNS-only probes and `gh auth status` summaries.
 
 **Only when an investigation/report workflow is requested**, read
 [docs/REPORT_SPEC.md](docs/REPORT_SPEC.md) before preparing the report. It is the

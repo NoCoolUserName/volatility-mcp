@@ -199,6 +199,11 @@ dependencies and is not loaded during ordinary tool interactions.
 
 ## Configuration and troubleshooting
 
+For clone/publication connectivity or conflicting GitHub authentication errors,
+use the [GitHub access checks](docs/GITHUB_ACCESS.md). Test actual API and Git
+operations before treating a restricted session's DNS/auth-status error as an
+invalid credential.
+
 `config.local.json` is private and ignored by Git. Setup records absolute
 Volatility interpreter/executable paths and evidence/output roots. Keep evidence,
 outputs, and symbol caches outside the clone. See
