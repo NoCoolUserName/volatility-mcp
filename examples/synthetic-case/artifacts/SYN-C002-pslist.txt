@@ -1,0 +1,4 @@
+SYNTHETIC OUTPUT: no Volatility command was executed.
+PID  PPID  ImageFileName     CreateTime             Offset(V)
+4    0     System            2020-01-01T12:00:00Z    0x1000
+424  4     sample-agent.exe  2020-01-01T12:01:00Z    0x2000

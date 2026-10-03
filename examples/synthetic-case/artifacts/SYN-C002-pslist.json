@@ -1,0 +1,20 @@
+{
+  "synthetic": true,
+  "execution_kind": "simulated",
+  "records": [
+    {
+      "PID": 4,
+      "PPID": 0,
+      "ImageFileName": "System",
+      "CreateTime": "2020-01-01T12:00:00Z",
+      "Offset(V)": "0x1000"
+    },
+    {
+      "PID": 424,
+      "PPID": 4,
+      "ImageFileName": "sample-agent.exe",
+      "CreateTime": "2020-01-01T12:01:00Z",
+      "Offset(V)": "0x2000"
+    }
+  ]
+}

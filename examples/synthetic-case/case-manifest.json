@@ -1,0 +1,131 @@
+{
+  "schema_version": "0.1",
+  "report_spec_version": "0.1",
+  "case_id": "SYN-001",
+  "synthetic": true,
+  "status": "complete_with_limitations",
+  "created_at": "2020-01-02T12:00:00Z",
+  "completed_at": "2020-01-02T12:03:00Z",
+  "timestamp_note": "All case and call timestamps are invented for this example.",
+  "evidence": [
+    {
+      "id": "SYN-E001",
+      "path": "artifacts/SYN-E001-input.txt",
+      "sha256": "613be44edc84d91b124e10e0b5297ad40f1aeed7fd361df876f787af9b222231",
+      "size_bytes": 65,
+      "source": "Generated harmless plain text; not a memory image.",
+      "acquired_at": null,
+      "acquisition_note": "Not applicable: no acquisition occurred.",
+      "sha256_before": "613be44edc84d91b124e10e0b5297ad40f1aeed7fd361df876f787af9b222231",
+      "sha256_after": "613be44edc84d91b124e10e0b5297ad40f1aeed7fd361df876f787af9b222231"
+    }
+  ],
+  "tools": {
+    "python": "simulated-not-executed",
+    "volatility": "simulated-not-executed",
+    "mcp": "simulated-not-executed",
+    "mcp_server": "simulated-not-executed"
+  },
+  "runs": [
+    {
+      "run_id": "SYN-R001",
+      "call_id": "SYN-C001",
+      "status": "success",
+      "synthetic": true,
+      "started_at": "2020-01-02T12:00:00Z",
+      "finished_at": "2020-01-02T12:00:00Z",
+      "artifact_ids": [
+        "SYN-A001"
+      ]
+    },
+    {
+      "run_id": "SYN-R002",
+      "call_id": "SYN-C002",
+      "status": "success",
+      "synthetic": true,
+      "started_at": "2020-01-02T12:01:00Z",
+      "finished_at": "2020-01-02T12:01:00Z",
+      "artifact_ids": [
+        "SYN-A002",
+        "SYN-A003"
+      ]
+    },
+    {
+      "run_id": "SYN-R003",
+      "call_id": "SYN-C003",
+      "status": "error",
+      "synthetic": true,
+      "started_at": "2020-01-02T12:02:00Z",
+      "finished_at": "2020-01-02T12:02:00Z",
+      "artifact_ids": [
+        "SYN-A004"
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "artifact_id": "SYN-E001",
+      "path": "artifacts/SYN-E001-input.txt",
+      "sha256": "613be44edc84d91b124e10e0b5297ad40f1aeed7fd361df876f787af9b222231",
+      "size_bytes": 65,
+      "media_type": "text/plain",
+      "run_id": null
+    },
+    {
+      "artifact_id": "SYN-A001",
+      "path": "artifacts/SYN-C001-info.json",
+      "sha256": "af125b950d1544bc0a50852742839cbccd2d7c56f5c2c2deff91533dc0787f77",
+      "size_bytes": 243,
+      "media_type": "application/json",
+      "run_id": "SYN-R001"
+    },
+    {
+      "artifact_id": "SYN-A002",
+      "path": "artifacts/SYN-C002-pslist.json",
+      "sha256": "bdde94fad037e546913022e4bd04bb8454b92ede273988846e9dd5600f0a2aa3",
+      "size_bytes": 390,
+      "media_type": "application/json",
+      "run_id": "SYN-R002"
+    },
+    {
+      "artifact_id": "SYN-A003",
+      "path": "artifacts/SYN-C002-pslist.txt",
+      "sha256": "51b056827083fe805786cf6fe35e332494e5d9afb87e81ccf3d4f2ad5d88ff1f",
+      "size_bytes": 236,
+      "media_type": "text/plain",
+      "run_id": "SYN-R002"
+    },
+    {
+      "artifact_id": "SYN-A004",
+      "path": "artifacts/SYN-C003-stderr.txt",
+      "sha256": "38d02dc628151c5bf21ca74fe08f563ba137bba0023f56992943c7a65bc48679",
+      "size_bytes": 181,
+      "media_type": "text/plain",
+      "run_id": "SYN-R003"
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": "SYN-F001",
+      "evidence_refs": [
+        {
+          "artifact_id": "SYN-A002",
+          "locator": "records[1]: PID, PPID, ImageFileName, Offset(V)"
+        },
+        {
+          "artifact_id": "SYN-A003",
+          "locator": "line 4"
+        }
+      ]
+    },
+    {
+      "finding_id": "SYN-F002",
+      "evidence_refs": [
+        {
+          "artifact_id": "SYN-A004",
+          "locator": "line 2"
+        }
+      ]
+    }
+  ]
+}

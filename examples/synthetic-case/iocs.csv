@@ -1,0 +1,2 @@
+type,value,evidence_ref,confidence,relevance,status,context
+process_name,sample-agent.exe,SYN-A002:records[1].ImageFileName,high transcription confidence only,contextual,synthetic_observed,Invented example name; no malicious significance established

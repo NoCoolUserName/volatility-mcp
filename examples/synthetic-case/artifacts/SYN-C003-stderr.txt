@@ -1,0 +1,3 @@
+SYNTHETIC FAILURE: fabricated for the reporting example.
+Mock symbol provider unavailable; network scan was not completed.
+This is not an error captured from a real Volatility run.

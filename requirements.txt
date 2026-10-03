@@ -1,0 +1,2 @@
+# Official Python SDK, pinned to the installed stable release.
+mcp==2.3.0

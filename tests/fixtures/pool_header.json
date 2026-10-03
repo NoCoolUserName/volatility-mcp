@@ -1,0 +1,76 @@
+{
+  "metadata": {
+    "format": "6.2.0",
+    "producer": {
+      "name": "SYNTHETIC TEST FIXTURE",
+      "version": "0.1.0"
+    }
+  },
+  "base_types": {
+    "unsigned short": {
+      "kind": "int",
+      "size": 2,
+      "signed": false,
+      "endian": "little"
+    },
+    "unsigned long": {
+      "kind": "int",
+      "size": 4,
+      "signed": false,
+      "endian": "little"
+    }
+  },
+  "symbols": {},
+  "enums": {},
+  "user_types": {
+    "_POOL_HEADER": {
+      "kind": "struct",
+      "size": 8,
+      "fields": {
+        "PoolIndex": {
+          "offset": 0,
+          "type": {
+            "kind": "bitfield",
+            "bit_position": 9,
+            "bit_length": 7,
+            "type": {
+              "kind": "base",
+              "name": "unsigned short"
+            }
+          }
+        },
+        "BlockSize": {
+          "offset": 2,
+          "type": {
+            "kind": "bitfield",
+            "bit_position": 0,
+            "bit_length": 9,
+            "type": {
+              "kind": "base",
+              "name": "unsigned short"
+            }
+          }
+        },
+        "PoolType": {
+          "offset": 2,
+          "type": {
+            "kind": "bitfield",
+            "bit_position": 9,
+            "bit_length": 7,
+            "type": {
+              "kind": "base",
+              "name": "unsigned short"
+            }
+          }
+        },
+        "PoolTag": {
+          "offset": 4,
+          "type": {
+            "kind": "base",
+            "name": "unsigned long"
+          }
+        }
+      }
+    }
+  }
+}

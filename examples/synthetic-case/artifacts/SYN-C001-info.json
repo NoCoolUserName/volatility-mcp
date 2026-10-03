@@ -1,0 +1,14 @@
+{
+  "synthetic": true,
+  "execution_kind": "simulated",
+  "records": [
+    {
+      "Variable": "OS",
+      "Value": "Synthetic Windows fixture"
+    },
+    {
+      "Variable": "Architecture",
+      "Value": "x86 (invented example)"
+    }
+  ]
+}
