@@ -29,8 +29,9 @@ claimed. Validation date: 2026-10-03.
 
 ## Automated and simulated checks
 
-The server-environment suite completed **46 passing tests and one optional module
-skip**. The separate existing Volatility environment completed **16 addon tests**
+The full server-environment suite completed **46 passing tests and one optional
+module skip**. Cycle 2 added two reporting regressions; all **15 affected reporting
+tests** passed afterward, for **48 distinct passing core/protocol/report tests**. The separate existing Volatility environment completed **16 addon tests**
 using original harmless synthetic pool bytes and a minimal synthetic symbol table.
 No real image, extracted binary, or live malware is needed by CI.
 
@@ -61,8 +62,13 @@ index access was unavailable. Setup was idempotent, dependency checks passed, an
 `doctor --mcp` worked with empty evidence/output directories and **no reporting
 configuration**. It reused the separate native analyzer.
 
-A clean Git-clone check is the remaining final review gate before handoff. The
-GitHub Actions workflow is configured for harmless Python 3.12/3.13 tests on Linux;
+A genuine clean local Git clone was installed into another newly created virtual
+environment using the documented dependency/package steps (cached wheels because
+network access was unavailable). Import paths were verified to point at the clone.
+Idempotent setup, both SDK protocol modes, all six tools, installed plugin discovery,
+the compatibility launcher, the full harmless suite, and the synthetic report check
+passed. The final reporting-only changes were checked with the affected tests.
+The GitHub Actions workflow is configured for harmless Python 3.12/3.13 tests on Linux;
 it has not run on GitHub. Linux host analysis, Windows hosts, other MCP clients,
 Linux/macOS guest analysis, and pristine online prerequisite installation remain
 unverified (Windows hosts currently require implementation changes).
@@ -90,7 +96,13 @@ Cycle 1 found and fixed:
 - Development instructions named a nonexistent dependency file; the instructions
   now use the actual minimal dependencies. Synthetic CSV/checksums were normalized.
 
-Cycle 2: pending the final clean-clone and staged-history review.
+Cycle 2 found two remaining forms of contradictory report ownership: a run could
+claim another run's output, and an optional call `run_id` could name a different
+run. Both were fixed with exact reverse-link checks and passing regression tests.
+The clean-clone journey and scoped repair verification passed. No further review
+cycle was started. The tracked tree and all local history were inspected for
+private data; only original source/docs/tests and explicitly synthetic artifacts
+are included. Publication remains withheld because GitHub cannot be reached.
 
 ## Practical limits
 

@@ -84,4 +84,19 @@ class ReportTests(unittest.TestCase):
         self.modify_manifest(lambda m:m['runs'][0].pop('call_id'))
         with self.assertRaisesRegex(ValueError,'Invalid report structure'): check_bundle(self.bundle)
 
+    def test_run_cannot_claim_another_runs_output(self):
+        self.modify_manifest(lambda m:m['runs'][0]['artifact_ids'].append('SYN-A002'))
+        path = self.bundle / 'investigation.jsonl'
+        calls = [json.loads(line) for line in path.read_text().splitlines()]
+        calls[0]['artifact_ids'].append('SYN-A002')
+        path.write_text('\n'.join(json.dumps(c) for c in calls) + '\n')
+        with self.assertRaisesRegex(ValueError,'owned by another run'): check_bundle(self.bundle)
+
+    def test_explicit_call_run_id_must_match(self):
+        path = self.bundle / 'investigation.jsonl'
+        calls = [json.loads(line) for line in path.read_text().splitlines()]
+        calls[1]['run_id'] = 'SYN-R001'
+        path.write_text('\n'.join(json.dumps(c) for c in calls) + '\n')
+        with self.assertRaisesRegex(ValueError,'contradicts run ownership'): check_bundle(self.bundle)
+
 if __name__ == '__main__': unittest.main()

@@ -122,6 +122,8 @@ def _check_bundle(directory: Path) -> dict:
         _require(run['call_id'] in calls, f'Run {rid} has no investigation call')
         _require(run['status'] == calls[run['call_id']]['status'], f'Run/call status mismatch: {rid}')
         _require(set(run['artifact_ids']) <= artifacts.keys(), f'Unknown run artifact: {rid}')
+        for aid in run['artifact_ids']:
+            _require(artifacts[aid].get('run_id') == rid, f'Run claims an artifact owned by another run: {rid}')
         _timestamp(run['started_at'], f'{rid} start')
         _timestamp(run['finished_at'], f'{rid} finish', optional=not complete)
         _require(not complete or run['status'] not in {'running','pending'}, 'Unfinished run in a completed bundle')
@@ -129,6 +131,8 @@ def _check_bundle(directory: Path) -> dict:
             _require(run.get('synthetic') is True, f'Synthetic run must be labeled: {rid}')
     for cid, call in calls.items():
         associated = [run for run in runs.values() if run['call_id'] == cid]
+        if call.get('run_id') is not None:
+            _require(call['run_id'] in {run['run_id'] for run in associated}, f'Call run_id contradicts run ownership: {cid}')
         if associated:
             produced = {aid for run in associated for aid in run['artifact_ids']}
             _require(produced == set(call['artifact_ids']), f'Call/run output artifact mismatch: {cid}')
