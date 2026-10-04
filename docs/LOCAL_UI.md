@@ -106,7 +106,13 @@ sandbox settings are checked; incompatible overrides block investigation and are
 recorded. This is an application boundary, not isolation from a compromised local
 account, trusted analyzer, parser, or Codex installation.
 
-Supported command/file approvals and scoped Volatility MCP form approvals are
+Case-scoped Volatility tools are preauthorized with
+`mcp_servers.volatility.default_tools_approval_mode = "approve"` on thread start
+and resume. Requested analysis runs without a second approval click. Restart
+Workbench after upgrading to apply this to existing case conversations. This does
+not change global Codex configuration or authorize generic shell commands.
+
+Other supported command/file approvals and scoped Volatility MCP form requests are
 shown with details and approve-once/decline/cancel choices; user-input requests
 accept answers. MCP forms support scalar and single-choice fields, with server-side
 schema validation; unsupported fields cannot be approved through this UI. URL and

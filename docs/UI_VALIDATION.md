@@ -102,3 +102,19 @@ cleanup. Core hashing/conversion can delay cancellation; disk output has no quot
 The app-server/dynamic-tool API is experimental and may change in later Codex builds.
 The UI is local-only, not a multi-user service or security sandbox. Model excerpts
 may leave the machine through the configured AI service.
+
+## Scoped analysis preauthorization follow-up
+
+Workbench now sets the documented MCP `default_tools_approval_mode = "approve"`
+for its case-scoped Volatility server on both thread start and resume. Global
+Codex configuration, the read-only sandbox, and disabled shell tools are unchanged.
+A regression test checks both new and resumed thread configuration.
+
+The installed Codex 0.160.0 app-server completed a real authenticated turn through
+the Workbench and scoped MCP server: a harmless simulated Volatility `run_plugin`
+call completed, saved one analysis run, preserved the fixture, and raised zero
+approval prompts. This checks the real agent/MCP approval path, not the accuracy
+of memory analysis. No private memory image was analyzed. The 18 UI checks passed;
+the HTTP check required permission to bind localhost outside the restricted test
+sandbox. Tests also exposed an unclosed activity-log reader, repaired with a
+context manager. Restart Workbench to apply the policy to loaded case threads.

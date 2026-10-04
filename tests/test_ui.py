@@ -240,6 +240,20 @@ class UITests(unittest.IsolatedAsyncioTestCase):
         self.app.factory=Overridden
         with self.assertRaisesRegex(Exception,'approval settings differ'):
             await self.app.ensure_thread(self.case)
+
+    async def test_volatility_preauthorized_on_start_and_resume(self):
+        await self.app.ensure_thread(self.case)
+        self.app.loaded_threads.clear()
+        await self.app.ensure_thread(self.case)
+        calls=[(method,params) for method,params in self.app.agent.calls
+               if method in ('thread/start','thread/resume')]
+        self.assertEqual([method for method,_ in calls],['thread/start','thread/resume'])
+        for _,params in calls:
+            settings=params['config']
+            self.assertEqual(settings['mcp_servers.volatility']['default_tools_approval_mode'],'approve')
+            self.assertEqual(params['sandbox'],'read-only')
+            self.assertFalse(settings['features.shell_tool'])
+        self.assertFalse(self.app.approvals)
     async def test_report_creation_requires_explicit_job(self):
         self.app.active={'case_id':self.case['id'],'kind':'question'}
         with self.assertRaisesRegex(ValueError,'explicit'):

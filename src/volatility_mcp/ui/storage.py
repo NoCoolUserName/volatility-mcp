@@ -137,25 +137,26 @@ class Bundle:
         # failure as its own artifact/call instead of attributing it to another run.
         activity=self.case_dir/'activity.jsonl'
         if activity.exists():
-            for line in activity.open():
-                event=json.loads(line)
-                item=event.get('detail',{})
-                if (event['kind']!='item/completed' or not isinstance(item,dict) or
-                        item.get('type')!='mcpToolCall' or item.get('status')!='failed'):
-                    continue
-                self.check_cancel()
-                cid='UI-'+event['id']
-                relative='artifacts/'+cid+'.json'
-                dest=safe_file(self.root,relative)
-                atomic_json(dest,event)
-                fp=file_fingerprint(dest)
-                artifacts.append({'artifact_id':cid,'path':relative,'sha256':fp['sha256'],
-                    'size_bytes':fp['size_bytes'],'media_type':'application/json','run_id':None})
-                steps.append({'call_id':cid,'timestamp':event['time'],'question':'Not recorded for this failed request',
-                    'tool':item.get('tool','unknown'),'arguments':item.get('arguments'),
-                    'argv':None,'prerequisite_call_ids':[],'artifact_ids':[cid],'status':'error',
-                    'result':item.get('error'),'rationale':'Request failure preserved from actual app-server event; no successful execution inferred.',
-                    'next_step':'Review failure before retrying','hypothesis_disposition':'unresolved'})
+            with activity.open() as activity_file:
+                for line in activity_file:
+                    event=json.loads(line)
+                    item=event.get('detail',{})
+                    if (event['kind']!='item/completed' or not isinstance(item,dict) or
+                            item.get('type')!='mcpToolCall' or item.get('status')!='failed'):
+                        continue
+                    self.check_cancel()
+                    cid='UI-'+event['id']
+                    relative='artifacts/'+cid+'.json'
+                    dest=safe_file(self.root,relative)
+                    atomic_json(dest,event)
+                    fp=file_fingerprint(dest)
+                    artifacts.append({'artifact_id':cid,'path':relative,'sha256':fp['sha256'],
+                        'size_bytes':fp['size_bytes'],'media_type':'application/json','run_id':None})
+                    steps.append({'call_id':cid,'timestamp':event['time'],'question':'Not recorded for this failed request',
+                        'tool':item.get('tool','unknown'),'arguments':item.get('arguments'),
+                        'argv':None,'prerequisite_call_ids':[],'artifact_ids':[cid],'status':'error',
+                        'result':item.get('error'),'rationale':'Request failure preserved from actual app-server event; no successful execution inferred.',
+                        'next_step':'Review failure before retrying','hypothesis_disposition':'unresolved'})
         evidence = []
         for image in self.case['images']:
             if not image.get('sha256'):

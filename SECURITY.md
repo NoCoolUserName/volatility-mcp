@@ -51,8 +51,9 @@ cookie is HttpOnly/SameSite=Strict; model credentials remain with Codex. Recover
 content is rendered as text, and source-image downloads/uploads are not exposed.
 Only configured evidence and scoped case artifacts are accessible through its API.
 Keep its private state directory outside Git; it contains personal paths,
-conversation excerpts, reports and potentially sensitive tool output. Supported
-approval requests require explicit user decisions. See
+conversation excerpts, reports and potentially sensitive tool output. Case-scoped
+Volatility tools are preauthorized; other supported approval requests require
+explicit user decisions. See
 [LOCAL_UI.md](docs/LOCAL_UI.md) for the trust boundary and known limitations.
 
 ## Reporting a vulnerability

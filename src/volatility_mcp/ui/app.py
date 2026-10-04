@@ -262,6 +262,7 @@ class Workbench:
                 settings[f'mcp_servers.{name}.enabled']=False
         settings.update({'mcp_servers.volatility':{'command':sys.executable,
             'args':['-m','volatility_mcp.ui.scoped_mcp',str(self.directory(case)/'mcp.json')],
+            'default_tools_approval_mode':'approve',
             'enabled':True,'required':True,'startup_timeout_sec':90,'tool_timeout_sec':max(1800,self.config.command_timeout*3)},
             'web_search':'disabled','features.shell_tool':False,'features.unified_exec':False,
             'features.multi_agent':False,'features.multi_agent_v2':False,'features.apps':False,
