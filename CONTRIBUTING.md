@@ -27,3 +27,9 @@ Inspect the diff and staged files before submitting. **Never attach sensitive
 dumps, live malware, recovered binaries, private reports, credentials, or personal
 configuration to ordinary issues or pull requests.** See [SECURITY.md](SECURITY.md)
 for private vulnerability reporting.
+
+The optional UI lives under `src/volatility_mcp/ui/`. `tests/test_ui.py` uses
+harmless analyzer fixtures, simulated Codex responses, and real local HTTP/MCP
+exchanges; it needs no browser, model credentials, or UI-only dependencies. For UI
+changes, also exercise the browser flow in `docs/LOCAL_UI.md` and record the actual
+scope in `docs/UI_VALIDATION.md`. Keep screenshots and real case receipts private.

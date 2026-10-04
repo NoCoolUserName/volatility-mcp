@@ -11,6 +11,10 @@
 - Setup, diagnostics, optional Codex registration, focused harmless tests, and CI.
 - Optional version 0.1 reporting contract, reusable prompts, editable Markdown
   template, synthetic example, and structural provenance validation.
+- Experimental optional loopback Workbench: native macOS selection/path entry,
+  readiness, sequential cases, report/evidence views, resumable Codex conversations,
+  explicit report revisions and cancellation. See [LOCAL_UI.md](LOCAL_UI.md) and
+  [UI_VALIDATION.md](UI_VALIDATION.md) for the tested scope.
 
 Implementation is not proof of universal support. [VALIDATION.md](VALIDATION.md)
 records what was actually checked, including private local integration scope and
@@ -29,12 +33,16 @@ unverified conditions.
 
 - Additional host testing (Linux first; Windows requires process-management work),
   guest OS/symbol combinations, acquisition formats, and client interoperability.
-- Optional human-readable evidence viewers and export improvements. Prior design
-  preferences include left linked contents, Light/Matrix radio theme, original
+- Further evidence-view/export improvements. The UI provides bounded JSON/JSONL
+  views and a linked report contents panel; remaining design preferences include
+  Light/Matrix radio theme, original
   decorative case coins, and an actual decision/call dependency graph. Keep
   presentation dependencies optional and the Markdown report canonical.
 - PDF/DOCX/HTML packaging, accessibility, print/offline review, and schema migration
-  only after the reporting contract is refined. Do not create a web app for this.
+  only after the reporting contract is refined. The optional local UI does not
+  imply hosted deployment or polished standalone HTML exports.
+- Parallel image analysis, multiple investigating agents per case, additional
+  model providers and hosted deployment remain future work.
 - Reproducible detection evaluation using appropriate positive/negative controls
   and real telemetry coverage; no unsupported claim of detection efficacy.
 

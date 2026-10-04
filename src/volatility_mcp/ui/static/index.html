@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Volatility Workbench</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <header>
+      <div>
+        <span class="eyebrow">LOCAL FORENSICS · EXPERIMENTAL</span>
+        <h1>Volatility Workbench<span class="dot">●</span></h1>
+      </div>
+      <div>
+        <span id="connection">Connecting…</span>
+        <button id="stop" class="danger">Stop all work</button>
+      </div>
+    </header>
+    <div class="privacy">
+      Images stay on this machine. Questions and selected tool results may be
+      sent to your configured AI service. Never execute recovered code. Reports
+      require human review.
+    </div>
+    <div id="error" role="alert" hidden></div>
+    <div class="layout">
+      <aside>
+        <h2>Cases</h2>
+        <div id="cases"></div>
+        <details open>
+          <summary>Add evidence</summary>
+          <p>
+            Existing files inside the configured evidence folder. No upload or
+            copy.
+          </p>
+          <textarea
+            id="paths"
+            rows="3"
+            placeholder="One absolute image path per line"
+            aria-label="Memory image paths"
+          ></textarea>
+          <div class="buttons">
+            <button id="pick">Choose in Finder</button
+            ><button id="browse">Browse folder</button>
+          </div>
+          <div id="files"></div>
+          <label>Case title (optional)<input id="title" /></label
+          ><label
+            >Source / acquisition notes (optional)<input id="source" /></label
+          ><label class="check"
+            ><input type="checkbox" id="related" />These are related captures in
+            one case</label
+          ><button id="add" class="primary">Register evidence</button>
+        </details>
+        <p id="root" class="subtle"></p>
+      </aside>
+      <main>
+        <div id="empty">
+          <h2>Start with evidence.</h2>
+          <p>
+            Select a memory image, check readiness, then generate a report. Each
+            unrelated image gets its own case and conversation.
+          </p>
+        </div>
+        <section id="case" hidden>
+          <div class="case-heading">
+            <h2 id="caseTitle"></h2>
+            <span id="ready" class="badge"></span>
+          </div>
+          <div id="images"></div>
+          <div id="reasons"></div>
+          <div class="buttons">
+            <button id="readiness">Check readiness</button
+            ><input
+              id="focus"
+              placeholder="Optional investigation focus"
+              aria-label="Investigation focus"
+            /><button id="report" class="primary">Generate report</button
+            ><button id="update">Update report</button>
+          </div>
+          <p class="subtle">
+            Generate and Update create a new report version. Asking a question
+            preserves current reports.
+          </p>
+          <div id="operation" aria-live="polite"></div>
+          <div id="approvals"></div>
+          <nav class="tabs">
+            <button data-tab="reports" class="selected">Reports</button
+            ><button data-tab="conversation">Case conversation</button
+            ><button data-tab="evidence">Evidence</button
+            ><button data-tab="activity">Activity & failures</button>
+          </nav>
+          <section id="reports" class="tab">
+            <div id="versions"></div>
+            <div class="report-layout">
+              <nav id="toc" aria-label="Report sections"></nav>
+              <article id="reportView">
+                <p>No report yet. Run readiness, then Generate report.</p>
+              </article>
+            </div>
+          </section>
+          <section id="conversation" class="tab" hidden>
+            <div id="messages"></div>
+            <form id="questionForm">
+              <label
+                >Ask about this case<textarea
+                  id="question"
+                  rows="3"
+                  placeholder="Which findings are supported, and what remains uncertain?"
+                ></textarea></label
+              ><button class="primary">Ask / investigate further</button>
+            </form>
+          </section>
+          <section id="evidence" class="tab" hidden>
+            <div id="artifacts"></div>
+            <div id="artifactMeta"></div>
+            <pre id="artifactView"></pre>
+            <button id="more" hidden>Read next chunk</button>
+          </section>
+          <section id="activity" class="tab" hidden>
+            <div id="activityList"></div>
+          </section>
+        </section>
+        <section class="queue">
+          <h2>Sequential queue</h2>
+          <div id="queue"></div>
+        </section>
+      </main>
+    </div>
+    <footer>
+      Official Volatility performs the analysis. Independent project; no vendor
+      endorsement. One investigating agent per case.
+    </footer>
+  </body>
+</html>

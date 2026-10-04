@@ -9,6 +9,9 @@ An **optional investigation and reporting workflow** lives in the same repositor
 Individual queries do not require reports, templates, case-report metadata, or
 Codex. No report is generated as a side effect of a tool call.
 
+An experimental [local Workbench](docs/LOCAL_UI.md) optionally adds a browser
+interface for case selection, readiness, reports, evidence and follow-up questions.
+
 This is an independent project, not endorsed by the Volatility Foundation,
 OpenAI, or Dragos. Original project material is MIT licensed; see
 [third-party notices](THIRD_PARTY_NOTICES.md).
@@ -196,6 +199,23 @@ Required deliverables are `report.md`, `case-manifest.json`, `investigation.json
 HTML, PDF, DOCX, custom artwork, and elaborate presentation are deferred. The
 server never assembles a report itself. The reporting workflow adds no runtime
 dependencies and is not loaded during ordinary tool interactions.
+
+## Optional local browser interface
+
+The experimental Workbench adds image selection, readiness, a sequential case
+queue, report/evidence viewing, case questions, and explicit versioned report
+updates. It reuses your existing Volatility and Codex login; ordinary MCP clients
+do not need the UI. From this repository:
+
+```sh
+.venv/bin/python -m volatility_mcp.ui.http --config config.local.json --project "$PWD"
+```
+
+This opens a loopback browser interface and stores private UI cases beneath the
+configured output root. See [LOCAL_UI.md](docs/LOCAL_UI.md) for choosing another
+private output directory, security boundaries, and platform/validation limits.
+Images remain local, while questions and selected outputs may reach your configured
+AI service. The first version adds no runtime dependencies.
 
 ## Configuration and troubleshooting
 

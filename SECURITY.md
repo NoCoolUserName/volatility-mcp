@@ -43,6 +43,18 @@ downloads packages. Neither is contact with a recovered malware endpoint. For a
 network-restricted workflow, provision approved packages and exact symbols in
 advance and enforce network policy outside this application.
 
+## Optional local UI
+
+The optional Workbench binds to loopback, rejects unexpected Host/Origin headers,
+and requires a private launch capability for case data and actions. Its session
+cookie is HttpOnly/SameSite=Strict; model credentials remain with Codex. Recovered
+content is rendered as text, and source-image downloads/uploads are not exposed.
+Only configured evidence and scoped case artifacts are accessible through its API.
+Keep its private state directory outside Git; it contains personal paths,
+conversation excerpts, reports and potentially sensitive tool output. Supported
+approval requests require explicit user decisions. See
+[LOCAL_UI.md](docs/LOCAL_UI.md) for the trust boundary and known limitations.
+
 ## Reporting a vulnerability
 
 Use the repository's **Security → Report a vulnerability** option when available.

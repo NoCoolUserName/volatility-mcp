@@ -9,6 +9,11 @@ See [GitHub access](GITHUB_ACCESS.md) for the earlier conflicting results and
 verified permission settings. Hosted CI results were not inspected during this
 follow-up. Validation date: 2026-10-03.
 
+The optional local UI was added afterward. Its separate scope, actual integration
+checks, review repairs, and remaining limits are recorded in
+[UI_VALIDATION.md](UI_VALIDATION.md). The checks below describe the original core
+delivery; they are not a claim that every UI behavior or client is verified.
+
 ## Environment and actual integrations
 
 - macOS 26.4.1 / ARM64; native Python 3.12.13; existing official Volatility 2.28.2;

@@ -1,7 +1,8 @@
 # Project instructions
 
 The core is a standalone, client-neutral stdio MCP server. Reporting is an
-optional companion. Do not require report fields, report configuration, or Codex
+optional companion; the local UI is a third optional layer (see
+[LOCAL_UI.md](docs/LOCAL_UI.md)). Do not require report fields, report configuration, or Codex
 to invoke analysis tools; do not generate reports as a tool-call side effect.
 
 - Preserve source evidence. Write derived files only to configured case outputs.
@@ -27,4 +28,5 @@ to invoke analysis tools; do not generate reports as a tool-call side effect.
 authoritative specification; templates and prompts implement it. Preserve sealed
 bundles and create a new timestamped revision for changes. Do not load reporting
 instructions for routine individual queries. Report-specific presentation is
-optional and deferred in this repository's initial scope.
+optional. The local Workbench provides basic safe viewing; polished exports remain
+deferred.

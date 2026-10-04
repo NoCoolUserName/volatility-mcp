@@ -16,12 +16,20 @@ Optional analyst/client workflow
     saved artifacts + REPORT_SPEC.md -> report.md + case provenance + IOC exports
 ```
 
-The server does no LLM inference, requests no model API key, and has no HTTP service,
-database service, Docker dependency, web app, or report-generation side effect. The official
+The core server does no LLM inference, requests no model API key, and has no HTTP service,
+database service, Docker dependency, or report-generation side effect. The official
 MCP SDK is its runtime dependency; Volatility and its full analysis dependencies
 remain in a separate environment. The optional reporting checker uses the Python
 standard library. A reporting client composes the report only when asked, using
 actual outputs plus the versioned report specification.
+
+A third independently optional layer, the experimental local Workbench, provides
+a loopback browser UI and sequential case jobs. Its replaceable Codex app-server
+adapter creates/resumes one conversation per case using existing authentication.
+A scoped backend reuses the same six MCP tools, restricting inputs to explicitly
+registered case images and outputs to that case. UI-only dynamic tools package
+reports without adding reporting fields to core MCP calls. See
+[LOCAL_UI.md](LOCAL_UI.md) for architecture, launch, authentication and boundaries.
 
 Source code is in `src/volatility_mcp/`. `server.py` at repository root is a small
 compatibility launcher for an existing local registration; it uses ignored local

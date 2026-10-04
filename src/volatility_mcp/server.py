@@ -14,8 +14,8 @@ from .backend import VolatilityBackend
 from .config import Config, load_config
 
 
-def create_server(config: Config) -> MCPServer:
-    backend = VolatilityBackend(config)
+def create_server(config: Config, *, backend: VolatilityBackend | None = None) -> MCPServer:
+    backend = backend if backend is not None else VolatilityBackend(config)
     workers: set[asyncio.Task] = set()
 
     @asynccontextmanager
