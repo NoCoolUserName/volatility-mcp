@@ -150,7 +150,7 @@ image or malware is distributed here.
 | `list_memory_images` | Inventory supported files with size and SHA-256. |
 | `get_image_info` | Save OS/banner discovery probes; keep failures and unknowns explicit. |
 | `list_plugins` | Discover installed plugin names; an exact/single match includes accepted arguments. |
-| `run_plugin` | Run a discovered plugin with a validated string argument list; save raw outputs, metadata, and derived files. |
+| `run_plugin` | Reuse a verified equivalent result or run a discovered plugin with validated arguments; preserve raw outputs, metadata, and derived files. |
 | `read_output` | Read a saved text output in bounded chunks with a continuation offset and truncation status. |
 | `case_history` | Retrieve saved run history, commands, timestamps, hashes, and output locations. |
 
@@ -166,14 +166,14 @@ Refer to live `tools/list` for complete schemas.
   arbitrary plugin directories, and output overrides are rejected. Plugin options
   and value types are checked against the installed catalog. Execution uses argument
   arrays with `shell=False`; there is no generic shell tool.
-- Each plugin request runs once with Volatility's JSON renderer. Complete stdout,
+- On a reuse miss, the plugin runs once with Volatility's JSON renderer. Complete stdout,
   stderr, execution metadata, and any extracted files stay in the configured output
   directory. A readable text view is derived from saved JSON without another scan.
   Conversion failures retain the original bytes and an explicit error.
 - Run records include source fingerprints and SHA-256 before/after execution,
   tool versions, exact arguments, timestamps, status, and artifact hashes. Local
   compatibility-addon runs also preserve the addon source and its hash.
-- Analysis is serialized within each server process. Timeouts, cancellation,
+- Analysis is serialized across backend processes sharing an output root. Timeouts, cancellation,
   client disconnects, and graceful shutdown retain partial output and status.
   Forced termination can leave child processes or interrupted records; inspect
   them before retrying. Failed or incomplete work is never a clean finding.
@@ -181,11 +181,27 @@ Refer to live `tools/list` for complete schemas.
   65,536 bytes, and `case_history` provides paginated execution summaries. These
   are byte reads, not structured row/field queries.
 
-Saved outputs persist, but there is **no automatic content/version-aware result
-cache**: another `run_plugin` request executes again. Discovery is not persistently
-cached either. Full-image integrity hashing still occurs around runs; plugin
-timeouts do not include all hashing and conversion time. See
-[architecture](docs/ARCHITECTURE.md) for execution and recovery details.
+**Persistent result reuse** applies to every client using the backend, including
+the discovery probes in `get_image_info`. Equivalent requests reuse a successful,
+integrity-verified run after restart, retaining its run ID and artifact paths.
+The identity includes the source fingerprint/SHA-256, typed arguments, file inputs,
+analyzer/plugin/dependency code and versions, symbols/cache content, and execution
+configuration. Changed context or damaged artifacts prevents reuse. A filesystem
+lock prevents concurrent duplicate analysis within the same output root.
+
+Responses indicate `reused` and include hashing measurements; reuse receipts are
+saved separately without editing the original run. Full source hashes before and
+after each request remain mandatory, including hits. Hashing seconds, bytes, and
+file counts are recorded by phase; no integrity shortcuts were introduced.
+Catalog refresh and dependency/artifact hashing still take time, so a hit is not
+an instant lookup. Plugin timeouts exclude this overhead.
+
+Older runs without the new identity are preserved but cannot be safely reused.
+Failed/incomplete runs are never hits. If symbols/cache or other inputs change
+during a successful run, that run remains available but is not reuse-eligible;
+a subsequent request executes again against the stable context. Separate output
+roots do not share results or locks. See [RESULT_REUSE.md](docs/RESULT_REUSE.md)
+for the identity, receipts, measurements, and recovery limits.
 
 The included `xpnet.XpNetScan` is a **local compatibility addon**, separate from
 official Volatility plugins. It carves Windows XP x86 TCPT/TCPA pool candidates;
@@ -260,7 +276,7 @@ AI service. The first version adds no runtime dependencies.
 | Multiple images | Unrelated images become separate cases; explicitly related captures can share a case with separate image identities and provenance. Jobs run sequentially, with one dedicated Codex conversation per case. |
 | Readiness | Checks account/tool access, plugin discovery, image hashes with byte progress, and OS/symbol discovery through MCP. Reports **Ready**, **Ready with limitations**, or **Blocked** with reasons; these are not malware verdicts. |
 | Activity and evidence | Shows current operations, elapsed time, conversation, saved outputs, errors, and failures. Text, JSON/JSONL, and raw-output views are bounded; complete artifacts remain on disk. |
-| Questions | Resumes the case's conversation and instructs the agent to use saved evidence first, making additional MCP queries when needed. Questions do not rewrite reports. Saved-evidence-first behavior is guidance, not an enforced result cache. |
+| Questions | Resumes the case's conversation and instructs the agent to use saved evidence first, making additional MCP queries when needed. Questions do not rewrite reports. Equivalent analysis requests also benefit from backend result reuse; the agent's investigative choices remain guidance-driven. |
 | Report generation and updates | Explicit actions create new timestamped revisions. Packaging copies actual artifacts, records provenance, checks source integrity, validates the bundle, and seals it with checksums. Updates link to the previous sealed version and preserve earlier versions and evidence IDs. Failed drafts remain incomplete. |
 | Report viewing | Section navigation, constrained local evidence links, and a version selector. New bundles contain portable relative artifact and artwork links; source memory images are not included. Recovered HTML is not executed. |
 | Image coins | One stable decorative coin per saved image hash, reused across reopening and report revisions. Original PNGs can be imported; otherwise a local SVG renderer creates a distinct coin without malware attribution, analysis, or extra image hashing. Artwork failure does not block reporting. |
@@ -284,7 +300,8 @@ The launcher detects stale application code and asks for a backend restart.
 
 Repeated request IDs return the existing job, and a second operation of the same
 kind cannot be queued while that operation is active or queued for the case.
-This prevents duplicate submissions, not equivalent plugin requests across runs.
+This prevents duplicate UI submissions; backend reuse separately handles equivalent
+plugin requests across runs and client restarts.
 Jobs distinguish queued, running, stopping, completed, cancelled, failed, and
 incomplete states.
 

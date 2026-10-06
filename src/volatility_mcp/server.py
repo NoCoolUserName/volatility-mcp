@@ -66,7 +66,14 @@ def create_server(config: Config, *, backend: VolatilityBackend | None = None) -
         kwargs = {"cancel_event": event} if cancellable else {}
         task = asyncio.create_task(asyncio.to_thread(function, *args, **kwargs))
         workers.add(task)
-        task.add_done_callback(workers.discard)
+        def finished(worker):
+            workers.discard(worker)
+            # A disconnected/cancelled MCP request may no longer await a worker
+            # that raises while hashing or waiting for the shared execution lock.
+            # Retrieve that exception without changing what live awaiters receive.
+            if not worker.cancelled():
+                worker.exception()
+        task.add_done_callback(finished)
         try:
             return await asyncio.shield(task)
         except asyncio.CancelledError:
@@ -96,10 +103,11 @@ def create_server(config: Config, *, backend: VolatilityBackend | None = None) -
 
     @mcp.tool(annotations=analysis)
     async def run_plugin(image: str, plugin: str, arguments: list[str] | None = None) -> dict:
-        """Run an exact installed plugin once with validated arguments, e.g. [\"--pid\", \"123\"].
+        """Reuse verified equivalent saved results or run an exact installed plugin, e.g. [\"--pid\", \"123\"].
 
         Save complete stdout, stderr, dumps and execution metadata; hash source before/after.
-        Return bounded previews and artifact paths. Global flags and arbitrary plugin directories are forbidden.
+        Return bounded previews, artifact paths, reused status and hashing measurements.
+        Global flags and arbitrary plugin directories are forbidden.
         Timeout is administrator-configured (300 seconds default). No report is generated.
         """
         return await invoke(backend.run_plugin, image, plugin, arguments, cancellable=True)

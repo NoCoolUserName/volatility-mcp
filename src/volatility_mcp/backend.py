@@ -20,6 +20,7 @@ from . import __version__
 from .config import Config
 from .json_rows import iter_rows
 from .timestamps import utc_now, timestamped_id
+from .reuse import HashMeasurements, context_identity, digest, execution_lock, find_completed
 from typing import Any
 import uuid
 
@@ -219,6 +220,9 @@ class VolatilityBackend:
                 "health_scope": "Import/discovery health only; runtime support depends on guest OS, symbols and available memory."}
 
     def validate_arguments(self, plugin: str, arguments: list[str] | None) -> list[str]:
+        return self._parse_arguments(plugin, arguments)[0]
+
+    def _parse_arguments(self, plugin: str, arguments: list[str] | None) -> tuple[list[str], dict]:
         validate_text(plugin, "Plugin")
         if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z][A-Za-z0-9_]*)+", plugin):
             raise EvidenceError("Use an exact plugin name from list_plugins, for example windows.pslist.PsList.")
@@ -265,10 +269,10 @@ class VolatilityBackend:
                     registry_key=(plugin == "windows.registry.printkey.PrintKey" and current_option["flag"] == "--key"))
             normalized.append(token)
         try:
-            parser.parse_args(normalized)
+            values = vars(parser.parse_args(normalized))
         except argparse.ArgumentError as exc:
             raise EvidenceError(f"Invalid arguments for {plugin}: {exc}. Inspect list_plugins(query={plugin!r}).") from exc
-        return normalized
+        return normalized, values
 
     def _argument_value(self, value: str, option: dict[str, Any], *, registry_key: bool = False) -> str:
         # A PrintKey key is a captured-hive name, not a host path or shell program.
@@ -316,7 +320,7 @@ class VolatilityBackend:
         return ["-p", str(self.local_plugins)]
 
     def _attempt(self, image: Path, plugin: str, arguments: list[str], run: Path,
-                 cancel_event: threading.Event) -> dict[str, Any]:
+                 cancel_event: threading.Event, hashes: HashMeasurements, lock_fd: int) -> dict[str, Any]:
         directory = self._safe_directory(run / "json")
         files = self._safe_directory(directory / "files")
         stdout, stderr = directory / "stdout.json", directory / "stderr.txt"
@@ -333,6 +337,9 @@ class VolatilityBackend:
             try:
                 process = subprocess.Popen(argv, shell=False, stdin=subprocess.DEVNULL,
                     stdout=out, stderr=err, cwd=files, start_new_session=True,
+                    # Keep the execution lock alive if the server is force-killed
+                    # while its analyzer survives. A new client must not overlap it.
+                    pass_fds=(lock_fd,),
                     env={k: v for k, v in os.environ.items()
                          if k not in {"PYTHONPATH", "PYTHONHOME", "VOLATILITY_PLUGINS"}})
                 deadline = time.monotonic() + self.command_timeout
@@ -363,7 +370,7 @@ class VolatilityBackend:
             entry["failure_category"] = "unsupported_windows_xp"
         elif "Unsatisfied requirement" in tail or "symbol_table_name" in tail:
             entry["failure_category"] = "missing_symbols_or_layer"
-        entry["artifacts"] = [file_fingerprint(stdout), file_fingerprint(stderr)]
+        entry["artifacts"] = [hashes.file(stdout, 'new_artifacts'), hashes.file(stderr, 'new_artifacts')]
         if entry["status"] == "success":
             view = directory / "output.txt"
             try:
@@ -377,11 +384,11 @@ class VolatilityBackend:
                             preview.append(row)
                 entry.update(json_path=str(stdout), text_path=str(view), row_count=count,
                              json_preview=preview, preview_truncated=count > len(preview))
-                entry["artifacts"].append(file_fingerprint(view))
+                entry["artifacts"].append(hashes.file(view, 'new_artifacts'))
             except (UnicodeError, ValueError) as exc:
                 entry.update(status="output_error", error=f"JSON output incomplete or unsupported: {exc}. Raw output retained; analysis was not rerun.")
                 if view.exists():
-                    entry["artifacts"].append(file_fingerprint(view))
+                    entry["artifacts"].append(hashes.file(view, 'new_artifacts'))
         for folder, dirs, names in os.walk(files, followlinks=False):
             for name in [*dirs, *names]:
                 if (Path(folder) / name).is_symlink():
@@ -390,7 +397,7 @@ class VolatilityBackend:
             for name in sorted(names):
                 item = Path(folder) / name
                 if item.is_file() and not item.is_symlink():
-                    entry["artifacts"].append(file_fingerprint(item))
+                    entry["artifacts"].append(hashes.file(item, 'new_artifacts'))
         return entry
 
     @staticmethod
@@ -410,18 +417,48 @@ class VolatilityBackend:
     def run_plugin(self, image: str, plugin: str, arguments: list[str] | None = None,
                    cancel_event: threading.Event | None = None) -> dict[str, Any]:
         event = cancel_event or threading.Event()
-        with self._lock:
+        with self._lock, execution_lock(self, event) as lock_fd:
             if event.is_set() or self.shutdown_event.is_set():
                 raise EvidenceError("Analysis cancelled before execution.")
             source = self.resolve_input(image)
-            normalized = self.validate_arguments(plugin, arguments)
-            before = file_fingerprint(source)
+            # Refresh schemas/versions for each request, including long-lived MCP
+            # processes whose analyzer environment may have been upgraded.
+            self._catalog = None
+            normalized, values = self._parse_arguments(plugin, arguments)
+            hashes = HashMeasurements(file_fingerprint)
+            before = hashes.file(source, 'image_before')
             case = self.case_directory(source)
+            self._symbols_prepared = False
+            context = context_identity(self, plugin, values, hashes)
+            context['server_versions'] = [__version__, platform.python_version(), version('mcp')]
+            key = digest({'image': before, 'plugin': plugin, 'arguments': values, 'context': context})
+            blockers = self.catalog().get('reuse_blockers', [])
+            cached = None if blockers else find_completed(self, case, key, hashes)
+            if cached:
+                manifest, manifest_path = cached
+                after = hashes.file(self.resolve_input(str(source)), 'image_after')
+                self._catalog = None
+                current_context = context_identity(self, plugin, values, hashes)
+                current_context['server_versions'] = [__version__, platform.python_version(), version('mcp')]
+                if before != after or current_context != context:
+                    raise EvidenceError('Evidence or execution inputs changed during reuse validation; retry with stable inputs.')
+                if event.is_set() or self.shutdown_event.is_set():
+                    raise EvidenceError('Analysis cancelled during reuse validation; no plugin started.')
+                receipt = self._safe_directory(case / 'reuse') / (timestamped_id() + '.json')
+                write_json(receipt, {'schema_version': '1', 'reused': True, 'run_id': manifest['run_id'],
+                    'manifest_path': str(manifest_path), 'requested_at': utc_now(), 'plugin': plugin,
+                    'arguments': normalized, 'reuse_key': key, 'image_before': before,
+                    'image_after': after, 'integrity_verified': True, 'hashing': hashes.summary()})
+                return self._run_result(manifest, manifest_path, reused=True,
+                                        hashing=hashes.summary(), receipt=receipt)
+            if event.is_set() or self.shutdown_event.is_set():
+                raise EvidenceError('Analysis cancelled before execution.')
             run_id = timestamped_id()
             run = self._safe_directory(case / "runs" / run_id)
             manifest_path = run / "manifest.json"
             metadata = self.catalog()["plugins"][plugin]
-            manifest = {"schema_version": "1.1", "server_session": self.session_id,
+            manifest = {"schema_version": "1.2", "server_session": self.session_id,
+                        "reuse_key": key, "reuse_eligible": False, "reuse_context": context,
                         "run_id": run_id, "image": str(source),
                         "image_relative_path": str(source.relative_to(self.cases)),
                         "image_sha256_before": before["sha256"], "image_before": before,
@@ -440,19 +477,20 @@ class VolatilityBackend:
                     if not plugin_source.is_relative_to(self.local_plugins):
                         raise EvidenceError("Addon source escapes fixed plugin directory.")
                     snapshot = self._safe_directory(run / "plugin-source") / plugin_source.name
-                    original = file_fingerprint(plugin_source)
+                    original = hashes.file(plugin_source, 'addon')
                     with snapshot.open("xb") as stream:
                         stream.write(plugin_source.read_bytes())
-                    if file_fingerprint(snapshot)["sha256"] != original["sha256"]:
+                    if hashes.file(snapshot, 'addon')["sha256"] != original["sha256"]:
                         raise EvidenceError("Addon source changed while snapshotting.")
                     manifest["plugin_provenance"] = {"origin": "local_compatibility", "version": metadata["plugin_version"],
-                                                     "source": original, "snapshot": file_fingerprint(snapshot)}
-                entry = self._attempt(source, plugin, normalized, run, event)
+                                                     "source": original, "snapshot": hashes.file(snapshot, 'addon')}
+                entry = self._attempt(source, plugin, normalized, run, event, hashes, lock_fd)
+                entry['artifacts'].append(hashes.file(run / 'command.started.json', 'new_artifacts'))
                 manifest["commands"].append(entry)
                 manifest["status"] = entry["status"]
                 if "plugin_provenance" in manifest:
                     original = manifest["plugin_provenance"]["source"]
-                    current = file_fingerprint(Path(original["path"]))
+                    current = hashes.file(Path(original["path"]), 'addon')
                     manifest["plugin_provenance"]["unchanged"] = current == original
                     if current != original:
                         raise EvidenceError("Addon source changed during analysis; do not rely on this run.")
@@ -460,38 +498,59 @@ class VolatilityBackend:
                 manifest.update(status="cancelled" if isinstance(exc, KeyboardInterrupt) else "error", error=str(exc))
             finally:
                 try:
-                    after = file_fingerprint(self.resolve_input(str(source)))
+                    after = hashes.file(self.resolve_input(str(source)), 'image_after')
                     manifest.update(image_after=after, image_sha256_after=after["sha256"], integrity_verified=before == after)
                     if before != after:
                         manifest["status"] = "evidence_changed"
                 except (OSError, EvidenceError) as exc:
                     manifest.update(status="evidence_changed", integrity_verified=False, integrity_error=str(exc))
+                if manifest['status'] == 'success' and manifest['integrity_verified']:
+                    try:
+                        self._catalog = None
+                        current_context = context_identity(self, plugin, values, hashes)
+                        current_context['server_versions'] = [__version__, platform.python_version(), version('mcp')]
+                        manifest['reuse_eligible'] = not blockers and current_context == context
+                        if not manifest['reuse_eligible']:
+                            manifest['reuse_unavailable_reason'] = ('; '.join(blockers) if blockers else
+                                'Execution context changed during analysis (including symbol/cache updates).')
+                    except (OSError, ValueError) as exc:
+                        manifest['reuse_unavailable_reason'] = 'Unable to revalidate execution context: ' + str(exc)
+                manifest['hashing'] = hashes.summary()
                 manifest["completed_at"] = utc_now()
                 temporary = run / "manifest.complete.json"
                 write_json(temporary, manifest)
                 os.replace(temporary, manifest_path)
-            commands = manifest["commands"]
-            raw = commands[0] if commands else {}
-            preview = excerpt(Path(raw.get("text_path", raw["stdout_path"]))) if raw else ""
-            error = excerpt(Path(raw["stderr_path"]), 1800) if raw else ""
-            error += "\n" + manifest.get("error", "") + raw.get("error", "")
-            category = raw.get("failure_category")
-            summary = f"{plugin}: {manifest['status']}; saved complete output and execution metadata."
-            if manifest["status"] != "success":
-                summary += " Incomplete/failed analysis is not a negative finding. Check saved diagnostics and matching symbols."
-            if category == "unsupported_windows_xp":
-                summary += " Upstream XP network layout unsupported; xpnet.XpNetScan can carve XP x86 candidates, not prove traffic."
-            return {"status": manifest["status"], "run_id": run_id, "plugin": plugin, "image": str(source),
-                    "image_sha256": before["sha256"], "integrity_verified": manifest["integrity_verified"],
-                    "artifact_path": str(run), "manifest_path": str(manifest_path),
-                    "case_output_directory": str(case), "summary": summary,
-                    "preview": preview, "preview_truncated": len(preview.encode()) >= 2400,
-                    "error_preview": error, "failure_category": category,
-                    "plugin_origin": metadata.get("origin", "installed_volatility"),
-                    "row_count": raw.get("row_count"), "json_preview": raw.get("json_preview"),
-                    "json_artifact": raw.get("json_path"), "text_artifact": raw.get("text_path"),
-                    "commands": [{k: v for k, v in item.items() if k not in {"artifacts", "json_preview"}}
-                                 for item in commands]}
+            return self._run_result(manifest, manifest_path, hashing=hashes.summary())
+
+    def _run_result(self, manifest, manifest_path, *, reused=False, hashing=None, receipt=None):
+        commands = manifest["commands"]
+        raw = commands[0] if commands else {}
+        preview = excerpt(Path(raw.get("text_path", raw["stdout_path"]))) if raw else ""
+        error = excerpt(Path(raw["stderr_path"]), 1800) if raw else ""
+        error += "\n" + manifest.get("error", "") + raw.get("error", "")
+        category = raw.get("failure_category")
+        summary = f"{manifest['plugin']}: {manifest['status']}; " + (
+            "reused verified saved output; no analysis subprocess launched." if reused else
+            "saved complete output and execution metadata.")
+        if manifest["status"] != "success":
+            summary += " Incomplete/failed analysis is not a negative finding. Check saved diagnostics and matching symbols."
+        if category == "unsupported_windows_xp":
+            summary += " Upstream XP network layout unsupported; xpnet.XpNetScan can carve XP x86 candidates, not prove traffic."
+        return {"status": manifest["status"], "run_id": manifest['run_id'], "plugin": manifest['plugin'], "image": manifest['image'],
+                "reused": reused, "reuse_key": manifest.get('reuse_key'), "hashing": hashing,
+                "reuse_eligible": manifest.get('reuse_eligible', False),
+                "reuse_unavailable_reason": manifest.get('reuse_unavailable_reason'),
+                "reuse_receipt_path": str(receipt) if receipt else None,
+                "image_sha256": manifest['image_sha256_before'], "integrity_verified": manifest["integrity_verified"],
+                "artifact_path": manifest['artifact_path'], "manifest_path": str(manifest_path),
+                "case_output_directory": str(manifest_path.parent.parent.parent), "summary": summary,
+                "preview": preview, "preview_truncated": len(preview.encode()) >= 2400,
+                "error_preview": error, "failure_category": category,
+                "plugin_origin": 'local_compatibility' if manifest.get('plugin_provenance') else 'installed_volatility',
+                "row_count": raw.get("row_count"), "json_preview": raw.get("json_preview"),
+                "json_artifact": raw.get("json_path"), "text_artifact": raw.get("text_path"),
+                "commands": [{k: v for k, v in item.items() if k not in {"artifacts", "json_preview"}}
+                             for item in commands]}
 
     def get_image_info(self, image: str, os_hint: str = "auto", cancel_event: threading.Event | None = None) -> dict[str, Any]:
         with self._lock:
@@ -572,6 +631,7 @@ class VolatilityBackend:
             entries.append({key: record.get(key) for key in (
                 "run_id", "plugin", "arguments", "started_at", "completed_at", "image_sha256_before",
                 "image_sha256_after", "integrity_verified", "artifact_path")})
+            entries[-1].update({key: record.get(key) for key in ('reuse_key', 'reuse_eligible', 'hashing')})
             entries[-1].update(status=status, manifest_path=str(path),
                 commands=[{k: v for k, v in item.items() if k in
                            {"argv", "status", "returncode", "stdout_path", "stderr_path", "started_at", "completed_at"}}

@@ -22,6 +22,7 @@ class ProtocolTests(unittest.IsolatedAsyncioTestCase):
             args=['-m','volatility_mcp','serve','--config',str(self.config)])
 
     async def test_stdio_tools_both_protocol_modes_without_reporting(self):
+        original_run = None
         for mode in ('auto','legacy'):
             async with Client(self.transport,mode=mode,read_timeout_seconds=15) as client:
                 tools = await client.list_tools()
@@ -34,6 +35,11 @@ class ProtocolTests(unittest.IsolatedAsyncioTestCase):
                 run = decode_result(await client.call_tool('run_plugin',dict(image='example.raw',
                     plugin='windows.pslist.PsList',arguments=['--pid','42'])))
                 self.assertEqual(run['status'],'success')
+                self.assertEqual(run['reused'], original_run is not None)
+                if original_run:
+                    self.assertEqual(run['run_id'], original_run)
+                original_run = run['run_id']
+                self.assertEqual(run['hashing']['groups']['image_after']['files'], 1)
                 self.assertEqual(len(run['commands']),1)
                 output = decode_result(await client.call_tool('read_output',dict(path=run['json_artifact'],limit=32)))
                 self.assertTrue(output['truncated'])
@@ -43,15 +49,21 @@ class ProtocolTests(unittest.IsolatedAsyncioTestCase):
                 self.assertTrue(invalid.is_error)
                 self.assertFalse(list(self.fixture.root.rglob('report.md')))
                 self.assertFalse(list(self.fixture.root.rglob('case-manifest.json')))
+        self.assertEqual(len((self.fixture.root / 'analysis-count.jsonl').read_text().splitlines()), 1)
 
     async def test_protocol_cancellation_finalizes_execution_record(self):
         self.fixture.image.write_text('timeout')
         async with Client(self.transport,mode='legacy',read_timeout_seconds=15) as client:
             task = asyncio.create_task(client.call_tool('run_plugin',dict(image='example.raw',plugin='windows.pslist.PsList')))
-            await asyncio.sleep(0.3)
+            counter = self.fixture.root / 'analysis-count.jsonl'
+            for _ in range(250):
+                if counter.exists(): break
+                await asyncio.sleep(0.02)
+            self.assertTrue(counter.exists(), 'Fixture analysis must start before testing in-flight cancellation')
             task.cancel()
             with self.assertRaises(asyncio.CancelledError):
                 await task
+            manifest = {}
             for _ in range(30):
                 await asyncio.sleep(0.1)
                 paths = list(self.fixture.backend.outputs.glob('*/runs/*/manifest.json'))

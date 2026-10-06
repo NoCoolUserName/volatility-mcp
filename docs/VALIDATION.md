@@ -133,3 +133,68 @@ Report design/schema 0.1 is intentionally provisional; elaborate presentation an
 broader dataset evaluation are deferred. No evidence, private reports, credentials,
 local configuration, virtual environments, symbols, or third-party books belong
 in the public project.
+
+## Persistent backend reuse — focused validation
+
+Assessment: **ready with stated limitations for the documented local POSIX use
+case**. This change implements result reuse, invalidation, duplicate prevention,
+and hashing instrumentation only. Structured saved-row queries, value-level citation
+checks, explicit coverage tracking and forensic detection evaluation remain future
+work. No memory-image investigation or historical report regeneration was run.
+
+Automated checks used the harmless analyzer fixture and a persistent analysis-only
+subprocess counter. Fifteen reuse tests passed, demonstrating:
+
+- Equivalent typed arguments reuse one original run and artifact set, including
+  a newly constructed backend. Original run bytes remain unchanged, and separate
+  receipts record both full source hashes plus phase durations/bytes/counts.
+- Two independent concurrent backend processes launch exactly one analyzer; one
+  response is a hit with the same run ID. Discovery probes also reuse after restart.
+- Source content, arguments, URI file inputs, executable/dependency bytes,
+  versions, plugin metadata, symbols/cache and timeout changes invalidate reuse.
+- Missing, altered, additional, symlinked and traversal-containing artifact paths
+  cannot be reused; traversal is rejected before reading the outside file.
+  Legacy, corrupt, incomplete, cancelled, unsupported and failed records are misses.
+- A successful empty result is reusable. A symbol/cache change during execution
+  leaves a successful run ineligible; the next stable run can be reused. Unknown
+  transitive inputs from Volatility user defaults explicitly disable reuse.
+- A waiting duplicate can be cancelled without starting analysis. Dead lock owners
+  do not leave stale locks. A harmless analyzer surviving a killed server retains
+  the lock and prevents an overlapping retry; the test cleans it up explicitly.
+- Source mutation during hit validation is rejected without launching analysis.
+
+Ten existing backend checks, two real stdio MCP protocol checks (with the fake
+analyzer), and the graceful SIGTERM check passed. The protocol test opens separate
+server sessions in both supported protocol modes and verifies one analysis invocation
+total, original run identity, and hit hashing metadata. Fifteen reporting checks
+and all 21 existing Workbench checks also passed across the recorded runs, including
+immutable revisions, evidence links, coins, cancellation and reopened state.
+Total: **64 distinct passing tests**; this was focused verification, not a full suite
+or new browser walkthrough. Workbench jobs/UI and the report format were unchanged.
+
+Initial verification found a fixed-delay cancellation test could cancel before
+analysis started as setup work increased. It now waits for the fake analyzer's
+counter before testing in-flight cancellation. A worker-completion callback also
+retrieves exceptions when a cancelled/disconnected MCP request no longer awaits
+its worker. The HTTP boundary test initially could not bind loopback under the
+implementation sandbox; the single test passed with that operation permitted.
+These initial failures are not presented as successful test results.
+
+Read-only inspection of the real installed Volatility catalog helper confirmed
+version 2.28.2, 198 plugins, ten installed dependency packages, 1,898 inventoried
+runtime files and no import failures. It did not open a memory image or run a
+forensic plugin. This verifies inventory integration, not real-image cache-hit
+performance. No benchmark claim is made from synthetic hashing timings.
+
+Two focused implementation reviews inspected the changed execution path,
+artifact/path confinement, invalidation inputs, lock lifetime, cancellation,
+documentation and outgoing files. Repairs added lock inheritance for surviving
+analyzers, conservative handling of implicit user defaults, malformed-manifest
+handling, and canonical artifact-path checks; affected tests passed. This is
+project implementation review, not an independent audit.
+
+Limits: full source and dependency/artifact hashing remains potentially expensive;
+identity changes favor safe misses, including symbol-cache warming and source
+metadata changes. Older runs are preserved without retroactive reuse certification.
+Results/locks are scoped to the same output root; network-filesystem locking and
+non-macOS hosts remain unverified. Restart idle clients to load the new backend.

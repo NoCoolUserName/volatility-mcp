@@ -1,5 +1,6 @@
 """Harmless CLI simulator for tests only. It never analyzes a real memory image."""
 import json
+import os
 from pathlib import Path
 import sys
 import time
@@ -20,9 +21,20 @@ if any(arg.endswith('catalog.py') for arg in sys.argv):
     raise SystemExit(0)
 image = Path(sys.argv[sys.argv.index('-f') + 1])
 files = Path(sys.argv[sys.argv.index('-o') + 1])
+# Counter records only analysis, not catalog subprocesses. Private fixture output.
+with Path(sys.argv[0]).with_name('analysis-count.jsonl').open('a') as counter:
+    counter.write(json.dumps({'pid': os.getpid(), 'argv': sys.argv[1:]}) + '\n')
 mode = image.read_text().strip()
 (files / 'invocation.txt').write_text('SYNTHETIC invocation\n')
-if mode == 'timeout':
+if mode == 'slow':
+    time.sleep(0.4)
+    print('[]')
+elif mode == 'empty':
+    print('[]')
+elif mode == 'warm-cache':
+    (Path(sys.argv[sys.argv.index('--cache-path') + 1]) / 'fixture-symbol.json').write_text('SYNTHETIC symbol')
+    print('[]')
+elif mode == 'timeout':
     print('SYNTHETIC partial stdout', flush=True)
     time.sleep(20)
 elif mode == 'error':

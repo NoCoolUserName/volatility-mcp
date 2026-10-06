@@ -13,10 +13,10 @@ import json
 import platform
 import sys
 from pathlib import Path
-from importlib.metadata import version
+from importlib.metadata import distributions, version
 from typing import Any
 
-from volatility3 import framework, plugins
+from volatility3 import framework, plugins, symbols
 from volatility3.framework import interfaces, constants
 from volatility3.framework.configuration import requirements
 
@@ -92,12 +92,35 @@ def build_catalog() -> dict[str, Any]:
             "plugin_version": list(plugin.version),
             "source_file": str(Path(inspect.getfile(plugin)).resolve()),
         }
+    # Inventory installed analyzer dependencies in this interpreter, not the MCP
+    # environment. The backend hashes these bytes for persistent reuse identity.
+    runtime_files = {str(Path(sys.executable).resolve())}
+    defaults = Path.home() / '.config' / 'volatility3' / 'vol.json'
+    reuse_blockers = []
+    if defaults.exists():
+        runtime_files.add(str(defaults))
+        reuse_blockers.append('Volatility user defaults exist; implicit external inputs are not fully inventoried.')
+    packages = {}
+    for dist in distributions():
+        packages[dist.metadata['Name']] = dist.version
+        for entry in dist.files or []:
+            path = Path(dist.locate_file(entry))
+            if path.suffix != '.pyc' and '__pycache__' not in path.parts and path.is_file():
+                runtime_files.add(str(path.absolute()))
+    # Also cover editable/unrecorded plugin code and installed symbol additions.
+    for root in [*plugins.__path__, *symbols.__path__, str(Path(framework.__file__).parent)]:
+        for path in Path(root).rglob('*'):
+            if path.is_file() and path.suffix != '.pyc' and '__pycache__' not in path.parts:
+                runtime_files.add(str(path.absolute()))
     return {
         "version": version("volatility3"),
         "architecture": platform.machine(),
         "python_version": platform.python_version(),
         "plugins": available,
         "import_failures": import_failures,
+        "runtime_files": sorted(runtime_files),
+        "packages": packages,
+        "reuse_blockers": reuse_blockers,
     }
 
 

@@ -6,6 +6,9 @@
   official Volatility installation; no report requirement or model API key.
 - Configurable evidence/output roots, controlled subprocess arguments, complete
   saved outputs and execution metadata, bounded reading, and case history.
+- Persistent backend result reuse with conservative content/version/configuration
+  invalidation, cross-process duplicate prevention within an output root, and
+  hashing-time/byte measurements. See [RESULT_REUSE.md](RESULT_REUSE.md).
 - Installed plugin/argument discovery, OS discovery, and the isolated XP x86
   network-pool compatibility addon with explicit carving limitations.
 - Setup, diagnostics, optional Codex registration, focused harmless tests, and CI.
@@ -22,6 +25,10 @@ unverified conditions.
 
 ## Next: refine the report specification
 
+- Next focused execution/report changes (not implemented by result reuse): structured
+  queries over saved rows and observable-value citation checks; then explicit
+  coverage states and focused forensic evaluation fixtures. Keep these separate
+  from the completed backend reuse change.
 - Review finding structure, evidence locators, uncertainty language, hypothesis
   dispositions, timeline semantics, completion status, and revision provenance.
 - Evaluate report quality against curated, legally redistributable or locally

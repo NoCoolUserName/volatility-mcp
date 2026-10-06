@@ -79,6 +79,13 @@ the module command above also works with an existing editable installation.
    restart marks unfinished jobs incomplete; it never automatically restarts them.
    Explicitly queue a new question/report operation to continue the saved thread.
 
+Core [result reuse](RESULT_REUSE.md) now applies beneath readiness and agent tool
+calls. Equivalent requests can reuse verified successful runs after restart, with
+their original run IDs and artifact paths. This is independent of the Workbench
+queue and leaves sealed report versions unchanged. Old runs without reuse metadata
+remain available for saved-output reading but are not automatically certified as
+cache hits. Hashing remains mandatory; failed or changed-context runs are not reused.
+
 ## Architecture and boundaries
 
 ```text

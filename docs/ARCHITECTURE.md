@@ -99,7 +99,13 @@ the conservative allowlist can reject otherwise valid free-form strings. This is
 intentional and should yield an actionable error, not a hidden shell fallback.
 The fixed addon may be disabled locally; an MCP caller cannot substitute plugin code.
 
-Each requested plugin runs **once with the JSON renderer**. Complete raw stdout and
+Requests first check persistent content/version-aware reuse; see
+[RESULT_REUSE.md](RESULT_REUSE.md) for identity, invalidation, receipts and hashing
+measurements. Only stable successful runs with intact artifacts qualify. A hit
+returns the original run ID/paths and a separate verification receipt. Old runs
+without reuse identity remain available but are not retrospectively certified.
+
+On a miss, the plugin runs **once with the JSON renderer**. Complete raw stdout and
 stderr go directly to files; a human-readable view is generated from that saved JSON
 without rerunning analysis. Invalid/unsupported JSON leaves raw bytes intact and
 marks `output_error`. A single unusually large JSON record can exceed the bounded
@@ -110,11 +116,15 @@ The process timeout bounds plugin execution, not the entire tool's pre/post hash
 catalog loading, or artifact conversion. Clients need a longer timeout; the Codex
 registration helper uses at least 90 seconds for startup and 1,800 for tools,
 increasing these for configured limits. Large images may need longer settings.
-Analysis is serialized in a server process. Cancellation, timeout, client disconnect, and graceful SIGTERM kill the child
+Analysis is serialized across processes sharing an output root using a POSIX file
+lock. Waiting duplicates recheck saved results after acquiring it; waiting is
+cancellable and bounded. Separate case/output roots do not share locks or results.
+Cancellation, timeout, client disconnect, and graceful SIGTERM kill the child
 process group and retain partial output/status. Uncatchable termination (such as SIGKILL) can
 leave a `running` manifest; a later session identifies it as interrupted or from
 another session rather than declaring it successful. A force-killed server can leave a
-child process running; inspect local processes before retrying. No automatic expensive retry
+child process running; the analyzer inherits the lock to prevent overlapping retries
+until it exits. Inspect local processes before retrying. No automatic expensive retry
 or alternate-renderer rescan occurs.
 
 Protocol messages alone use stdout; diagnostics use stderr. The current process
@@ -124,7 +134,9 @@ confinement uses POSIX process groups; Windows as an analysis host is unsupporte
 
 ```text
 output_root/
+  .execution.lock           # persistent lock inode; never remove during use
   <image-stem>-<relative-path-hash>/
+    reuse/<UTC timestamp>-<random ID>.json  # verification receipt, original run untouched
     runs/<UTC timestamp>-<random run ID>/
       manifest.json
       command.started.json
@@ -141,6 +153,9 @@ timeout and exit status, output paths/hashes, and integrity status. Local-addon 
 snapshot/hash the addon source and verify it did not change. Immutable source bytes
 and complete raw output are the evidence; previews are navigation aids. An execution
 metadata manifest is not the optional reporting `case-manifest.json`.
+Run schema `1.2` also stores reuse identity/eligibility and hashing durations, bytes,
+and counts by phase. Both misses and hits keep full source before/after hashes.
+No report-format, UI scheduling or source-integrity optimization accompanies reuse.
 
 Reports reference stable artifact IDs with row/field/offset locators and copy exact
 outputs to their separate `artifacts/` directory for portable links. Investigator
