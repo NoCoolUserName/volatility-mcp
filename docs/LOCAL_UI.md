@@ -118,9 +118,13 @@ instead of silently reopening outdated code. A browser refresh alone cannot
 restart the Python backend. Stopping marks active work incomplete and preserves
 completed artifacts; submit a follow-up after relaunch to continue.
 
-Workbench displays UTC timestamps as `2026-10-06 02:52:39Z`, including legacy
+Workbench displays timestamps in U.S. Central time with the Zulu clock in
+parentheses, e.g. `2026-10-05 22:15:01 CDT (03:15:01Z)`, including legacy
 report versions, activity, conversation timestamps, and evidence-path labels.
-New execution/state metadata uses that same seconds-resolution UTC format.
+Conversion uses `America/Chicago` for each timestamp, so CST/CDT and the local
+calendar date reflect daylight saving time at that instant. The leading date is
+the Central date; the parenthesized Zulu clock can belong to the next UTC day.
+Execution/state metadata remains seconds-resolution UTC (`YYYY-MM-DD HH:MM:SSZ`).
 New run/report folders and registration backups use portable names such as
 `2026-10-06_02-52-39Z-<unique suffix>`; the suffix prevents same-second collisions.
 Existing folders, sealed reports, and raw evidence remain unchanged. Evidence

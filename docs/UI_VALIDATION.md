@@ -152,3 +152,15 @@ console errors. Initial browser harness waits assumed a disconnected Codex label
 correcting the harness to wait for the loaded case resolved that test-only issue.
 The running investigation finished before Workbench was restarted. Existing raw
 artifacts, sealed bundles, paths and hashes were not migrated or rewritten.
+
+## U.S. Central display with Zulu reference
+
+The GUI now formats timestamps through `Intl.DateTimeFormat` with the explicit
+`America/Chicago` zone, independent of the browser's local timezone. Labels use
+the Central calendar date, CST/CDT, and the original UTC clock in parentheses.
+UTC metadata, raw artifact content, filenames, and actual link targets stay intact.
+The two focused timestamp tests passed, including summer/winter, both 2026 DST
+boundaries, midnight, year/date rollover, legacy labels, and elapsed-time parsing.
+A live read-only Chrome check verified three report labels, 76 evidence labels,
+and an original evidence link without console errors. An active investigation
+was left running; refreshing the browser loads the updated static JavaScript.

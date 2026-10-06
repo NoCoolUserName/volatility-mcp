@@ -1,6 +1,17 @@
 "use strict";
 const $ = (id) => document.getElementById(id);
 // Normalize timestamp labels only. Saved evidence and link targets stay exact.
+const centralTime = new Intl.DateTimeFormat("en-US", {
+  timeZone: "America/Chicago", year: "numeric", month: "2-digit", day: "2-digit",
+  hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23",
+  timeZoneName: "short",
+});
+function centralLabel(original, day, clock) {
+  const instant = new Date(day + "T" + clock + "Z");
+  if (Number.isNaN(instant.getTime())) return original;
+  const p = Object.fromEntries(centralTime.formatToParts(instant).map(x => [x.type, x.value]));
+  return `${p.year}-${p.month}-${p.day} ${p.hour}:${p.minute}:${p.second} ${p.timeZoneName} (${clock}Z)`;
+}
 function readableTime(value) {
   return String(value)
     .replace(/\b(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(?:[.-]\d+)?(?:Z|\+0000)\b/g,
@@ -10,7 +21,7 @@ function readableTime(value) {
     .replace(/\b(\d{4}-\d{2}-\d{2})_(\d{2})-(\d{2})-(\d{2})Z\b/g,
       "$1 $2:$3:$4Z")
     .replace(/\b(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}:\d{2})(?:\.\d+)?(?:Z|\+00:00)\b/g,
-      "$1 $2Z");
+      centralLabel);
 }
 function timestampMillis(value) {
   return Date.parse(String(value).replace(/^(\d{4}-\d{2}-\d{2}) /, "$1T"));
