@@ -42,6 +42,9 @@ the module command above also works with an existing editable installation.
 
 ## Workflow
 
+The Cases list displays newest first by case creation time, including after
+refresh. Reordering the list does not change the selected case.
+
 1. Add existing `.raw`, `.mem`, `.vmem`, `.dmp`, `.lime`, or `.dd` files through
    path entry, evidence-folder browsing, or **Choose in Finder** on macOS. The
    native helper returns filesystem paths; the browser does not upload files.

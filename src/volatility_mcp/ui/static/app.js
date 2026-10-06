@@ -245,7 +245,7 @@ function render() {
   $("pick").disabled = !state.native_picker;
   const cases = $("cases");
   cases.replaceChildren();
-  for (const c of state.cases) {
+  for (const c of [...state.cases].sort((a, b) => timestampMillis(b.created_at) - timestampMillis(a.created_at))) {
     const b = el(
       "button",
       c.title,
