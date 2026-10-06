@@ -233,6 +233,37 @@ stale or damaged allocations are possible. It cannot prove active connection
 state, traffic, or malicious communication. Official Windows NetScan/NetStat may
 reject XP. Discover actual compatibility and retain the exact failure.
 
+### Optional pypykatz plugin
+
+[pypykatz-volatility3](https://github.com/skelsec/pypykatz-volatility3) is a
+third-party addon for Mimikatz-style credential extraction from saved Windows
+LSASS memory. It is not bundled with this project or an official Volatility
+Foundation plugin. Extracted credentials do not establish that Mimikatz previously
+ran on the captured system.
+
+Install `pypykatz` into the **configured Volatility environment**, not the MCP
+server environment, and place the author's `vol_pypykatz.py` in that environment's
+`volatility3/plugins/` directory. Retain the upstream license and record the source
+commit/hash; keep installation records and local assets outside tracked files.
+Existing MCP configuration then discovers it without allowing arbitrary plugin
+directories in tool arguments. Installing the dependency alone does not install
+the Volatility plugin file.
+
+The verified local combination is **pypykatz 0.6.13**, upstream plugin commit
+[`1b722f0`](https://github.com/skelsec/pypykatz-volatility3/commit/1b722f00f7095e8e13648ce6bd355af52c12b21c),
+and **Volatility 2.28.2 / Python 3.12 / ARM64 macOS**. Dependency checks, CLI plugin
+help, and discovery through both an existing MCP session and a fresh registered
+stdio connection passed, with no plugin import failures. Existing analyzer package
+versions were preserved. No image was opened or credentials extracted for this
+verification; runtime compatibility with individual guest OS/images is untested.
+
+Call `list_plugins` with `{"query":"pypykatz"}`; the exact installed name is
+`vol_pypykatz.pypykatz`, with no additional plugin arguments. If an idle client or
+Workbench retains an older plugin catalog, reconnect/restart it. The catalog's
+`installed_volatility` origin describes installation location, not endorsement;
+the upstream wrapper reports an inherited version of `0.0.0`, separate from the
+pypykatz dependency version. Treat any extracted secrets as sensitive case output.
+
 ## Quick start 2: optionally use investigation and reporting
 
 After the MCP quick start succeeds, read the versioned
@@ -271,8 +302,11 @@ dependencies and is not loaded during ordinary tool interactions.
 Reports link findings and contextualized IOCs to stable artifact IDs and useful
 locators, retain failures and limitations, and separate observations from inference
 and unknowns. The checker validates artifact paths/hashes, run ownership, required
-structure, and references. It does **not** verify that a claimed PID, address, or
-other observable value appears at the cited locator; analytical review is required.
+structure, and references. Supported structured citations also validate declared
+typed observable values against actual source rows/fields or byte ranges. Legacy
+locators remain readable without acquiring value-verified status. Free-form claims
+and analytical conclusions still require review; see the
+[saved-evidence contract](docs/SAVED_EVIDENCE.md).
 Changes to sealed bundles belong in a new revision, not an overwrite.
 
 ## Optional local browser interface
@@ -296,6 +330,7 @@ AI service. The first version adds no runtime dependencies.
 
 | Capability | Current behavior |
 | --- | --- |
+| Case selection | Newest first by creation time; fresh loads select the first case unless a valid `?case=` link requests another. Background refresh preserves manual selection; missing IDs fall back safely. |
 | Image selection | Path entry, configured-evidence-folder browsing, and a macOS Finder helper. Images are read in place, not uploaded or copied. |
 | Multiple images | Unrelated images become separate cases; explicitly related captures can share a case with separate image identities and provenance. Jobs run sequentially, with one dedicated Codex conversation per case. |
 | Readiness | Checks account/tool access, plugin discovery, image hashes with byte progress, and OS/symbol discovery through MCP. Reports **Ready**, **Ready with limitations**, or **Blocked** with reasons; these are not malware verdicts. |
@@ -350,8 +385,9 @@ duplicate submissions, restart handling, portable report links and immutable
 revisions, plus a short real Codex/Volatility integration with saved-evidence
 follow-ups. See [UI_VALIDATION.md](docs/UI_VALIDATION.md) for the actual runs and
 their limits. Interactive Finder selection, non-macOS hosts, and other browsers
-remain unverified. There is no comprehensive per-plugin coverage ledger or curated
-detection-quality evaluation yet. Parallel investigations, multiple agents per
+remain unverified. Explicit plan-scoped coverage and a deterministic synthetic
+evaluation harness are implemented; they do not establish comprehensive plugin
+coverage or real-world detection accuracy. Parallel investigations, multiple agents per
 case, additional agent adapters, hosted access, and polished exports remain future
 work. Structural report validation is not forensic certification.
 
