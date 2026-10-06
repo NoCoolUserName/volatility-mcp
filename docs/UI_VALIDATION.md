@@ -118,3 +118,20 @@ of memory analysis. No private memory image was analyzed. The 18 UI checks passe
 the HTTP check required permission to bind localhost outside the restricted test
 sandbox. Tests also exposed an unclosed activity-log reader, repaired with a
 context manager. Restart Workbench to apply the policy to loaded case threads.
+
+## Stale running instance follow-up
+
+The reported repeat approval prompts came from a Workbench backend started before
+scoped tool preauthorization was committed. Reopening the launcher had reused that
+backend; installing new source did not replace code already loaded in memory.
+The affected process was gracefully restarted, preserving completed artifacts and
+marking its paused request incomplete. The replacement session's application-code
+fingerprint matched the installed code.
+
+The launcher now rejects reopening an instance with a stale or absent code
+fingerprint and explains how to restart it. Regression checks cover matching,
+stale, and legacy fingerprints and exercise the locked-instance launch path to
+verify that it does not reopen the browser. All 20 UI checks passed. A real
+Codex-to-scoped-MCP turn using the harmless simulated analyzer completed with one
+saved run, zero approval prompts, and unchanged source bytes. No private image
+was reanalyzed for this verification.

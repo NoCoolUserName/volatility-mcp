@@ -1,16 +1,18 @@
 """Optional UI tests: real local HTTP/MCP, simulated Codex and harmless images."""
 import asyncio
 import dataclasses
+import fcntl
 import hashlib
 import json
 from pathlib import Path
+from types import SimpleNamespace
 import threading
 import unittest
 from unittest.mock import patch
 import urllib.error
 import urllib.request
 from volatility_mcp.ui.app import Workbench
-from volatility_mcp.ui.http import Server
+from volatility_mcp.ui.http import Server, check_running_version, runtime_fingerprint, serve
 from volatility_mcp.ui.scoped_mcp import CaseBackend
 from volatility_mcp.ui.storage import Bundle, read_chunk
 import test_backend
@@ -78,6 +80,14 @@ class FakeCodex:
 
 
 class UITests(unittest.IsolatedAsyncioTestCase):
+    def test_launcher_rejects_stale_and_legacy_instances(self):
+        fingerprint=runtime_fingerprint()
+        self.assertEqual(len(fingerprint),64)
+        check_running_version({'runtime_fingerprint':fingerprint},fingerprint)
+        for session in ({}, {'runtime_fingerprint':'old'}):
+            with self.assertRaisesRegex(ValueError,'older Workbench'):
+                check_running_version(session,fingerprint)
+
     async def asyncSetUp(self):
         self.fixture=test_backend.BackendTests();self.fixture.setUp()
         self.addCleanup(self.fixture.doCleanups)
@@ -87,6 +97,15 @@ class UITests(unittest.IsolatedAsyncioTestCase):
         await self.app.start()
         self.case=self.app.add([str(self.fixture.image)])[0]
     async def asyncTearDown(self):await self.app.close()
+    async def test_stale_launcher_does_not_reopen_browser(self):
+        root=self.fixture.root/'stale-ui';root.mkdir()
+        (root/'session.json').write_text(json.dumps({'url':'http://127.0.0.1:1/#synthetic'}))
+        with (root/'app.lock').open('a+') as lock:
+            fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+            with patch('volatility_mcp.ui.http.webbrowser.open') as browser:
+                with self.assertRaisesRegex(ValueError,'older Workbench'):
+                    await serve(SimpleNamespace(config=self.config,state_dir=str(root),no_open=False))
+                browser.assert_not_called()
     async def wait_job(self,job):
         for _ in range(150):
             if job['status'] not in ('queued','running','stopping'):return job

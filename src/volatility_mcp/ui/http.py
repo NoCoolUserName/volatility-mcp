@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import fcntl
+import hashlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from http.cookies import SimpleCookie
 import json
@@ -15,6 +16,22 @@ import webbrowser
 from .app import Workbench
 from .storage import atomic_json, private_dir
 from ..config import load_config
+
+
+def runtime_fingerprint():
+    """Identify installed server/UI code without reading private case data."""
+    root=Path(__file__).resolve().parents[1]
+    digest=hashlib.sha256()
+    for path in sorted(root.rglob('*')):
+        if path.is_file() and path.suffix in ('.py','.js','.css','.html'):
+            digest.update(str(path.relative_to(root)).encode())
+            digest.update(b'\0'+path.read_bytes()+b'\0')
+    return digest.hexdigest()
+
+
+def check_running_version(session, fingerprint):
+    if session.get('runtime_fingerprint') != fingerprint:
+        raise ValueError('An older Workbench is still running. Stop it with Ctrl-C in its Terminal window, then launch again. Refreshing the browser does not load updated server code. Completed case artifacts are preserved.')
 
 
 class Server(ThreadingHTTPServer):
@@ -120,9 +137,12 @@ async def serve(args):
     config=load_config(args.config)
     root=private_dir(Path(args.state_dir).expanduser().absolute() if args.state_dir else config.output_root/'workbench')
     lock=(root/'app.lock').open('a+')
+    fingerprint=runtime_fingerprint()
     try:fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
     except BlockingIOError:
+        lock.close()
         session=json.loads((root/'session.json').read_text())
+        check_running_version(session,fingerprint)
         print('Workbench is already running: '+session['url'])
         if not args.no_open:await asyncio.to_thread(webbrowser.open,session['url'])
         return
@@ -131,7 +151,7 @@ async def serve(args):
     server=Server(app,args.port,asyncio.get_running_loop())
     thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
     url=server.origin+'/#'+server.token
-    atomic_json(root/'session.json',{'url':url})
+    atomic_json(root/'session.json',{'url':url,'runtime_fingerprint':fingerprint})
     print('Volatility Workbench: '+url,flush=True)
     print('Keep this process running. Ctrl-C stops queued and active work. Selected excerpts may reach your configured AI service.',flush=True)
     stop=asyncio.Event()

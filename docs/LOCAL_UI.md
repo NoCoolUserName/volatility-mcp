@@ -111,6 +111,12 @@ Case-scoped Volatility tools are preauthorized with
 and resume. Requested analysis runs without a second approval click. Restart
 Workbench after upgrading to apply this to existing case conversations. This does
 not change global Codex configuration or authorize generic shell commands.
+The launcher checks a fingerprint of the installed application code before
+reopening an existing instance. If that instance predates an update (or predates
+fingerprint tracking), it tells you to stop the old Terminal process and relaunch
+instead of silently reopening outdated code. A browser refresh alone cannot
+restart the Python backend. Stopping marks active work incomplete and preserves
+completed artifacts; submit a follow-up after relaunch to continue.
 
 Other supported command/file approvals and scoped Volatility MCP form requests are
 shown with details and approve-once/decline/cancel choices; user-input requests
