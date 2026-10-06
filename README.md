@@ -153,6 +153,7 @@ image or malware is distributed here.
 | `run_plugin` | Reuse a verified equivalent result or run a discovered plugin with validated arguments; preserve raw outputs, metadata, and derived files. |
 | `read_output` | Read a saved text output in bounded chunks with a continuation offset and truncation status. |
 | `case_history` | Retrieve saved run history, commands, timestamps, hashes, and output locations. |
+| `get_coverage` | Read declared scope, saved attempts, effective results, reuse and unknowns; never collect or retry. |
 | `query_output` | Filter/select/count/group/sort saved rows with stable pagination and source status; no new analysis. |
 | `get_evidence` | Resolve hash-bound source rows, fields or byte ranges and check declared typed values. |
 | `inspect_artifact` | Inspect an existing registered run artifact for PE headers/sections or paginated ASCII/UTF-16LE strings; save source-linked results without rescanning memory. |
@@ -394,3 +395,16 @@ Saved results can be filtered, counted, grouped and cited with the core
 first; its report viewer can resolve checked citations to source values. Historical
 locators remain readable but are not promoted to value-verified citations. See
 [the saved-evidence contract](docs/SAVED_EVIDENCE.md).
+
+
+Coverage is available in Workbench's **Coverage** tab and through `get_coverage`.
+Existing cases remain scope-unspecified unless a plan is explicitly declared;
+new report revisions package coverage and state its limitations. The offline
+synthetic evaluation command is:
+
+```sh
+.venv/bin/python tests/evaluation/run.py --output /tmp/volatility-evaluation
+```
+
+See [coverage and evaluation](docs/COVERAGE_EVALUATION.md) for plans, state definitions,
+fixtures, supported versus unsupported tasks, and interpreting the result counters.

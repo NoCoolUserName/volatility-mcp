@@ -1,0 +1,936 @@
+{
+  "schema": "forensic-evaluation/1",
+  "version": "1.0",
+  "review": "Expectations hand-reviewed against fixture bytes and the stated rule contracts; never generated from actual results.",
+  "scenarios": [
+    {
+      "id": "empty",
+      "purpose": "Verified empty is not absent evidence",
+      "fixture": "empty",
+      "runs": [
+        {
+          "status": "success",
+          "returncode": 0
+        }
+      ],
+      "expected": {
+        "execution": "succeeded",
+        "availability": "successfully_empty"
+      },
+      "behavior": "coverage",
+      "limitations": [
+        "Plugin scope only"
+      ],
+      "fixture_origin": {
+        "kind": "synthetic",
+        "source": "fixtures.json and fixtures/synthetic_pe.py; hand-authored controls"
+      },
+      "image_scope": {
+        "image": "synthetic.raw",
+        "os": "Windows renderer-shaped data; no actual kernel",
+        "plugin": "windows.pslist.PsList",
+        "arguments": []
+      },
+      "expected_evidence_references": [
+        {
+          "run_id": "run0",
+          "artifact": "json/stdout.json",
+          "pointer": ""
+        }
+      ]
+    },
+    {
+      "id": "missing",
+      "purpose": "Missing output is unavailable, never empty",
+      "fixture": "empty",
+      "runs": [
+        {
+          "status": "success",
+          "returncode": 0,
+          "missing": true
+        }
+      ],
+      "expected": {
+        "execution": "succeeded",
+        "availability": "unavailable"
+      },
+      "behavior": "coverage",
+      "limitations": [
+        "No output to validate"
+      ],
+      "fixture_origin": {
+        "kind": "synthetic",
+        "source": "fixtures.json and fixtures/synthetic_pe.py; hand-authored controls"
+      },
+      "image_scope": {
+        "image": "synthetic.raw",
+        "os": "Windows renderer-shaped data; no actual kernel",
+        "plugin": "windows.pslist.PsList",
+        "arguments": []
+      },
+      "expected_evidence_references": [
+        {
+          "run_id": "run0",
+          "artifact": "json/stdout.json",
+          "pointer": ""
+        }
+      ]
+    },
+    {
+      "id": "nonzero",
+      "purpose": "Nonzero exit cannot become negative evidence",
+      "fixture": "empty",
+      "runs": [
+        {
+          "status": "error",
+          "returncode": 1
+        }
+      ],
+      "expected": {
+        "execution": "failed",
+        "availability": "unavailable"
+      },
+      "behavior": "query_lead",
+      "expected_decision": "abstain",
+      "limitations": [
+        "No completed collection"
+      ],
+      "fixture_origin": {
+        "kind": "synthetic",
+        "source": "fixtures.json and fixtures/synthetic_pe.py; hand-authored controls"
+      },
+      "image_scope": {
+        "image": "synthetic.raw",
+        "os": "Windows renderer-shaped data; no actual kernel",
+        "plugin": "windows.pslist.PsList",
+        "arguments": []
+      },
+      "expected_evidence_references": [
+        {
+          "run_id": "run0",
+          "artifact": "json/stdout.json",
+          "pointer": ""
+        }
+      ]
+    },
+    {
+      "id": "timeout",
+      "purpose": "Rows before timeout are partial",
+      "fixture": "positive",
+      "runs": [
+        {
+          "status": "timeout",
+          "returncode": -9
+        }
+      ],
+      "expected": {
+        "execution": "timed_out",
+        "availability": "partial"
+      },
+      "behavior": "query_lead",
+      "expected_decision": "abstain",
+      "limitations": [
+        "Incomplete collection"
+      ],
+      "fixture_origin": {
+        "kind": "synthetic",
+        "source": "fixtures.json and fixtures/synthetic_pe.py; hand-authored controls"
+      },
+      "image_scope": {
+        "image": "synthetic.raw",
+        "os": "Windows renderer-shaped data; no actual kernel",
+        "plugin": "windows.pslist.PsList",
+        "arguments": []
+      },
+      "expected_evidence_references": [
+        {
+          "run_id": "run0",
+          "artifact": "json/stdout.json",
+          "pointer": "/0/PID"
+        }
+      ]
+    },
+    {
+      "id": "parse",
+      "purpose": "Successful exit with malformed JSON is not empty",
+      "fixture": "empty",
+      "runs": [
+        {
+          "status": "output_error",
+          "returncode": 0,
+          "raw": "[{"
+        }
+      ],
+      "expected": {
+        "execution": "succeeded",
+        "availability": "malformed"
+      },
+      "behavior": "coverage",
+      "limitations": [
+        "Renderer output unusable"
+      ],
+      "fixture_origin": {
+        "kind": "synthetic",
+        "source": "fixtures.json and fixtures/synthetic_pe.py; hand-authored controls"
+      },
+      "image_scope": {
+        "image": "synthetic.raw",
+        "os": "Windows renderer-shaped data; no actual kernel",
+        "plugin": "windows.pslist.PsList",
+        "arguments": []
+      },
+      "expected_evidence_references": [
+        {
+          "run_id": "run0",
+          "artifact": "json/stdout.json",
+          "pointer": ""
+        }
+      ]
+    },
+    {
+      "id": "symbols",
+      "purpose": "Missing symbols block applicability",
+      "fixture": "empty",
+      "runs": [
+        {
+          "status": "error",
+          "returncode": 1,
+          "failure_category": "missing_symbols_or_layer"
+        }
+      ],
+      "expected": {
+        "execution": "failed",
+        "applicability": "blocked_prerequisites",
+        "availability": "unavailable"
+      },
+      "behavior": "coverage",
+      "limitations": [
+        "Symbols unavailable"
+      ],
+      "fixture_origin": {
+        "kind": "synthetic",
+        "source": "fixtures.json and fixtures/synthetic_pe.py; hand-authored controls"
+      },
+      "image_scope": {
+        "image": "synthetic.raw",
+        "os": "Windows renderer-shaped data; no actual kernel",
+        "plugin": "windows.pslist.PsList",
+        "arguments": []
+      },
+      "expected_evidence_references": [
+        {
+          "run_id": "run0",
+          "artifact": "json/stdout.json",
+          "pointer": ""
+        }
+      ]
+    },
+    {
+      "id": "unsupported",
+      "purpose": "Unsupported guest remains explicit",
+      "fixture": "empty",
+      "runs": [
+        {
+          "status": "error",
+          "returncode": 1,
+          "failure_category": "unsupported_windows_xp"
+        }
+      ],
+      "expected": {
+        "applicability": "unsupported",
+        "availability": "unavailable"
+      },
+      "behavior": "coverage",
+      "limitations": [
+        "Specific old kernel unsupported by this simulated plugin"
+      ],
+      "fixture_origin": {
+        "kind": "synthetic",
+        "source": "fixtures.json and fixtures/synthetic_pe.py; hand-authored controls"
+      },
+      "image_scope": {
+        "image": "synthetic.raw",
+        "os": "Windows renderer-shaped data; no actual kernel",
+        "plugin": "windows.pslist.PsList",
+        "arguments": []
+      },
+      "expected_evidence_references": [
+        {
+          "run_id": "run0",
+          "artifact": "json/stdout.json",
+          "pointer": ""
+        }
+      ]
+    },
+    {
+      "id": "retry",
+      "purpose": "Preserve failure and successful retry",
+      "fixture": "one",
+      "runs": [
+        {
+          "status": "error",
+          "returncode": 1
+        },
+        {
+          "status": "success",
+          "returncode": 0
+        }
+      ],
+      "expected": {
+        "execution": "succeeded",
+        "availability": "rows_present",
+        "attempt_count": 2,
+        "physical_commands_recorded": 2
+      },
+      "behavior": "coverage",
+      "limitations": [
+        "Success does not erase first failure"
+      ],
+      "fixture_origin": {
+        "kind": "synthetic",
+        "source": "fixtures.json and fixtures/synthetic_pe.py; hand-authored controls"
+      },
+      "image_scope": {
+        "image": "synthetic.raw",
+        "os": "Windows renderer-shaped data; no actual kernel",
+        "plugin": "windows.pslist.PsList",
+        "arguments": []
+      },
+      "expected_evidence_references": [
+        {
+          "run_id": "run1",
+          "artifact": "json/stdout.json",
+          "pointer": "/0/PID"
+        }
+      ]
+    },
+    {
+      "id": "reuse",
+      "purpose": "Reuse is a request, not another physical run",
+      "fixture": "one",
+      "runs": [
+        {
+          "status": "success",
+          "returncode": 0
+        }
+      ],
+      "reuse": true,
+      "expected": {
+        "physical_commands_recorded": 1,
+        "reuse_requests": 1,
+        "attempt_count": 1
+      },
+      "behavior": "coverage",
+      "limitations": [
+        "Simulated historical launch counts, not replay invocations"
+      ],
+      "fixture_origin": {
+        "kind": "synthetic",
+        "source": "fixtures.json and fixtures/synthetic_pe.py; hand-authored controls"
+      },
+      "image_scope": {
+        "image": "synthetic.raw",
+        "os": "Windows renderer-shaped data; no actual kernel",
+        "plugin": "windows.pslist.PsList",
+        "arguments": []
+      },
+      "expected_evidence_references": [
+        {
+          "run_id": "run0",
+          "artifact": "json/stdout.json",
+          "pointer": "/0/PID"
+        }
+      ]
+    },
+    {
+      "id": "partial",
+      "purpose": "Explicit incomplete collection stays partial despite success exit",
+      "fixture": "positive",
+      "runs": [
+        {
+          "status": "success",
+          "returncode": 0,
+          "collection_complete": false
+        }
+      ],
+      "expected": {
+        "execution": "succeeded",
+        "availability": "partial"
+      },
+      "behavior": "query_lead",
+      "expected_decision": "abstain",
+      "limitations": [
+        "Acquisition/collection scope incomplete"
+      ],
+      "fixture_origin": {
+        "kind": "synthetic",
+        "source": "fixtures.json and fixtures/synthetic_pe.py; hand-authored controls"
+      },
+      "image_scope": {
+        "image": "synthetic.raw",
+        "os": "Windows renderer-shaped data; no actual kernel",
+        "plugin": "windows.pslist.PsList",
+        "arguments": []
+      },
+      "expected_evidence_references": [
+        {
+          "run_id": "run0",
+          "artifact": "json/stdout.json",
+          "pointer": "/0/PID"
+        }
+      ]
+    },
+    {
+      "id": "pagination",
+      "purpose": "Response pagination does not mark completed source partial",
+      "fixture": "one",
+      "repeat": 3,
+      "runs": [
+        {
+          "status": "success",
+          "returncode": 0
+        }
+      ],
+      "expected": {
+        "availability": "rows_present",
+        "query_truncated": true
+      },
+      "behavior": "coverage",
+      "limitations": [
+        "Only one row requested per page"
+      ],
+      "fixture_origin": {
+        "kind": "synthetic",
+        "source": "fixtures.json and fixtures/synthetic_pe.py; hand-authored controls"
+      },
+      "image_scope": {
+        "image": "synthetic.raw",
+        "os": "Windows renderer-shaped data; no actual kernel",
+        "plugin": "windows.pslist.PsList",
+        "arguments": []
+      },
+      "expected_evidence_references": [
+        {
+          "run_id": "run0",
+          "artifact": "json/stdout.json",
+          "pointer": "/0/PID"
+        }
+      ]
+    },
+    {
+      "id": "ps_disagreement",
+      "purpose": "Exited scan-only process cannot establish hidden malware",
+      "fixture": "psscan",
+      "additional_fixture": "pslist",
+      "runs": [
+        {
+          "status": "success",
+          "returncode": 0
+        }
+      ],
+      "expected": {
+        "availability": "rows_present"
+      },
+      "behavior": "unsupported_detector",
+      "required_abstention": "hidden malicious process",
+      "forbidden_conclusions": [
+        "hidden malicious process"
+      ],
+      "limitations": [
+        "No discrepancy detector exists; ExitTime plus incomplete acquisition are alternatives"
+      ],
+      "fixture_origin": {
+        "kind": "synthetic",
+        "source": "fixtures.json and fixtures/synthetic_pe.py; hand-authored controls"
+      },
+      "image_scope": {
+        "image": "synthetic.raw",
+        "os": "Windows renderer-shaped data; no actual kernel",
+        "plugin": "windows.psscan.PsScan",
+        "arguments": []
+      },
+      "expected_evidence_references": [
+        {
+          "run_id": "run0",
+          "artifact": "json/stdout.json",
+          "pointer": "/0/PID"
+        }
+      ]
+    },
+    {
+      "id": "pid_reuse",
+      "purpose": "Same PID in separate captures must not join identities",
+      "fixture": "psscan",
+      "additional_fixture": "pid_reuse",
+      "separate_image": true,
+      "runs": [
+        {
+          "status": "success",
+          "returncode": 0
+        }
+      ],
+      "expected": {
+        "cross_image_rejected": true,
+        "same_pid": true
+      },
+      "behavior": "unsupported_detector",
+      "required_abstention": "same process across captures",
+      "forbidden_conclusions": [
+        "same process across captures"
+      ],
+      "limitations": [
+        "No cross-image process identity detector; PID alone insufficient"
+      ],
+      "fixture_origin": {
+        "kind": "synthetic",
+        "source": "fixtures.json and fixtures/synthetic_pe.py; hand-authored controls"
+      },
+      "image_scope": {
+        "image": "synthetic.raw",
+        "os": "Windows renderer-shaped data; no actual kernel",
+        "plugin": "windows.psscan.PsScan",
+        "arguments": []
+      },
+      "expected_evidence_references": [
+        {
+          "run_id": "run0",
+          "artifact": "json/stdout.json",
+          "pointer": "/0/PID"
+        }
+      ]
+    },
+    {
+      "id": "jit",
+      "purpose": "Executable private memory is not a malware verdict",
+      "fixture": "jit",
+      "runs": [
+        {
+          "status": "success",
+          "returncode": 0
+        }
+      ],
+      "expected": {
+        "availability": "rows_present"
+      },
+      "behavior": "unsupported_detector",
+      "required_abstention": "malicious injection",
+      "forbidden_conclusions": [
+        "malicious injection"
+      ],
+      "limitations": [
+        "No injection classifier; synthetic JIT-like counterexample"
+      ],
+      "fixture_origin": {
+        "kind": "synthetic",
+        "source": "fixtures.json and fixtures/synthetic_pe.py; hand-authored controls"
+      },
+      "image_scope": {
+        "image": "synthetic.raw",
+        "os": "Windows renderer-shaped data; no actual kernel",
+        "plugin": "windows.pslist.PsList",
+        "arguments": []
+      },
+      "expected_evidence_references": [
+        {
+          "run_id": "run0",
+          "artifact": "json/stdout.json",
+          "pointer": "/0/PID"
+        }
+      ]
+    },
+    {
+      "id": "decoy",
+      "purpose": "Filename/text does not establish execution",
+      "fixture": "decoy",
+      "runs": [
+        {
+          "status": "success",
+          "returncode": 0
+        }
+      ],
+      "expected": {
+        "availability": "rows_present"
+      },
+      "behavior": "query_lead",
+      "expected_decision": "no_lead",
+      "forbidden_conclusions": [
+        "malware executed"
+      ],
+      "limitations": [
+        "Exact-name lead rule does not search decoy text or infer execution"
+      ],
+      "fixture_origin": {
+        "kind": "synthetic",
+        "source": "fixtures.json and fixtures/synthetic_pe.py; hand-authored controls"
+      },
+      "image_scope": {
+        "image": "synthetic.raw",
+        "os": "Windows renderer-shaped data; no actual kernel",
+        "plugin": "windows.pslist.PsList",
+        "arguments": []
+      },
+      "expected_evidence_references": [
+        {
+          "run_id": "run0",
+          "artifact": "json/stdout.json",
+          "pointer": "/0/PID"
+        }
+      ]
+    },
+    {
+      "id": "pe_dll",
+      "purpose": "PE flags and strings are observations only",
+      "fixture": "one",
+      "runs": [
+        {
+          "status": "success",
+          "returncode": 0
+        }
+      ],
+      "behavior": "pe_observation",
+      "expected": {
+        "pe_format": "PE32",
+        "dll_flag": true,
+        "ascii_text": "HELLO_ASCII",
+        "wide_text": "WORLD_WIDE"
+      },
+      "forbidden_conclusions": [
+        "DLL executed",
+        "malicious DLL"
+      ],
+      "limitations": [
+        "Synthetic header; no import/code execution or malware classifier"
+      ],
+      "fixture_origin": {
+        "kind": "synthetic",
+        "source": "fixtures.json and fixtures/synthetic_pe.py; hand-authored controls"
+      },
+      "image_scope": {
+        "image": "synthetic.raw",
+        "os": "Windows renderer-shaped data; no actual kernel",
+        "plugin": "windows.pslist.PsList",
+        "arguments": []
+      },
+      "expected_evidence_references": [
+        {
+          "run_id": "run0",
+          "artifact": "json/stdout.json",
+          "pointer": "/0/PID"
+        }
+      ],
+      "expected_decision": "observation_only"
+    },
+    {
+      "id": "partial_pe",
+      "purpose": "Truncated reconstruction requires abstention about completeness",
+      "fixture": "one",
+      "runs": [
+        {
+          "status": "success",
+          "returncode": 0
+        }
+      ],
+      "behavior": "pe_observation",
+      "pe_truncated": true,
+      "expected": {
+        "structural_status": "truncated_or_inconsistent"
+      },
+      "required_abstention": "complete reconstruction",
+      "forbidden_conclusions": [
+        "complete reconstruction",
+        "malicious DLL"
+      ],
+      "limitations": [
+        "Declared raw section is truncated"
+      ],
+      "fixture_origin": {
+        "kind": "synthetic",
+        "source": "fixtures.json and fixtures/synthetic_pe.py; hand-authored controls"
+      },
+      "image_scope": {
+        "image": "synthetic.raw",
+        "os": "Windows renderer-shaped data; no actual kernel",
+        "plugin": "windows.pslist.PsList",
+        "arguments": []
+      },
+      "expected_evidence_references": [
+        {
+          "run_id": "run0",
+          "artifact": "json/stdout.json",
+          "pointer": "/0/PID"
+        }
+      ],
+      "expected_decision": "limited_observation"
+    },
+    {
+      "id": "citation_observation",
+      "purpose": "Valid PID citation does not validate interpretation",
+      "fixture": "one",
+      "runs": [
+        {
+          "status": "success",
+          "returncode": 0
+        }
+      ],
+      "behavior": "citation",
+      "claim": 4,
+      "expected": {
+        "observable_validation": "matched",
+        "interpretation_validation": "not_checked"
+      },
+      "forbidden_conclusions": [
+        "PID 4 is malicious"
+      ],
+      "limitations": [
+        "Free-form inference not evaluated"
+      ],
+      "fixture_origin": {
+        "kind": "synthetic",
+        "source": "fixtures.json and fixtures/synthetic_pe.py; hand-authored controls"
+      },
+      "image_scope": {
+        "image": "synthetic.raw",
+        "os": "Windows renderer-shaped data; no actual kernel",
+        "plugin": "windows.pslist.PsList",
+        "arguments": []
+      },
+      "expected_evidence_references": [
+        {
+          "run_id": "run0",
+          "artifact": "json/stdout.json",
+          "pointer": "/0/PID"
+        }
+      ]
+    },
+    {
+      "id": "citation_mismatch",
+      "purpose": "Wrong value rejected",
+      "fixture": "one",
+      "runs": [
+        {
+          "status": "success",
+          "returncode": 0
+        }
+      ],
+      "behavior": "citation",
+      "claim": 999,
+      "expected": {
+        "citation_rejected": true
+      },
+      "limitations": [
+        "Observable validation only"
+      ],
+      "fixture_origin": {
+        "kind": "synthetic",
+        "source": "fixtures.json and fixtures/synthetic_pe.py; hand-authored controls"
+      },
+      "image_scope": {
+        "image": "synthetic.raw",
+        "os": "Windows renderer-shaped data; no actual kernel",
+        "plugin": "windows.pslist.PsList",
+        "arguments": []
+      },
+      "expected_evidence_references": [
+        {
+          "run_id": "run0",
+          "artifact": "json/stdout.json",
+          "pointer": "/0/PID"
+        }
+      ]
+    },
+    {
+      "id": "citation_fabricated",
+      "purpose": "Fabricated source row rejected",
+      "fixture": "one",
+      "runs": [
+        {
+          "status": "success",
+          "returncode": 0
+        }
+      ],
+      "behavior": "citation",
+      "claim": 4,
+      "pointer": "/999/PID",
+      "expected": {
+        "citation_rejected": true
+      },
+      "limitations": [
+        "Observable validation only"
+      ],
+      "fixture_origin": {
+        "kind": "synthetic",
+        "source": "fixtures.json and fixtures/synthetic_pe.py; hand-authored controls"
+      },
+      "image_scope": {
+        "image": "synthetic.raw",
+        "os": "Windows renderer-shaped data; no actual kernel",
+        "plugin": "windows.pslist.PsList",
+        "arguments": []
+      },
+      "expected_evidence_references": [
+        {
+          "run_id": "run0",
+          "artifact": "json/stdout.json",
+          "pointer": "/0/PID"
+        }
+      ]
+    },
+    {
+      "id": "legacy",
+      "purpose": "Missing metadata does not invent completeness or plan",
+      "fixture": "empty",
+      "runs": [
+        {
+          "legacy": true
+        }
+      ],
+      "expected": {
+        "execution": "unknown",
+        "availability": "unknown",
+        "scope": "unspecified"
+      },
+      "behavior": "coverage",
+      "limitations": [
+        "No execution return code or output identity recorded"
+      ],
+      "fixture_origin": {
+        "kind": "synthetic",
+        "source": "fixtures.json and fixtures/synthetic_pe.py; hand-authored controls"
+      },
+      "image_scope": {
+        "image": "synthetic.raw",
+        "os": "Windows renderer-shaped data; no actual kernel",
+        "plugin": "windows.pslist.PsList",
+        "arguments": []
+      },
+      "expected_evidence_references": [
+        {
+          "run_id": "run0",
+          "artifact": "json/stdout.json",
+          "pointer": ""
+        }
+      ]
+    },
+    {
+      "id": "positive_lead",
+      "purpose": "Configured exact-name rule correctly raises a lead",
+      "fixture": "positive",
+      "runs": [
+        {
+          "status": "success",
+          "returncode": 0
+        }
+      ],
+      "expected": {
+        "availability": "rows_present"
+      },
+      "behavior": "query_lead",
+      "expected_decision": "lead",
+      "supported_conclusions": [
+        "configured training marker found; investigate"
+      ],
+      "forbidden_conclusions": [
+        "confirmed malware"
+      ],
+      "limitations": [
+        "Lead selection, not malware detection"
+      ],
+      "fixture_origin": {
+        "kind": "synthetic",
+        "source": "fixtures.json and fixtures/synthetic_pe.py; hand-authored controls"
+      },
+      "image_scope": {
+        "image": "synthetic.raw",
+        "os": "Windows renderer-shaped data; no actual kernel",
+        "plugin": "windows.pslist.PsList",
+        "arguments": []
+      },
+      "expected_evidence_references": [
+        {
+          "run_id": "run0",
+          "artifact": "json/stdout.json",
+          "pointer": "/0/PID"
+        }
+      ]
+    },
+    {
+      "id": "negative_lead",
+      "purpose": "Benign JIT fixture does not match configured marker",
+      "fixture": "jit",
+      "runs": [
+        {
+          "status": "success",
+          "returncode": 0
+        }
+      ],
+      "expected": {
+        "availability": "rows_present"
+      },
+      "behavior": "query_lead",
+      "expected_decision": "no_lead",
+      "forbidden_conclusions": [
+        "malicious injection"
+      ],
+      "limitations": [
+        "Tests exact-name query rule only, not injection detection"
+      ],
+      "fixture_origin": {
+        "kind": "synthetic",
+        "source": "fixtures.json and fixtures/synthetic_pe.py; hand-authored controls"
+      },
+      "image_scope": {
+        "image": "synthetic.raw",
+        "os": "Windows renderer-shaped data; no actual kernel",
+        "plugin": "windows.pslist.PsList",
+        "arguments": []
+      },
+      "expected_evidence_references": [
+        {
+          "run_id": "run0",
+          "artifact": "json/stdout.json",
+          "pointer": "/0/PID"
+        }
+      ]
+    },
+    {
+      "id": "xp_pool",
+      "purpose": "Exercise existing XP addon synthetic candidate validation",
+      "fixture": "one",
+      "runs": [
+        {
+          "status": "success",
+          "returncode": 0
+        }
+      ],
+      "behavior": "xp_addon",
+      "expected": {
+        "candidate_kind": "tcp_connection_candidate",
+        "candidate_pid": 1260
+      },
+      "forbidden_conclusions": [
+        "active TCP connection",
+        "all Windows supported"
+      ],
+      "limitations": [
+        "Optional local framework needed; fixed XP x86 carving layout"
+      ],
+      "fixture_origin": {
+        "kind": "synthetic",
+        "source": "fixtures.json and fixtures/synthetic_pe.py; hand-authored controls"
+      },
+      "image_scope": {
+        "image": "synthetic.raw",
+        "os": "Windows renderer-shaped data; no actual kernel",
+        "plugin": "windows.pslist.PsList",
+        "arguments": []
+      },
+      "expected_evidence_references": [
+        {
+          "run_id": "run0",
+          "artifact": "json/stdout.json",
+          "pointer": "/0/PID"
+        }
+      ]
+    }
+  ]
+}

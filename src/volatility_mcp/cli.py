@@ -178,7 +178,7 @@ async def protocol_check(path: Path, config: Config) -> list[dict]:
         async with Client(transport, mode=mode, read_timeout_seconds=config.catalog_timeout + 30) as client:
             tool_list = await client.list_tools()
             names = sorted(tool.name for tool in tool_list.tools)
-            expected = {"list_memory_images", "get_image_info", "list_plugins", "run_plugin", "read_output", "case_history", "inspect_artifact", "query_output", "get_evidence"}
+            expected = {"list_memory_images", "get_image_info", "list_plugins", "run_plugin", "read_output", "case_history", "inspect_artifact", "query_output", "get_evidence", "get_coverage"}
             if not expected.issubset(names):
                 raise ConfigurationError(f"MCP server is missing expected tools: {sorted(expected - set(names))}")
             plugins = decode_result(await client.call_tool("list_plugins", {"query": "windows.info.Info"}))
@@ -376,6 +376,11 @@ def parser() -> argparse.ArgumentParser:
     registration.add_argument("--backup-dir")
     reporting = commands.add_parser("report-check", help="Validate an optional report bundle")
     reporting.add_argument("bundle", type=Path)
+    for name in ('coverage', 'coverage-plan'):
+        command = commands.add_parser(name, help='Read saved coverage or explicitly declare a plan; never runs analysis')
+        command.add_argument('--config')
+        command.add_argument('--image', required=True)
+        if name == 'coverage-plan': command.add_argument('--plan', type=Path, required=True)
     return result
 
 
@@ -386,7 +391,13 @@ def main(argv: list[str] | None = None) -> int:
             from .server import create_server
             create_server(load_config(args.config)).run(transport="stdio")
             return 0
-        if args.command == "report-check":
+        if args.command in ('coverage', 'coverage-plan'):
+            from .backend import VolatilityBackend
+            from .coverage import set_plan
+            backend = VolatilityBackend(load_config(args.config))
+            result = backend.get_coverage(args.image) if args.command == 'coverage' else set_plan(
+                backend, args.image, json.loads(args.plan.read_text()))
+        elif args.command == "report-check":
             from .reporting import check_bundle
             result = check_bundle(args.bundle)
         else:

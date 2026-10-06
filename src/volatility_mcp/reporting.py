@@ -62,7 +62,7 @@ def _check_bundle(directory: Path) -> dict:
     required = {'schema_version','report_spec_version','case_id','synthetic','status','created_at',
                 'completed_at','evidence','tools','runs','artifacts','findings'}
     _require(required <= manifest.keys(), f'Missing manifest fields: {sorted(required - manifest.keys())}')
-    _require(manifest['schema_version'] == '0.1' and manifest['report_spec_version'] in ('0.1', '0.2'), 'Unsupported schema/report spec version')
+    _require(manifest['schema_version'] == '0.1' and manifest['report_spec_version'] in ('0.1', '0.2', '0.3'), 'Unsupported schema/report spec version')
     _require(type(manifest['synthetic']) is bool, 'synthetic must be a boolean')
     _require(manifest['status'] in {'in_progress','complete','complete_with_limitations','blocked'}, 'Unknown completion status')
     complete = manifest['status'].startswith('complete')
@@ -142,6 +142,41 @@ def _check_bundle(directory: Path) -> dict:
         if rid is not None:
             _require(aid in runs[rid]['artifact_ids'], f'Artifact absent from its run: {aid}')
     report = (root / 'report.md').read_text()
+    if manifest['report_spec_version']=='0.3':
+        coverage_path=_path(root,manifest.get('coverage',{}).get('path'))
+        coverage=json.loads(coverage_path.read_text())
+        _require(coverage.get('schema')=='coverage/1' and coverage.get('case_id')==manifest['case_id'], 'Coverage snapshot ownership mismatch')
+        _require(any(a['path']==str(coverage_path.relative_to(root)) for a in artifacts.values()), 'Coverage snapshot must be a hashed artifact')
+        _require({v['image_id'] for v in coverage['images']}=={e['id'] for e in manifest['evidence']}, 'Coverage image identities disagree')
+        from .coverage import report_summary
+        _require(report_summary(coverage) in report, 'Report must retain its mechanical coverage limitations')
+        for view in coverage['images']:
+            for entry in view['entries']:
+                for attempt in entry['attempts']:
+                    _require(attempt['run_id'] in runs, 'Coverage cites an unknown run')
+                    # Check the projection against bundled authority, not a supplied
+                    # coverage completion flag. Historical formats bypass this block.
+                    from .coverage import execution
+                    from .saved_evidence import load_tree, rows
+                    recorded_path=attempt.get('bundle_manifest_path')
+                    _require(any(a['path']==recorded_path and a['run_id']==attempt['run_id'] for a in artifacts.values()),
+                             'Coverage attempt lacks its owning bundled manifest')
+                    recorded=json.loads(_path(root,recorded_path).read_text())
+                    inspection=attempt['run_id'].startswith('inspection-')
+                    _require(attempt['source_status']==recorded.get('status') and
+                             attempt['execution']==execution(recorded,inspection), 'Coverage execution contradicts original record')
+                    if attempt['availability'] in ('rows_present','successfully_empty'):
+                        _require(bool(attempt['evidence']), 'Positive coverage requires saved output')
+                        support=attempt['evidence'][0]
+                        a=next((a for a in artifacts.values() if a['path']==support.get('bundle_path') and
+                                a['run_id']==attempt['run_id']),None)
+                        _require(a is not None and a.get('source_ref')==support['reference']['source'], 'Coverage output identity mismatch')
+                        count=len(rows(load_tree(_path(root,a['path'])),recorded.get('settings',{}).get('operation') if inspection else 'volatility'))
+                        _require(count==attempt['row_count'] and (count==0)==(attempt['availability']=='successfully_empty'),
+                                 'Coverage row count contradicts saved output')
+                    if attempt['availability']=='successfully_empty':
+                        _require(attempt['execution']=='succeeded' and attempt['source_status']=='success' and
+                                 attempt['integrity_verified'] and attempt['row_count']==0, 'Invalid successful-empty coverage')
     headings = re.findall(r'^##\s+(.+)$', report, re.M)
     _require(bool(headings) and headings[0].lower().startswith('executive summary'), 'Executive summary must be first')
     _require(headings[-1].lower().startswith('ioc'), 'IOC appendix must be last')

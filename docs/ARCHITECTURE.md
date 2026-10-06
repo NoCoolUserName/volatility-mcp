@@ -26,7 +26,7 @@ actual outputs plus the versioned report specification.
 A third independently optional layer, the experimental local Workbench, provides
 a loopback browser UI and sequential case jobs. Its replaceable Codex app-server
 adapter creates/resumes one conversation per case using existing authentication.
-A scoped backend reuses the same nine MCP tools, restricting inputs to explicitly
+A scoped backend reuses the same ten MCP tools, restricting inputs to explicitly
 registered case images and outputs to that case. UI-only dynamic tools package
 reports without adding reporting fields to core MCP calls. See
 [LOCAL_UI.md](LOCAL_UI.md) for architecture, launch, authentication and boundaries.
@@ -204,3 +204,14 @@ row ownership and exact typed values; byte locators remain distinct. There is no
 second evidence store or index service. Portable reports copy source identities
 and resolve structured citations against their own verified artifacts. See
 [SAVED_EVIDENCE.md](SAVED_EVIDENCE.md) for contracts, budgets and limitations.
+
+
+## Coverage projection and evaluation
+
+`coverage.py` derives a case/image-scoped view from original run manifests, saved
+outputs, inspections, reuse receipts and optional append-only plan revisions.
+`get_coverage` is read-only; there is no parallel database, scheduler or automatic
+retry. Workbench joins its existing orchestration jobs/request failures separately.
+New bundles package a hashed snapshot and required mechanical limitations summary.
+State/authority/budget definitions and the deterministic synthetic evaluation command
+are documented in [COVERAGE_EVALUATION.md](COVERAGE_EVALUATION.md).

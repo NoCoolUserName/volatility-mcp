@@ -322,7 +322,7 @@ class UITests(unittest.IsolatedAsyncioTestCase):
         from volatility_mcp.ui.storage import now
         report={'id':'draft','status':'draft','created_at':now()}
         manifest=Bundle(self.app.directory(self.case),self.case,report).prepare()
-        failed=[a for a in manifest['artifacts'] if a['run_id'] is None]
+        failed=[a for a in manifest['artifacts'] if a['artifact_id'].startswith('UI-')]
         self.assertEqual(len(failed),1)
         self.assertIn('user rejected', (self.app.directory(self.case)/'reports/draft'/failed[0]['path']).read_text())
 

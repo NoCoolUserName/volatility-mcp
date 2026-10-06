@@ -1,0 +1,14 @@
+{
+  "schema":"forensic-fixtures/1",
+  "origin":"Hand-authored synthetic Volatility JSON renderer-shaped records; no private images",
+  "tables":{
+    "empty":[],
+    "one":[{"PID":4,"Name":"System","__children":[]}],
+    "positive":[{"PID":42,"Name":"TRAINING_BEACON.exe","Address":4096,"__children":[]}],
+    "jit":[{"PID":55,"Name":"jit-worker.exe","Protection":"PAGE_EXECUTE_READWRITE","PrivateMemory":true,"__children":[]}],
+    "decoy":[{"PID":56,"Name":"notes.txt","Text":"TRAINING_BEACON.exe is a training decoy; not an execution record","__children":[]}],
+    "pslist":[{"PID":4,"Name":"System","CreateTime":"2020-01-01T00:00:00Z","ExitTime":null,"__children":[]}],
+    "psscan":[{"PID":88,"Name":"exited.exe","CreateTime":"2020-01-01T00:01:00Z","ExitTime":"2020-01-01T00:02:00Z","__children":[]}],
+    "pid_reuse":[{"PID":88,"Name":"new.exe","CreateTime":"2020-01-01T00:05:00Z","__children":[]}]
+  }
+}

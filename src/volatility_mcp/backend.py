@@ -597,6 +597,10 @@ class VolatilityBackend:
                 "For Linux/macOS analysis, install matching symbols in the existing Volatility symbol directory. "
                 "Unknown means no usable identification was obtained; inspect the saved probe artifacts."}
 
+    def get_coverage(self, image, offset=0, limit=20, entry_id=None, attempt_offset=0, attempt_limit=10):
+        from .coverage import get_coverage
+        return get_coverage(self, image, offset, limit, entry_id, attempt_offset, attempt_limit)
+
     def query_output(self, image, run_id, artifact, fields=None, filters=None, sort=None,
                      offset=0, limit=100, group_by=None):
         from .saved_evidence import query_output

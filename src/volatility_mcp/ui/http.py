@@ -101,6 +101,9 @@ class Handler(BaseHTTPRequestHandler):
         if path=='/api/state':return app.snapshot()
         if path=='/api/browse':return app.browse(one('path'))
         if path=='/api/artifacts':return app.artifacts(app.case(one('case')))
+        if path=='/api/coverage':
+            return await asyncio.to_thread(app.coverage, app.case(one('case')), one('image'),
+                int(one('offset','0')), one('entry') or None, int(one('attempt_offset','0')))
         if path=='/api/citations':
             return await asyncio.to_thread(app.citations, app.case(one('case')), one('report'),
                 int(one('offset','0')), one('finding') or None, int(one('index','0')))

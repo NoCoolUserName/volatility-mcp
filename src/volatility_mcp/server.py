@@ -171,6 +171,20 @@ def create_server(config: Config, *, backend: VolatilityBackend | None = None) -
         """
         return await invoke(backend.get_evidence, reference, observable)
 
+    @mcp.tool(annotations=read)
+    async def get_coverage(image: str, offset: int = 0, limit: int = 20,
+                           entry_id: str | None = None, attempt_offset: int = 0,
+                           attempt_limit: int = 10) -> dict:
+        """Read declared scope, actual attempts, effective results and gaps from saved records only.
+
+        No collection, retry, image hash, migration write or plan invention. Separate execution,
+        applicability, availability, and delivery pagination. Latest attempt is effective;
+        earlier successes and failed retries stay visible. Reuse points to its original run.
+        Unspecified scope and legacy ambiguity are explicit; no clean-system verdict.
+        Entries and their attempt histories have separate pagination; follow both cursors.
+        """
+        return await invoke(backend.get_coverage, image, offset, limit, entry_id, attempt_offset, attempt_limit)
+
     return mcp
 
 

@@ -1,6 +1,6 @@
 # {{CASE_ID}} — {{CASE_TITLE}}
 
-Report specification: 0.2. Status: {{COMPLETION_STATUS}}.
+Report specification: 0.3. Status: {{COMPLETION_STATUS}}.
 Analysis: {{START_UTC}} to {{END_UTC}}. Revision: {{REVISION_OR_FIRST}}.
 
 > Editable template fields use `{{...}}`. Replace them with observed values or
@@ -57,6 +57,8 @@ initial access or an intrusion story.}}
 | {{CALL_ID}}; {{PREREQUISITES_OR_NONE}} | {{QUESTION_AND_ACTUAL_CALL}} | {{ARTIFACT_AND_RESULT}} | {{RATIONALE_AND_DISPOSITION}} |
 
 {{INCLUDE_MEANINGFUL_FAILURES_NEGATIVE_CONTRARY_AND_INCONCLUSIVE_EVIDENCE}}
+
+<!-- New bundles include coverage.json and its mechanical limitations summary. -->
 
 ## Limitations and unresolved questions
 

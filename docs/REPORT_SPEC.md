@@ -1,6 +1,6 @@
 # Optional investigation and report specification
 
-**Report specification: 0.2. Manifest schema: 0.1. Status: initial, editable.**
+**Report specification: 0.3. Manifest schema: 0.1. Status: initial, editable.**
 
 This is the authoritative reporting contract for this repository. Apply it only
 when an investigation/report workflow is requested. The core MCP tools require
@@ -171,7 +171,7 @@ Use JSON with these required top-level fields:
 
 | Field | Meaning |
 | --- | --- |
-| `schema_version`, `report_spec_version` | Schema `"0.1"`; report specification `"0.2"` for new bundles (`"0.1"` remains supported). |
+| `schema_version`, `report_spec_version` | Schema `"0.1"`; report specification `"0.3"` for new bundles (`"0.1"`/`"0.2"` remain supported). |
 | `case_id`, `synthetic` | Stable case identity and explicit boolean example status. |
 | `status` | `in_progress`, `complete`, `complete_with_limitations`, or `blocked`. |
 | `created_at`, `completed_at` | ISO 8601 timestamps with explicit UTC/offset; null completion while unfinished. |
@@ -260,7 +260,7 @@ Finalize checksums last; do not call missing or blocked deliverables complete.
 
 The report layout and manifest schema remain 0.1; report-spec 0.2 adds optional,
 versioned deterministic citations without rewriting historical reports. Both spec
-versions remain readable. New Workbench bundles record report-spec 0.2.
+versions remain readable. New Workbench bundles additionally adopt the 0.3 coverage requirements below.
 
 Use `query_output` to select/filter/count saved rows before requesting new collection.
 Use `get_evidence` to resolve exact fields and check observable values. See
@@ -302,3 +302,38 @@ The viewer resolves and checks that citation, verifies the linked artifact match
 and shows the exact source value/validation above the raw preview. The underlying
 file link remains portable; other Markdown viewers may ignore this optional fragment.
 The Inspect evidence citations control also works without special link fragments.
+
+
+## Explicit coverage (specification 0.3)
+
+New report revisions include a hashed `coverage.json` snapshot and a manifest
+`coverage: {"path":"coverage.json","schema":"coverage/1"}` entry. The snapshot
+is case/image scoped and derived from original attempts, saved results, reuse
+receipts, declared plan revisions and recorded Workbench jobs. Existing 0.1/0.2
+bundles remain readable and untouched; no historical plan is inferred.
+
+Use `get_coverage` before stating what was examined. Preserve separate execution,
+applicability, availability and response-delivery states as defined in
+[COVERAGE_EVALUATION.md](COVERAGE_EVALUATION.md). Keep exact parameters: examining
+one PID is not examining every process. Preserve failed attempts even after a
+successful retry and link reuse to the original execution. A completed job does
+not prove a plugin succeeded, and a succeeded plugin does not answer every question.
+
+Scope without an explicit plan is unspecified. State that overall completeness is
+unknown. Explicit plans describe intended questions/capabilities, not all installed
+plugins. Missing coverage produces a limitation/proposed next action, never an
+automatic rescan. Only separate explicit collection authorization starts analysis.
+
+Negative claims must name the actual successfully collected scope and relevant
+limits: “No matching rows in this completed PID-filtered query” is not “no compromise.”
+Missing files, nonzero exit, timeouts, missing symbols, parse failures and partial
+collection cannot become negative results. A paginated response is a delivery limit,
+not an incomplete scan. Use #2 structured citations for supported observations;
+matching values still do not verify interpretation or attribution.
+
+Workbench inserts an updated mechanical coverage summary in **Limitations**, with
+its snapshot link, declared-plan collection counts, unknown scope and gaps. The
+checker requires that summary, hashed snapshot and basic case/image/run ownership.
+The live view/report maps supporting attempt/output references to existing viewers
+and portable artifact copies. Do not remove the generated limitation block to make
+a report sound more complete. Narrative semantic review remains necessary.

@@ -316,3 +316,73 @@ No new live Codex/other vendor AI conversation was exercised; SDK MCP protocol a
 local browser checks do not certify untested clients. Comprehensive coverage and
 forensic evaluation (#3) remain deferred. Ready for the documented use case with
 these limitations; restart idle MCP/Workbench processes to load new code.
+
+
+## Explicit coverage and focused evaluation (#3) — 2026-10-06
+
+Confirmed #2 at committed HEAD `9081c41` with a clean working tree before changes.
+Implemented read-only `get_coverage`, explicit revisioned plan metadata, Workbench
+coverage/job/request-failure views and new report-spec 0.3 coverage snapshots.
+Original manifests/reports remain authoritative and unchanged by retrieval.
+
+Actual automated verification: 78 targeted unittest cases passed in the final
+combined run: coverage (6), saved evidence (8), reporting (15), inspection (11),
+reuse/duplicate prevention (15), MCP protocol (2) and Workbench (21). The tests use
+harmless fixtures/fake analyzers; no private-memory analysis. Compilation, JS syntax,
+CLI help and diff whitespace checks passed. The local HTTP test cannot bind under
+the restricted sandbox; it and the final combined run passed with loopback permission.
+An old assertion that every no-run artifact was a failed request was narrowed to
+actual request-failure artifacts after adding the coverage snapshot.
+
+Offline harness 1.0: 24 hand-authored synthetic scenarios with a separately reviewed
+baseline. Default environment: **20 passed, 4 unsupported, 0 skipped, 0 failed**.
+With the existing official Volatility framework importable: **21 passed, 3 unsupported,
+0 skipped, 0 failed**, including the existing XP candidate fixture. Initially the
+XP schema validator attempted to write its shared cache; the harness was repaired
+to isolate both the framework cache and its import-captured validation-cache path
+in the temporary fixture directory. The successful replay required no installation.
+
+The three unsupported detector scenarios are process hiding from pslist/psscan
+ambiguity, cross-capture process identity and malicious-versus-benign injection.
+Their relevant software/observable contracts pass, but no detection credit or model
+abstention claim is made. Six configured exact-name lead controls produced zero
+false-positive leads, zero missed expected leads, three appropriate abstentions,
+and zero inappropriate abstentions. These are narrow designed controls, not malware
+accuracy, precision/recall or general model reasoning scores.
+
+Zero-new-analysis evidence:
+
+- Default and optional-XP replay guards reject every subprocess/network connection;
+  both recorded **zero subprocess attempts, zero Volatility invocations and zero
+  network attempts**. Fixture history's command counts are separate from replay.
+- Coverage stdio MCP calls across fresh auto/legacy protocol sessions used server-side
+  subprocess rejection guards. Results were identical after restart, including a
+  verified successful-empty source; invalid paths were rejected.
+- Coverage/plan idempotence tests preserve original manifest/output bytes. Report
+  packaging/sealing from saved fixtures runs under the same no-subprocess guard.
+- Real saved-only MCP checks of two existing private cases returned unspecified
+  scope and stable coverage on repeated retrieval. Guards prohibited subprocesses
+  and memory-image hashing. No real report, extraction or investigation was rerun.
+
+Actual browser integration: installed Chrome via existing Playwright tooling against
+an isolated synthetic local server passed coverage summary, explicitly uncollected
+scope, attempt/evidence drill-down, refresh/reconnect, and the existing checked
+citation flow. No JS errors, Workbench jobs or Volatility launches. No live model
+conversation or active private Workbench restart occurred.
+
+One focused final review examined state consistency, false-negative risks, evaluation
+validity, compatibility and private-data boundaries. Concrete repairs/checks included:
+reuse receipt image/run ownership, chronological ordering across timestamp formats,
+separate scopes for unknown arguments, bounded issue/plan previews, nonadvancing
+pagination prevention, updating generated coverage limitations on report revisions,
+and checking positive coverage counts against actual bundled output/exit records.
+A tampered derived count fails report validation even with its artifact hash updated.
+Affected coverage/report/Workbench checks passed. This was a self-review, not an
+independent review. Publication inspection excludes all private cases/results.
+
+Ready for documented use with limitations: no original plan inferred, no acquisition
+completeness/liveness detector, no claim that a question is answered by plugin success,
+and no model/malware accuracy evaluation. Legacy launches without exit metadata may
+be uncountable; bounded reads can leave coverage unknown. Optional XP validates one
+synthetic legacy layout, not all kernels/families. See COVERAGE_EVALUATION.md for
+state/budget definitions. Restart only idle MCP/Workbench processes after upgrading.

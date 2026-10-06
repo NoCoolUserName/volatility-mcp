@@ -76,6 +76,7 @@ function choose(id) {
   shownImages = "";
   approvalKey = "";
   $("artifactView").textContent = "";
+  $("coverageView").replaceChildren();
   render();
   loadArtifacts().catch(error);
 }
@@ -98,6 +99,7 @@ function setTab(name) {
     .querySelectorAll("[data-tab]")
     .forEach((n) => n.classList.toggle("selected", n.dataset.tab === name));
   if (name === "evidence") loadArtifacts().catch(error);
+  if (name === "coverage") loadCoverage().catch(error);
 }
 function inline(node, text, base) {
   const re = /\[([^\]]+)\]\(([^)]+)\)/g;
@@ -573,6 +575,69 @@ async function viewArtifact(path, offset = 0) {
   $("more").hidden = !data.truncated;
   setTab("evidence");
 }
+async function loadCoverage() {
+  const c = caseNow();
+  if (!c) return;
+  const panel = $("coverageView");
+  panel.replaceChildren(el("p", "Reading saved manifests and outputs; no analysis is started."));
+  const sections = [];
+  for (const image of c.images) {
+    const section = el("section");
+    section.append(el("h3", image.id));
+    const base = "coverage?case=" + encodeURIComponent(c.id) + "&image=" + encodeURIComponent(image.id);
+    async function page(offset = 0) {
+      const data = await api(base + "&offset=" + offset);
+      if (!offset) {
+        section.append(el("p", "Scope: " + data.scope + ". " +
+          data.summary.entries_with_successful_collection + " / " + data.summary.declared_plan_entries +
+          " declared entries have successful collection. Questions answered: not determined."));
+        section.append(el("p", data.summary.saved_attempts + " saved attempts; " +
+          data.summary.physical_commands_recorded + " physical commands with recorded exit metadata; " +
+          data.summary.reuse_requests + " reuse requests."));
+        for (const text of data.limitations) section.append(el("p", text, "subtle"));
+        if (data.issues.length) section.append(el("pre", JSON.stringify(data.issues, null, 2)));
+        const jobs = el("details");jobs.append(el("summary", "Orchestration jobs (not plugin completion)"),
+          el("pre", readableTime(JSON.stringify({jobs:data.orchestration_jobs, request_failures:data.request_failures}, null, 2))));section.append(jobs);
+      }
+      for (const entry of data.entries) {
+        const detail = el("details");
+        detail.append(el("summary", (entry.question || entry.plugin) + " · " + entry.effective.execution +
+          " · " + entry.effective.applicability + " · " + entry.effective.availability));
+        detail.append(el("pre", JSON.stringify({plugin:entry.plugin, arguments:entry.arguments,
+          question_answered:entry.question_answered, effective:entry.effective}, null, 2)));
+        async function attempts(batch) {
+          for (const a of batch.attempts) {
+            detail.append(el("pre", readableTime(JSON.stringify(a, null, 2))));
+            const manifest = el("button", "Open attempt " + a.run_id);
+            manifest.onclick = act(async () => { await viewArtifact("analysis/" + a.manifest); setTab("evidence"); });
+            detail.append(manifest);
+            for (const e of a.evidence) {
+              const evidence = el("button", "Open saved evidence");
+              evidence.onclick = act(async () => { await viewArtifact("analysis/" + e.path); setTab("evidence"); });
+              detail.append(evidence);
+            }
+          }
+          if (batch.attempt_next_offset !== null) {
+            const more = el("button", "More attempts");
+            more.onclick = act(async () => {
+              const next = await api(base + "&entry=" + encodeURIComponent(entry.entry_id) + "&attempt_offset=" + batch.attempt_next_offset);
+              more.remove(); await attempts(next.entries[0]);
+            });detail.append(more);
+          }
+        }
+        await attempts(entry);section.append(detail);
+      }
+      if (data.delivery.next_offset !== null) {
+        const more = el("button", "More coverage scopes");
+        more.onclick = act(async () => {more.remove(); await page(data.delivery.next_offset);});section.append(more);
+      }
+    }
+    await page();sections.push(section);
+  }
+  if (selected === c.id) panel.replaceChildren(...sections);
+}
+$("loadCoverage").onclick = act(loadCoverage);
+
 async function browse(path = "") {
   const data = await api("browse?path=" + encodeURIComponent(path));
   const nodes = [];

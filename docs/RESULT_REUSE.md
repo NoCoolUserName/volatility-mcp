@@ -70,7 +70,7 @@ Workbench's scheduler, submission IDs, conversation persistence, Stop action, re
 revisions and presentation are unchanged. Cached results keep the original run ID,
 so report packaging and evidence references continue to identify the actual run.
 No historical report bundle is rewritten. Structured evidence queries and observable-value checks are now described in
-[SAVED_EVIDENCE.md](SAVED_EVIDENCE.md); comprehensive coverage tracking remains future work.
+[SAVED_EVIDENCE.md](SAVED_EVIDENCE.md); explicit coverage is described in [COVERAGE_EVALUATION.md](COVERAGE_EVALUATION.md).
 
 ## Records and hashing measurements
 

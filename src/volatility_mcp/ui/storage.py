@@ -66,9 +66,10 @@ def read_chunk(root, path, offset=0, limit=32768):
 
 
 class Bundle:
-    def __init__(self, case_dir, case, version, cancel=None):
+    def __init__(self, case_dir, case, version, cancel=None, *, coverage_backend=None, jobs=None):
         self.case_dir, self.case, self.version = Path(case_dir), case, version
         self.cancel = cancel
+        self.coverage_backend, self.jobs = coverage_backend, jobs or []
         self.root = private_dir(self.case_dir / 'reports' / version['id'])
 
     def check_cancel(self):
@@ -239,10 +240,45 @@ class Bundle:
                 if not target.exists():shutil.copyfile(source,target)
             except Exception as exc:
                 coin.pop('path',None);coin['error']=str(exc)
-        manifest = {'coins':coins,'schema_version': '0.1', 'report_spec_version': '0.2', 'case_id': self.case['id'],
+        manifest = {'coins':coins,'schema_version': '0.1', 'report_spec_version': '0.3', 'case_id': self.case['id'],
             'synthetic': False, 'status': 'in_progress', 'created_at': self.version['created_at'], 'completed_at': None,
             'evidence': evidence, 'tools': versions, 'runs': runs, 'artifacts': artifacts, 'findings': [],
             'previous_report_version': self.version.get('previous'), 'codex_thread_id': self.case.get('thread_id')}
+        from ..coverage import snapshot, job_view, request_failures
+        views=[]
+        for image in self.case['images']:
+            if self.coverage_backend is None:
+                view={'schema':'coverage/1','image_id':image['id'],'scope':'unspecified',
+                      'entries':[], 'limitations':['Coverage source adapter unavailable; no completeness inferred.']}
+            else:
+                view=snapshot(self.coverage_backend,image['path']);view['image_id']=image['id']
+                for entry in view['entries']:
+                    for attempt in entry['attempts']:
+                        for evidence_ref in attempt['evidence']:
+                            src=evidence_ref['reference']['source']
+                            matched=next((a for a in artifacts if a.get('source_ref')==src),None)
+                            if matched:evidence_ref['bundle_path']=matched['path']
+                        matched=next((a for a in artifacts if a['run_id']==attempt['run_id'] and a['path'].endswith('/manifest.json')),None)
+                        if matched:attempt['bundle_manifest_path']=matched['path']
+                        for receipt in attempt.get('reuse_receipts',[]):
+                            original=safe_file(self.case_dir,'analysis/'+receipt['path'])
+                            rel='artifacts/coverage/'+hashlib.sha256(receipt['path'].encode()).hexdigest()+'.json'
+                            dest=safe_file(self.root,rel);private_dir(dest.parent);shutil.copyfile(original,dest)
+                            fp=file_fingerprint(dest)
+                            if not any(a['path']==rel for a in artifacts):
+                                artifacts.append({'artifact_id':'reuse-'+hashlib.sha256(rel.encode()).hexdigest()[:24],'path':rel,'sha256':fp['sha256'],
+                                    'size_bytes':fp['size_bytes'],'media_type':'application/json','run_id':None})
+                            receipt['bundle_path']=rel
+            views.append(view)
+        coverage={'schema':'coverage/1','case_id':self.case['id'],'images':views,
+                  'jobs':job_view(self.jobs,self.case['id']),
+                  'request_failures':request_failures(self.case.get('activity',[])),
+                  'limitation':'Successful collection is not a completed investigation or a clean-system conclusion.'}
+        atomic_json(self.root/'coverage.json',coverage)
+        fp=file_fingerprint(self.root/'coverage.json')
+        artifacts.append({'artifact_id':'coverage-snapshot','path':'coverage.json','sha256':fp['sha256'],
+                          'size_bytes':fp['size_bytes'],'media_type':'application/json','run_id':None})
+        manifest['coverage']={'path':'coverage.json','schema':'coverage/1'}
         existing = self.root / 'case-manifest.json'
         if existing.exists():
             manifest['findings'] = json.loads(existing.read_text()).get('findings', [])
@@ -259,6 +295,17 @@ class Bundle:
         manifest['findings'] = findings
         atomic_json(self.root / 'case-manifest.json', manifest)
         badges='\n'.join(f"![Decorative coin for {c['image_id']}]({c['path']})" for c in manifest['coins'] if 'path' in c)
+        # A mechanical limitation block is part of the report, regardless of
+        # whether the investigator remembered to mention an uncollected scope.
+        from ..coverage import report_summary
+        coverage=json.loads((self.root/'coverage.json').read_text())
+        marker='<!-- coverage-summary -->'
+        end_marker='<!-- /coverage-summary -->'
+        import re
+        markdown=re.sub(re.escape(marker)+r'.*?'+re.escape(end_marker),'',markdown,flags=re.S)
+        heading=re.search(r'^## Limitations[^\n]*$',markdown,re.M)
+        if heading:
+            markdown=markdown[:heading.end()]+ '\n\n'+marker+'\n'+report_summary(coverage)+'\n'+end_marker+'\n'+markdown[heading.end():]
         (self.root / 'report.md').write_text((badges+'\n\n' if badges else '')+markdown)
         fields = ['type','value','evidence_ref','confidence','relevance','status','context']
         with (self.root / 'iocs.csv').open('w', newline='') as stream:

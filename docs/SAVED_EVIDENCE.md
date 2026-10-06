@@ -67,7 +67,8 @@ source with zero rows, not merely zero filter matches. Failed, running, timed-ou
 cancelled, unsupported, and output-error statuses remain visible even for valid
 empty arrays. Inspection pages are labeled `saved_inspection_only`; their original
 source-run status and page/truncation metadata remain visible. None establishes
-absence of malicious activity. A comprehensive coverage ledger remains deferred.
+absence of malicious activity. Explicit coverage is now available through `get_coverage`; see
+[COVERAGE_EVALUATION.md](COVERAGE_EVALUATION.md).
 
 ## Stable references and deterministic checks
 

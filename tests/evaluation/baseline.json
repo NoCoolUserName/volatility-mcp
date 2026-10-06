@@ -1,0 +1,13 @@
+{
+  "fixture_version":"1.0",
+  "scenario_count":24,
+  "required_unsupported_detectors":["ps_disagreement","pid_reuse","jit"],
+  "optional_framework_scenario":"xp_pool",
+  "query_lead_controls":6,
+  "appropriate_abstentions":3,
+  "false_positive_leads":0,
+  "missed_expected_leads":0,
+  "inappropriate_abstentions":0,
+  "actual_subprocess_launches":0,
+  "notes":"Reviewed designed-control baseline, not a malware accuracy target. Changes require explicit review."
+}

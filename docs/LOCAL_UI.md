@@ -55,7 +55,7 @@ refresh. Reordering the list does not change the selected case.
    intentionally grouping them. Each capture keeps its own evidence ID, hash,
    discovery result, run associations, and report provenance. New cases get a
    dedicated conversation; the UI never controls an unrelated open Codex session.
-3. **Check readiness** connects to the existing Codex account, initializes the nine
+3. **Check readiness** connects to the existing Codex account, initializes the ten
    actual scoped MCP tools, discovers plugins, hashes each image with byte progress,
    and runs OS/symbol discovery through MCP. **Ready** means ready to attempt
    analysis. **Ready with limitations** records discovery/import/compatibility
@@ -244,3 +244,11 @@ Saved results can be filtered, counted, grouped and cited with the core
 first; its report viewer can resolve checked citations to source values. Historical
 locators remain readable but are not promoted to value-verified citations. See
 [the saved-evidence contract](SAVED_EVIDENCE.md).
+
+
+The **Coverage** tab shows each selected image's explicit plan or unspecified
+scope, effective collection states, prior attempts and saved evidence/failure links.
+Refresh reads saved data only. Orchestration jobs are separate from plugin outcomes.
+New reports include a coverage snapshot and limitations summary; old reports are
+unchanged. See [COVERAGE_EVALUATION.md](COVERAGE_EVALUATION.md). Restart only an idle
+Workbench to load the new tool inventory, case guidance and view.

@@ -227,3 +227,13 @@ inline `#citation=F1:0` links and refresh without JS errors. The fixture created
 Workbench jobs or Volatility subprocesses. Core query/value/provenance checks and
 legacy compatibility are recorded in [VALIDATION.md](VALIDATION.md). Active private
 Workbench sessions were not restarted; live model behavior was not re-evaluated.
+
+
+## Coverage view — 2026-10-06
+
+Actual Chrome on an isolated synthetic Workbench passed the Coverage tab's declared
+scope/unknown question status, not-run planned filter, attempt drill-down and refresh.
+The existing citation/report/evidence controls also passed. No jobs or Volatility
+subprocesses were submitted by these views. Real private cases were checked separately
+through read-only scoped MCP with subprocess/image-hash guards; the active Workbench
+was not restarted. See VALIDATION.md for the 78 targeted tests and offline scenarios.

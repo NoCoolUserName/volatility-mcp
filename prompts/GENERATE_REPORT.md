@@ -19,6 +19,12 @@ synthetic example illustrates packaging only and must never supply case findings
 Inspect the actual image, existing MCP tool schemas, and configured output roots.
 Create a new case-specific UTC timestamped output directory; preserve source
 images and any prior sealed bundles. Inventory provenance, size, and SHA-256.
+Use get_coverage to inspect declared scope and actual attempts. Declare only the
+plan actually adopted now; never invent an original plan for legacy records. Separate
+execution, applicability, result availability and pagination. Preserve failed/reused
+attempts and exact PID/range scope. Missing coverage is an explicit limitation and
+proposed next action, not an automatic scan or proof of absence. New report revisions
+include coverage.json and the mechanical limitations required by REPORT_SPEC.
 Use the existing volatility MCP tools as the primary analysis interface. Discover
 installed plugins/options rather than guessing from old command lists. Identify
 guest OS/build/architecture/symbols, then investigate adaptively using justified
