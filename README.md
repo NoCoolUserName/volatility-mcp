@@ -264,6 +264,13 @@ Workbench retains an older plugin catalog, reconnect/restart it. The catalog's
 the upstream wrapper reports an inherited version of `0.0.0`, separate from the
 pypykatz dependency version. Treat any extracted secrets as sensitive case output.
 
+An `LSA signature not found!` failure is returned as `lsa_signature_not_found`
+with acquisition/parser guidance. On XP/NT5, the follow-on error `Template guessing
+is not applicable for NT5` does not mean the plugin is missing. Missing pages or
+an unsupported binary layout may prevent recovery. Preserve the failed run;
+repeating the same extraction cannot restore missing memory, and failure does not
+establish credential absence or theft.
+
 ## Quick start 2: optionally use investigation and reporting
 
 After the MCP quick start succeeds, read the versioned

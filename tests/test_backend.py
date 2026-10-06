@@ -46,6 +46,30 @@ class BackendTests(unittest.TestCase):
                 self.backend.resolve_input(value)
         self.assertEqual(self.backend.list_memory_images()['count'], 1)
 
+    def test_pypykatz_failure_is_actionable_not_empty_or_missing_installation(self):
+        self.image.write_text('lsa-error')
+        result = self.backend.run_plugin('example.raw', 'vol_pypykatz.pypykatz', [])
+        self.assertEqual(result['status'], 'error')
+        self.assertEqual(result['failure_category'], 'lsa_signature_not_found')
+        self.assertIn('not a missing plugin', result['summary'])
+        self.assertIn('Do not repeat unchanged collection', result['summary'])
+        self.assertFalse(result['reuse_eligible'])
+        self.assertIsNone(result['row_count'])
+        coverage = self.backend.get_coverage('example.raw')['entries'][0]['effective']
+        self.assertEqual(coverage['execution'], 'failed')
+        self.assertNotEqual(coverage['availability'], 'successfully_empty')
+        path = Path(result['manifest_path'])
+        manifest = json.loads(path.read_text())
+        self.assertEqual(manifest['commands'][0]['failure_category'], 'lsa_signature_not_found')
+        # Old saved failures get the same explanation without being rewritten.
+        before = path.read_bytes()
+        del manifest['commands'][0]['failure_category']
+        old = self.backend._run_result(manifest, path)
+        self.assertEqual(old['failure_category'], 'lsa_signature_not_found')
+        self.assertEqual(path.read_bytes(), before)
+        unrelated = self.backend.run_plugin('example.raw', 'windows.pslist.PsList', [])
+        self.assertIsNone(unrelated['failure_category'])
+
     def test_separate_outputs_and_symlinks(self):
         self.backend.outputs.rmdir()
         self.backend.outputs.symlink_to(self.evidence, target_is_directory=True)

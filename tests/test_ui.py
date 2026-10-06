@@ -154,6 +154,35 @@ class UITests(unittest.IsolatedAsyncioTestCase):
         coins=[json.loads((r/'case-manifest.json').read_text())['coins'][0] for r in roots]
         self.assertEqual(coins[0]['asset_sha256'],coins[1]['asset_sha256'])
         with self.assertRaises(ValueError):Bundle(self.app.directory(self.case),self.case,report).prepare()
+    async def test_report_seals_with_failed_partial_coverage(self):
+        await self.ready()
+        # Change only the harmless fixture's saved execution metadata. Report
+        # save and automatic seal must use the same authoritative coverage.
+        records=list(self.app.directory(self.case).glob('analysis/*/runs/*/manifest.json'))
+        self.assertTrue(records)
+        for path in records:
+            record=json.loads(path.read_text())
+            record.update(status='error',collection_complete=False)
+            for command in record['commands']:
+                command.update(returncode=1,error='Synthetic incomplete collection')
+            path.write_text(json.dumps(record))
+        from volatility_mcp.coverage import report_summary
+        from volatility_mcp.reporting import check_bundle
+        with patch('subprocess.Popen',side_effect=AssertionError('Report must use saved outputs')) as launches:
+            job=self.app.enqueue(self.case['id'],'report');await self.wait_job(job)
+        launches.assert_not_called()
+        self.assertEqual(job['status'],'completed',job)
+        report=self.case['reports'][0]
+        self.assertEqual(report['status'],'sealed')
+        root=self.app.directory(self.case)/'reports'/report['id']
+        coverage=json.loads((root/'coverage.json').read_text())
+        entries=coverage['images'][0]['entries']
+        self.assertTrue(entries)
+        self.assertTrue(all(e['effective']['execution']=='failed' for e in entries))
+        self.assertTrue(all(e['effective']['availability']=='partial' for e in entries))
+        self.assertTrue(coverage['jobs'])
+        self.assertIn(report_summary(coverage),(root/'report.md').read_text())
+        self.assertEqual(check_bundle(root)['status'],'valid')
     async def test_duplicate_submission_and_stop_queue(self):
         job=self.app.enqueue(self.case['id'],'question','WAIT_FOR_STOP','request-1')
         self.assertIs(self.app.enqueue(self.case['id'],'question','WAIT_FOR_STOP','request-1'),job)

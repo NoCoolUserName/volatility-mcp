@@ -15,6 +15,8 @@ plugins = {name: {'description': 'SYNTHETIC ONLY', 'options': options,
            for name in ('windows.pslist.PsList', 'windows.info.Info', 'banners.Banners',
                         'windows.registry.printkey.PrintKey')}
 plugins['windows.registry.printkey.PrintKey']['options'] = [option('--key')]
+plugins['vol_pypykatz.pypykatz'] = {'description': 'SYNTHETIC credential parser',
+    'options': [], 'origin': 'installed_volatility', 'plugin_version': [0, 0, 0]}
 plugins['windows.vadregexscan.VadRegExScan'] = {'description':'SYNTHETIC regex contract',
     'plugin_version':[1,0,0], 'origin':'installed_volatility',
     'options':[option('--pid','int','*'), dict(option('--pattern'),required=True,value_kind='bytes_regex'),
@@ -43,6 +45,9 @@ elif mode == 'timeout':
     time.sleep(20)
 elif mode == 'error':
     print('Unsatisfied requirement plugins.Info.kernel.symbol_table_name', file=sys.stderr)
+    raise SystemExit(1)
+elif mode == 'lsa-error':
+    print('Exception: LSA signature not found!\nException: Template guessing is not applicable for NT5', file=sys.stderr)
     raise SystemExit(1)
 elif mode == 'badjson':
     print('[{"incomplete":')

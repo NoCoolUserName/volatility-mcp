@@ -204,6 +204,11 @@ class VolatilityBackend:
                     "origin": value.get("origin", "installed_volatility"),
                     "plugin_version": value.get("plugin_version")} for name, value in matched]
         for plugin in plugins:
+            if plugin["name"] == "vol_pypykatz.pypykatz":
+                plugin["compatibility_note"] = (
+                    "Third-party LSASS credential parser. Import success does not establish image support. "
+                    "An NT5 LSA signature failure may reflect unavailable pages or an unsupported binary layout; "
+                    "it is not evidence that credentials are absent or that Mimikatz did/did not execute.")
             if plugin["name"] in {"windows.netscan.NetScan", "windows.netstat.NetStat"}:
                 plugin["compatibility_note"] = ("Known limitation in tested Volatility 2.28.2: Windows XP unsupported. "
                     "For XP x86 pool-object recovery, use the separately named local xpnet.XpNetScan addon; "
@@ -376,6 +381,9 @@ class VolatilityBackend:
         tail = self._tail(stderr)
         if re.search(r"This version of Windows is not supported:\s*5\.1\b", tail):
             entry["failure_category"] = "unsupported_windows_xp"
+        elif (plugin == "vol_pypykatz.pypykatz" and entry["status"] == "error"
+              and "LSA signature not found!" in tail):
+            entry["failure_category"] = "lsa_signature_not_found"
         elif "Unsatisfied requirement" in tail or "symbol_table_name" in tail:
             entry["failure_category"] = "missing_symbols_or_layer"
         entry["artifacts"] = [hashes.file(stdout, 'new_artifacts'), hashes.file(stderr, 'new_artifacts')]
@@ -537,6 +545,11 @@ class VolatilityBackend:
         error = excerpt(Path(raw["stderr_path"]), 1800) if raw else ""
         error += "\n" + manifest.get("error", "") + raw.get("error", "")
         category = raw.get("failure_category")
+        # Explain preserved older failures as well; never rewrite their manifests.
+        if (not category and manifest['plugin'] == 'vol_pypykatz.pypykatz'
+                and manifest['status'] == 'error' and raw.get('stderr_path')
+                and 'LSA signature not found!' in self._tail(Path(raw['stderr_path']))):
+            category = 'lsa_signature_not_found'
         summary = f"{manifest['plugin']}: {manifest['status']}; " + (
             "reused verified saved output; no analysis subprocess launched." if reused else
             "saved complete output and execution metadata.")
@@ -544,6 +557,13 @@ class VolatilityBackend:
             summary += " Incomplete/failed analysis is not a negative finding. Check saved diagnostics and matching symbols."
         if category == "unsupported_windows_xp":
             summary += " Upstream XP network layout unsupported; xpnet.XpNetScan can carve XP x86 candidates, not prove traffic."
+        if category == "lsa_signature_not_found":
+            summary += (" Pypykatz could not locate the LSA signature in readable LSASRV memory. "
+                        "Unavailable pages or an unsupported binary layout remain possible. "
+                        "For NT5 the secondary 'Template guessing is not applicable' error is not a missing plugin. "
+                        "Review saved stderr and acquisition completeness; matching VM metadata/pagefile or a more "
+                        "complete acquisition may be needed. Do not repeat unchanged collection to resolve this gap. "
+                        "Credential absence, theft, and Mimikatz execution remain unestablished.")
         return {"status": manifest["status"], "run_id": manifest['run_id'], "plugin": manifest['plugin'], "image": manifest['image'],
                 "reused": reused, "reuse_key": manifest.get('reuse_key'), "hashing": hashing,
                 "reuse_eligible": manifest.get('reuse_eligible', False),

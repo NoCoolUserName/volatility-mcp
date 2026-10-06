@@ -251,3 +251,67 @@ No browser errors occurred. JavaScript syntax and both existing timestamp tests
 passed. These were browser fixture checks, not a live backend/investigation test;
 no analysis/report-generation requests were made, private cases were untouched,
 and no running Workbench was restarted.
+
+## Report coverage sealing regression — 2026-10-06
+
+The automatic report-sealing path now supplies the same case-scoped coverage
+backend and recorded jobs as the report-save tool. Previously it replaced the
+saved coverage with an unavailable-adapter snapshot; a report retaining real gaps
+then failed its mechanical-limitations validation. Sealing also synchronizes that
+generated block if the saved snapshot changes before sealing. Authored findings
+and all existing evidence/report checks remain subject to validation.
+
+Six focused fixture tests passed: full simulated Workbench save/seal with failed,
+partial results; ordinary report generation; follow-up revision and historical
+bundle immutability; changed-evidence rejection; nonfatal artwork failure; and
+snapshot changes between save and seal. The failed/partial regression blocked
+subprocess launches during report save/seal and observed zero calls; the saved
+coverage regression also used the existing offline subprocess guard. Setup used
+the harmless fake analyzer and simulated Codex, not a real memory investigation.
+No private report bundle was rewritten and no active Workbench was restarted.
+
+Reproduce the focused regressions with:
+
+```sh
+PYTHONPATH=tests .venv/bin/python -m unittest \
+  test_ui.UITests.test_report_seals_with_failed_partial_coverage \
+  test_ui.UITests.test_stage_a_readiness_report_evidence \
+  test_ui.UITests.test_stage_b_continuity_and_immutable_revision \
+  test_ui.UITests.test_report_failure_and_changed_evidence_not_complete \
+  test_ui.UITests.test_coin_failure_does_not_block_report \
+  test_coverage.CoverageTests.test_saved_report_coverage_zero_analysis -q
+```
+
+## Pypykatz failure diagnosis — 2026-10-06
+
+The installed third-party plugin was already reachable through Workbench; its
+recorded failure was `LSA signature not found!`, followed by `Template guessing
+is not applicable for NT5`. A bounded, read-only diagnostic used already-recorded
+kernel/process/module metadata to compare the Volatility scanner with direct
+page reads inside the affected LSASRV module. Neither found the signature, and
+many pages were unreadable. This did not decrypt credentials, dump a process,
+scan the whole image, or run the investigation again. The diagnostic and exact
+addresses remain private. Missing pages versus an unsupported binary layout is
+not fully resolved; credential recovery on that image remains blocked.
+
+The backend now labels that specific failure and supplies actionable guidance;
+Workbench investigator instructions discourage unchanged retries. Historical raw
+failures are preserved, not relabeled as clean or successful. This is improved
+failure handling, not a claim to have repaired missing memory or the upstream
+credential parser. The synthetic backend regression checks the saved reason,
+failed/nonempty-negative distinction, no reuse, historical response handling
+without manifest edits, and no misclassification for unrelated plugins.
+
+The eight-test combined run passed: the six report checks above, the pypykatz
+backend regression, and the existing real stdio test in both protocol modes using
+the fake analyzer. Fresh connections to both existing Workbench case-scoped MCP
+servers discovered the installed plugin and its compatibility guidance without
+analysis calls or import failures. These checks do not establish successful
+credential extraction or evaluate live-model behavior.
+
+After confirming no active or queued jobs, the local Workbench was gracefully
+reloaded and its authenticated state endpoint verified against the updated runtime
+fingerprint. Case/image identities, conversations, report records and job statuses
+were preserved; 12 historical report/manifest/checksum files retained their hashes.
+The browser was reopened with the new local session. No new analysis job or model
+turn was submitted, and the earlier failed draft remains preserved as a failed draft.

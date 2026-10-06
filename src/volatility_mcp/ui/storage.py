@@ -295,8 +295,19 @@ class Bundle:
         manifest['findings'] = findings
         atomic_json(self.root / 'case-manifest.json', manifest)
         badges='\n'.join(f"![Decorative coin for {c['image_id']}]({c['path']})" for c in manifest['coins'] if 'path' in c)
-        # A mechanical limitation block is part of the report, regardless of
-        # whether the investigator remembered to mention an uncollected scope.
+        markdown=self.coverage_markdown(markdown)
+        (self.root / 'report.md').write_text((badges+'\n\n' if badges else '')+markdown)
+        fields = ['type','value','evidence_ref','confidence','relevance','status','context']
+        with (self.root / 'iocs.csv').open('w', newline='') as stream:
+            writer = csv.DictWriter(stream, fieldnames=fields, lineterminator='\n')
+            writer.writeheader()
+            for row in iocs:
+                writer.writerow(row)
+        return check_bundle(self.root)
+
+    def coverage_markdown(self, markdown):
+        # Keep only the mechanical block synchronized with the saved snapshot.
+        # Investigator-authored conclusions still undergo normal validation.
         from ..coverage import report_summary
         coverage=json.loads((self.root/'coverage.json').read_text())
         marker='<!-- coverage-summary -->'
@@ -306,14 +317,7 @@ class Bundle:
         heading=re.search(r'^## Limitations[^\n]*$',markdown,re.M)
         if heading:
             markdown=markdown[:heading.end()]+ '\n\n'+marker+'\n'+report_summary(coverage)+'\n'+end_marker+'\n'+markdown[heading.end():]
-        (self.root / 'report.md').write_text((badges+'\n\n' if badges else '')+markdown)
-        fields = ['type','value','evidence_ref','confidence','relevance','status','context']
-        with (self.root / 'iocs.csv').open('w', newline='') as stream:
-            writer = csv.DictWriter(stream, fieldnames=fields, lineterminator='\n')
-            writer.writeheader()
-            for row in iocs:
-                writer.writerow(row)
-        return check_bundle(self.root)
+        return markdown
 
     def seal(self, fingerprints):
         manifest = self.prepare()
@@ -326,6 +330,8 @@ class Bundle:
         manifest.update(status='complete_with_limitations', completed_at=now(),
             review_status='AI-assisted draft; human forensic review required')
         atomic_json(self.root / 'case-manifest.json', manifest)
+        report_path=safe_file(self.root,'report.md')
+        report_path.write_text(self.coverage_markdown(report_path.read_text()))
         lines = []
         for path in sorted(self.root.rglob('*')):
             self.check_cancel()

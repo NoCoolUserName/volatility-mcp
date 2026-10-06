@@ -103,8 +103,16 @@ class CoverageTests(unittest.TestCase):
             next(a for a in record['artifacts'] if a['artifact_id']=='coverage-snapshot').update(sha256=fp['sha256'],size_bytes=fp['size_bytes'])
             mp.write_text(json.dumps(record))
             with self.assertRaisesRegex(ValueError,'row count contradicts'):check_bundle(bundle.root)
+            # An explicitly extended plan after saving changes the authoritative
+            # snapshot. Sealing refreshes only its mechanical limitations block.
+            plan=self.plan(['--pid','99'])
+            plan['entries'].append({'id':'another-scope','question':'Synthetic second scope',
+                                    'plugin':'windows.pslist.PsList','arguments':['--pid','100']})
+            set_plan(self.b,'synthetic.raw',plan)
             bundle.seal({'E001':image});before=(bundle.root/'report.md').read_bytes()
-            self.assertIn(b'1 recorded scopes have missing/partial/unknown results',before)
+            self.assertIn(b'2 recorded scopes have missing/partial/unknown results',before)
+            self.assertIn(b'F1: Empty saved output.',before)
+            self.assertEqual(before.count(b'<!-- coverage-summary -->'),1)
             self.assertEqual(check_bundle(bundle.root)['status'],'valid')
             self.assertEqual(before,(bundle.root/'report.md').read_bytes())
         self.assertEqual(counts['subprocess_launches'],0)
