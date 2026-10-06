@@ -275,6 +275,14 @@ class VolatilityBackend:
         return normalized, values
 
     def _argument_value(self, value: str, option: dict[str, Any], *, registry_key: bool = False) -> str:
+        if option.get('value_kind') == 'bytes_regex' and option['type'] == 'str' and not option['is_path']:
+            if not value or len(value.encode('utf-8')) > 4096 or any(ord(c) < 32 or ord(c) == 127 for c in value):
+                raise EvidenceError('Regex must be 1..4096 UTF-8 bytes without literal control characters.')
+            try:
+                re.compile(value.encode('utf-8'))
+            except (re.error, OverflowError, RecursionError) as exc:
+                raise EvidenceError(f'Invalid byte regex: {exc}') from exc
+            return value
         # A PrintKey key is a captured-hive name, not a host path or shell program.
         # Validate separators as path components, then retain the original bytes
         # in argv. No other option gains a backslash exception.
@@ -610,6 +618,14 @@ class VolatilityBackend:
         return {"path": str(resolved), "sha256": fingerprint["sha256"], "size_bytes": fingerprint["size_bytes"],
                 "offset": offset, "next_offset": end, "truncated": end < fingerprint["size_bytes"],
                 "encoding": "utf-8 with replacement; offsets are bytes", "content": data.decode("utf-8", errors="replace")}
+
+    def inspect_artifact(self, image: str, run_id: str, artifact: str, operation: str = 'pe',
+                         min_length: int = 4, encoding: str = 'ascii', offset: int = 0,
+                         limit: int = 100, scan_bytes: int = 1048576, max_string_length: int = 256,
+                         cancel_event: threading.Event | None = None) -> dict:
+        from .artifact_inspection import inspect_saved
+        return inspect_saved(self, image, run_id, artifact, operation, min_length, encoding,
+                             offset, limit, scan_bytes, max_string_length, cancel_event)
 
     def case_history(self, image: str, limit: int = 50, offset: int = 0) -> dict[str, Any]:
         source = self.resolve_input(image)

@@ -10,6 +10,9 @@ symbols, acquired evidence, reference publications, or other third-party works.
 - **Volatility 3:** installed in its own environment, not bundled in this repository.
   Its [Volatility Software License](https://github.com/volatilityfoundation/volatility3/blob/develop/LICENSE.txt)
   and notices remain applicable to upstream code and symbol material.
+- **pefile:** pinned dependency for static inspection of saved PE artifacts,
+  not vendored or used to execute recovered code. Preserve its
+  [upstream MIT license](https://github.com/erocarrera/pefile/blob/master/LICENSE).
 - **Historical XP structure references:** the local `xpnet.XpNetScan` addon retains
   its source links to official Volatility 2
   [TCP/IP layouts](https://github.com/volatilityfoundation/volatility/blob/master/volatility/plugins/overlays/windows/tcpip_vtypes.py),

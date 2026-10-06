@@ -130,6 +130,52 @@ class Bundle:
                 'mcp': record['mcp_sdk_version'], 'mcp_server': record['server_version']}
         if not runs:
             raise ValueError('No saved analysis runs. Perform readiness/analysis first.')
+        # Static inspections are separate derived runs, linked to their actual
+        # extraction artifacts rather than misattributed to a Volatility command.
+        for source in sorted((self.case_dir/'analysis').glob('*/inspections/*/manifest.json')):
+            self.check_cancel()
+            source = safe_file(self.case_dir, str(source.relative_to(self.case_dir)))
+            record = json.loads(source.read_text())
+            if record['status'] == 'running':
+                raise ValueError('An artifact inspection is still active')
+            ref = record['source_ref']
+            parent = next((r for r in runs if r['run_id'] == ref['run_id']), None)
+            if parent is None:
+                raise ValueError('Inspection refers to an unknown extraction run')
+            source_relative = str(Path('artifacts')/parent['call_id']/ref['artifact'])
+            original_artifact = next((a for a in artifacts if a['path'] == source_relative), None)
+            if (not original_artifact or original_artifact['sha256'] != ref['sha256'] or
+                    not record.get('integrity_verified')):
+                raise ValueError('Inspection input identity/integrity does not match the saved extraction')
+            rid = 'inspection-' + source.parent.name
+            cid = 'C-' + hashlib.sha256(rid.encode()).hexdigest()[:12]
+            ids = []
+            for original in sorted(source.parent.iterdir()):
+                original = safe_file(self.case_dir, str(original.relative_to(self.case_dir)))
+                if not original.is_file():
+                    raise ValueError('Unexpected inspection subdirectory')
+                relative = Path('artifacts')/cid/original.name
+                dest = safe_file(self.root, str(relative)); private_dir(dest.parent)
+                shutil.copyfile(original, dest)
+                identity = file_fingerprint(dest)
+                if (original.name == 'result.json' and record['status'] == 'success' and
+                        identity['sha256'] != record['result_sha256']):
+                    raise ValueError('Inspection result hash changed')
+                aid = cid + '-A-' + hashlib.sha256(str(relative).encode()).hexdigest()[:10]
+                ids.append(aid)
+                artifacts.append({'artifact_id':aid, 'path':str(relative), 'sha256':identity['sha256'],
+                    'size_bytes':identity['size_bytes'], 'media_type':mimetypes.guess_type(dest.name)[0] or 'application/octet-stream', 'run_id':rid})
+            runs.append({'run_id':rid,'call_id':cid,'status':record['status'],'started_at':record['started_at'],
+                'finished_at':record['completed_at'],'artifact_ids':ids,'image_id':parent['image_id']})
+            steps.append({'call_id':cid,'run_id':rid,'timestamp':record['started_at'],
+                'question':'Inspect existing extracted artifact: '+record['settings']['operation'],
+                'tool':'inspect_artifact','arguments':{'source_ref':ref, **record['settings']},
+                'argv':[record['argv']], 'prerequisite_call_ids':[parent['call_id']],
+                'input_artifact_ids':[original_artifact['artifact_id']], 'artifact_ids':ids,
+                'status':record['status'],'result':record.get('error') or 'Static inspection saved; consult result.json',
+                'rationale':'Inspect saved bytes without rerunning memory analysis; no retrospective investigative rationale inferred.',
+                'next_step':'Corroborate declarations/strings and retain structural limitations.',
+                'hypothesis_disposition':'No maliciousness verdict from static inspection alone'})
         # Requests denied before execution have no core run. Preserve the actual
         # failure as its own artifact/call instead of attributing it to another run.
         activity=self.case_dir/'activity.jsonl'

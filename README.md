@@ -153,6 +153,7 @@ image or malware is distributed here.
 | `run_plugin` | Reuse a verified equivalent result or run a discovered plugin with validated arguments; preserve raw outputs, metadata, and derived files. |
 | `read_output` | Read a saved text output in bounded chunks with a continuation offset and truncation status. |
 | `case_history` | Retrieve saved run history, commands, timestamps, hashes, and output locations. |
+| `inspect_artifact` | Inspect an existing registered run artifact for PE headers/sections or paginated ASCII/UTF-16LE strings; save source-linked results without rescanning memory. |
 
 Discover names and options rather than relying on older Volatility cheat sheets.
 For example, call `list_plugins` with `{"query":"pslist"}`, choose the appropriate
@@ -160,12 +161,32 @@ OS-specific match, inspect its schema, then call `run_plugin` with an exact name
 and arguments such as `[]` or `["--pid", "1234"]`. Do not pass shell command strings.
 Refer to live `tools/list` for complete schemas.
 
+For saved reconstructions, get the run ID from `case_history` and the exact
+run-relative artifact path from that run's manifest. Call `inspect_artifact` with
+`image`, `run_id`, `artifact` (for example `json/files/reconstructed.dmp`) and
+`operation: "pe"` or `"strings"`. String pages expose file offsets, encoding,
+`next_offset`, and truncation; follow the cursor to continue. Results and provenance
+are saved privately and reused when source/parser/settings identity still matches.
+No Volatility analysis or full-image hash is needed for this inspection.
+
+The pinned, pure-Python `pefile` dependency parses headers; nothing recovered is
+executed. Header-declared DLL/executable flags, structural range checks, and parser
+warnings are separate from maliciousness and completeness. Printable extraction
+covers U+0020..U+007E in ASCII or UTF-16LE, not all Unicode. See
+[ARTIFACT_INSPECTION.md](docs/ARTIFACT_INSPECTION.md) for limits and examples.
+After upgrading, install the updated `requirements.lock.txt` and restart idle
+clients/Workbench to expose the seventh MCP tool.
+
 ### Execution, evidence, and recovery
 
 - Input paths must resolve inside the evidence root; symlink escapes, shell syntax,
   arbitrary plugin directories, and output overrides are rejected. Plugin options
   and value types are checked against the installed catalog. Execution uses argument
   arrays with `shell=False`; there is no generic shell tool.
+  A discovered regex contract has narrowly scoped pattern validation: the
+  `windows.vadregexscan.VadRegExScan --pattern` value accepts valid byte-regex
+  punctuation, bounded to 4,096 UTF-8 bytes with no literal control characters.
+  Other string/path restrictions and plugin execution timeouts remain in force.
 - On a reuse miss, the plugin runs once with Volatility's JSON renderer. Complete stdout,
   stderr, execution metadata, and any extracted files stay in the configured output
   directory. A readable text view is derived from saved JSON without another scan.

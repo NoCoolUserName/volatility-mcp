@@ -1,7 +1,7 @@
 # Persistent backend result reuse
 
 This is core execution behavior, independent of Workbench, Codex, and reports.
-The six MCP interfaces and their arguments are unchanged. `run_plugin` checks for
+The original analysis interfaces and their arguments are unchanged. `run_plugin` checks for
 a reusable completed result before launching analysis; `get_image_info` uses this
 same path for each discovery probe. It still derives its OS decision from output.
 

@@ -199,3 +199,21 @@ keeps it open, and Enter/Escape provide keyboard access. The normal browser
 context menu remains available for saving the image; no custom download handler
 was added. JavaScript syntax passed and no browser console errors occurred.
 No test suite, analysis jobs, or report regeneration ran for this UI change.
+
+## Saved-artifact inspector integration
+
+The case-scoped MCP server now exposes seven tools including `inspect_artifact`;
+readiness's expected tool inventory and new/resumed case guidance were updated.
+All 21 existing Workbench tests passed, and an additional inspection test packages
+and seals a synthetic revision with derived inspection runs, source-artifact links,
+and checksums under the existing report schema. The scoped MCP transport was tested
+directly with real tool discovery/calls; no generic shell capability was enabled.
+See [VALIDATION.md](VALIDATION.md#saved-artifact-inspection-and-regex-repair) for
+actual saved-evidence verification and parser limitations.
+
+The idle local Workbench was restarted through its existing desktop launcher after
+checking that no jobs were active or queued. Its runtime fingerprint matched the
+updated code, and an authenticated read-only HTTP request retrieved the private
+inspection supplement. Case IDs, conversation IDs, report records and job count
+were preserved. No new job or model turn was submitted; this was an HTTP integration
+check, not a new browser interaction test or report-generation run.

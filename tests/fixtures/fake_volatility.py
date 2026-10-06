@@ -15,6 +15,10 @@ plugins = {name: {'description': 'SYNTHETIC ONLY', 'options': options,
            for name in ('windows.pslist.PsList', 'windows.info.Info', 'banners.Banners',
                         'windows.registry.printkey.PrintKey')}
 plugins['windows.registry.printkey.PrintKey']['options'] = [option('--key')]
+plugins['windows.vadregexscan.VadRegExScan'] = {'description':'SYNTHETIC regex contract',
+    'plugin_version':[1,0,0], 'origin':'installed_volatility',
+    'options':[option('--pid','int','*'), dict(option('--pattern'),required=True,value_kind='bytes_regex'),
+               option('--maxsize','int')]}
 if any(arg.endswith('catalog.py') for arg in sys.argv):
     print(json.dumps({'version': 'SYNTHETIC', 'architecture': 'arm64',
                       'import_failures': [], 'plugins': plugins}))

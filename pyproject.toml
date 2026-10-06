@@ -9,7 +9,7 @@ description = "A local MCP server for controlled, evidence-preserving Volatility
 readme = "README.md"
 requires-python = ">=3.12"
 license = "MIT"
-dependencies = ["mcp==2.3.0"]
+dependencies = ["mcp==2.3.0", "pefile==2024.8.26"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Operating System :: MacOS",

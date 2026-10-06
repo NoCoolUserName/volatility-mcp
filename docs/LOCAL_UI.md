@@ -52,7 +52,7 @@ the module command above also works with an existing editable installation.
    intentionally grouping them. Each capture keeps its own evidence ID, hash,
    discovery result, run associations, and report provenance. New cases get a
    dedicated conversation; the UI never controls an unrelated open Codex session.
-3. **Check readiness** connects to the existing Codex account, initializes the six
+3. **Check readiness** connects to the existing Codex account, initializes the seven
    actual scoped MCP tools, discovers plugins, hashes each image with byte progress,
    and runs OS/symbol discovery through MCP. **Ready** means ready to attempt
    analysis. **Ready with limitations** records discovery/import/compatibility
@@ -85,6 +85,15 @@ their original run IDs and artifact paths. This is independent of the Workbench
 queue and leaves sealed report versions unchanged. Old runs without reuse metadata
 remain available for saved-output reading but are not automatically certified as
 cache hits. Hashing remains mandatory; failed or changed-context runs are not reused.
+
+The investigator can now call `inspect_artifact` through that same scoped MCP
+connection. It inspects saved registered files for PE metadata or bounded printable
+ASCII/UTF-16LE strings; it does not rerun extraction or memory analysis. Guidance
+explicitly separates header flags, readable ranges, string observations and malware
+conclusions. New report revisions package inspection outputs as separate derived
+runs linked to the original extraction artifact; historical bundles remain intact.
+Install updated locked dependencies and restart idle Workbench after upgrading so
+both its MCP process and resumed case guidance load the new capability.
 
 ## Architecture and boundaries
 

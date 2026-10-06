@@ -198,3 +198,56 @@ identity changes favor safe misses, including symbol-cache warming and source
 metadata changes. Older runs are preserved without retroactive reuse certification.
 Results/locks are scoped to the same output root; network-filesystem locking and
 non-macOS hosts remain unverified. Restart idle clients to load the new backend.
+
+## Saved-artifact inspection and regex repair
+
+Assessment: **ready with the documented inspection limits**. The core now exposes
+seven MCP tools; `inspect_artifact` is also available through the actual Workbench
+case-scoped transport. This adds no shell endpoint and does not implement the larger
+evolution roadmap. The report schema, scheduler, explorer and coins are unchanged.
+
+The rejected regex was traced to `VadRegExScan`'s discovered `--pattern` contract
+and the generic `_argument_value`/`validate_text` metacharacter filter. Its original
+printable-string pattern was accepted by the repaired validator against the real
+installed plugin schema without executing that scan. Only the known byte-regex
+contract receives that exception; ordinary strings, URI paths, global/duplicate
+options, syntax, literal control bytes and length limits remain checked.
+
+**Automated:** 75 distinct targeted tests passed across the recorded runs: eleven
+inspection checks, ten backend checks, two protocol checks, fifteen report checks,
+fifteen reuse checks, the graceful-shutdown check, and all 21 Workbench checks.
+Inspection fixtures cover PE32/PE32+, DLL/non-DLL/neither flag, malformed/truncated
+headers and raw ranges, byte offsets, odd-aligned UTF-16LE, byte-window boundaries,
+record pagination, preview truncation, size/argument limits, worker timeout,
+source changes, symlinks/traversal/unregistered artifacts, other-image rejection,
+source-preserving reuse after restart and corrupt-cache rejection. Synthetic report
+packaging/sealing passes with inspections as separately attributed derived runs.
+The regex regression uses the exact failed pattern; global-option rejection persists.
+
+The new tool was listed and invoked over real stdio MCP against both fixture and
+real case-scoped servers. Tests use the harmless analyzer counter to establish that
+static inspections launch no extra Volatility analysis, and forbid fingerprinting
+the fixture memory image during inspection. Workbench tests use simulated Codex;
+no new model-driven forensic investigation was started for validation.
+
+**Actual saved evidence:** seven already reconstructed private artifacts were located
+through existing case history/manifests and inspected through MCP. Both encodings
+were paged to EOF, PE metadata and parser warnings were saved, a repeated PE request
+returned a verified reuse hit, and indexed string records were checked against
+their saved page values. Original artifacts and extraction manifests retained their
+hashes; the existing Volatility run count did not increase. No memory rescan,
+reconstruction, extracted-code execution, upload or historical-report rewrite was
+performed. Detailed findings/paths/hashes and the readable supplement remain private.
+
+Two focused reviews checked argument-contract scope, path and identity enforcement,
+parser/resource limits, provenance, report ownership and outgoing content. A UTF-16LE
+byte-window edge was repaired and regression-tested. The standalone pure-Python
+`pefile` dependency is pinned to the same version already present in the separate
+Volatility environment; that working environment was not replaced or modified.
+
+Limitations: printable U+0020..U+007E only (including its UTF-16LE encoding), not
+arbitrary Unicode; PE fast-load header/range inspection is not a loader, signature,
+import-resolution or malware verdict. Present ranges do not prove complete recovery
+of original disk bytes or missing memory pages. File/section/page/timeout limits are
+explicit in [ARTIFACT_INSPECTION.md](ARTIFACT_INSPECTION.md). The real evidence check
+does not establish support for every PE variant or acquisition/reconstruction format.

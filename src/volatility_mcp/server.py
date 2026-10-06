@@ -122,6 +122,23 @@ def create_server(config: Config, *, backend: VolatilityBackend | None = None) -
         """List prior runs, commands, timestamps, source hashes and manifest paths. Read manifests for full metadata."""
         return await invoke(backend.case_history, image, limit, offset)
 
+    @mcp.tool(annotations=ToolAnnotations(read_only_hint=False, destructive_hint=False, open_world_hint=False))
+    async def inspect_artifact(image: str, run_id: str, artifact: str,
+                               operation: Literal['pe', 'strings'] = 'pe', min_length: int = 4,
+                               encoding: Literal['ascii', 'utf-16le'] = 'ascii', offset: int = 0,
+                               limit: int = 100, scan_bytes: int = 1048576, max_string_length: int = 256) -> dict:
+        """Statically inspect an EXISTING registered run artifact; never rerun memory analysis.
+
+        Get run_id from case_history and exact run-relative artifact path from its manifest
+        (e.g. json/files/reconstructed.dmp). PE mode validates readable headers/sections with pefile.
+        Strings mode returns bounded printable ASCII or UTF-16LE records, byte offsets and next_offset.
+        File limit 64 MiB; strings: min_length 2..128, limit 1..200, scan_bytes 256..4194304,
+        max_string_length 16..512. Save derived result/provenance; reuse verified identical inspections.
+        Header flags, names and strings do not establish maliciousness or complete reconstruction.
+        """
+        return await invoke(backend.inspect_artifact, image, run_id, artifact, operation, min_length,
+                            encoding, offset, limit, scan_bytes, max_string_length, cancellable=True)
+
     return mcp
 
 

@@ -18,7 +18,7 @@ Optional analyst/client workflow
 
 The core server does no LLM inference, requests no model API key, and has no HTTP service,
 database service, Docker dependency, or report-generation side effect. The official
-MCP SDK is its runtime dependency; Volatility and its full analysis dependencies
+MCP SDK and the pinned `pefile` parser are its runtime dependencies; Volatility and its full analysis dependencies
 remain in a separate environment. The optional reporting checker uses the Python
 standard library. A reporting client composes the report only when asked, using
 actual outputs plus the versioned report specification.
@@ -26,7 +26,7 @@ actual outputs plus the versioned report specification.
 A third independently optional layer, the experimental local Workbench, provides
 a loopback browser UI and sequential case jobs. Its replaceable Codex app-server
 adapter creates/resumes one conversation per case using existing authentication.
-A scoped backend reuses the same six MCP tools, restricting inputs to explicitly
+A scoped backend reuses the same seven MCP tools, restricting inputs to explicitly
 registered case images and outputs to that case. UI-only dynamic tools package
 reports without adding reporting fields to core MCP calls. See
 [LOCAL_UI.md](LOCAL_UI.md) for architecture, launch, authentication and boundaries.
@@ -92,12 +92,20 @@ writer racing the final comparison/rename; avoid concurrent configuration edits.
   bytes. Do not use this text API to claim byte-exact reconstruction of binary data.
 - `case_history(image, limit=50, offset=0)` returns bounded prior execution summaries.
   Read the referenced manifests for full metadata and hashes.
+- `inspect_artifact(image, run_id, artifact, operation="pe", ...)` resolves an exact
+  registered run artifact, verifies its recorded hash, and saves static PE metadata
+  or bounded string pages. A separate worker uses the server's pinned `pefile`,
+  never the recovered executable. See [ARTIFACT_INSPECTION.md](ARTIFACT_INSPECTION.md).
 
 The server owns the command's image path, renderer, plugin path, symbols/cache, and
 output directory. Plugin argument support follows installed requirement metadata;
 the conservative allowlist can reject otherwise valid free-form strings. This is
 intentional and should yield an actionable error, not a hidden shell fallback.
 The fixed addon may be disabled locally; an MCP caller cannot substitute plugin code.
+The discovered VadRegExScan string-pattern contract is annotated `bytes_regex`;
+its bounded, syntax-checked value permits regex punctuation as one argv element.
+This exception does not apply to image paths, URI inputs, unrelated plugin strings,
+option names, or global flags. The existing timeout also bounds expensive regex scans.
 
 Requests first check persistent content/version-aware reuse; see
 [RESULT_REUSE.md](RESULT_REUSE.md) for identity, invalidation, receipts and hashing
@@ -137,6 +145,10 @@ output_root/
   .execution.lock           # persistent lock inode; never remove during use
   <image-stem>-<relative-path-hash>/
     reuse/<UTC timestamp>-<random ID>.json  # verification receipt, original run untouched
+    inspections/<UTC timestamp>-<random ID>/  # derived static results, separate from original run
+      manifest.json
+      result.json
+      stderr.txt
     runs/<UTC timestamp>-<random run ID>/
       manifest.json
       command.started.json

@@ -84,6 +84,12 @@ def build_catalog() -> dict[str, Any]:
             for requirement in plugin.get_requirements()
             if (spec := option_spec(requirement)) is not None
         ]
+        # This installed contract consumes UTF-8 bytes as a Python regular
+        # expression, not a host filename or shell command. No generic string bypass.
+        if name == 'windows.vadregexscan.VadRegExScan':
+            for option in options:
+                if option['flag'] == '--pattern' and option['type'] == 'str' and not option['is_path']:
+                    option['value_kind'] = 'bytes_regex'
         available[name] = {
             "description": inspect.getdoc(plugin) or "",
             "options": options,

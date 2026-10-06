@@ -178,7 +178,7 @@ async def protocol_check(path: Path, config: Config) -> list[dict]:
         async with Client(transport, mode=mode, read_timeout_seconds=config.catalog_timeout + 30) as client:
             tool_list = await client.list_tools()
             names = sorted(tool.name for tool in tool_list.tools)
-            expected = {"list_memory_images", "get_image_info", "list_plugins", "run_plugin", "read_output", "case_history"}
+            expected = {"list_memory_images", "get_image_info", "list_plugins", "run_plugin", "read_output", "case_history", "inspect_artifact"}
             if not expected.issubset(names):
                 raise ConfigurationError(f"MCP server is missing expected tools: {sorted(expected - set(names))}")
             plugins = decode_result(await client.call_tool("list_plugins", {"query": "windows.info.Info"}))
