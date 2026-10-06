@@ -130,12 +130,37 @@ function inline(node, text, base) {
   }
   node.append(document.createTextNode(text.slice(start)));
 }
+function enlargeCoin(img) {
+  let dialog = $("coinZoom");
+  if (!dialog) {
+    dialog = el("dialog");
+    dialog.id = "coinZoom";
+    dialog.setAttribute("aria-label", "Enlarged coin. Click anywhere or press Escape to close.");
+    dialog.onclick = (event) => { if (event.button === 0) dialog.close(); };
+    document.body.append(dialog);
+  }
+  const large = el("img");
+  large.src = img.src;
+  large.alt = img.alt;
+  dialog.replaceChildren(large, el("p", "Click anywhere to close · Right-click the coin to save image"));
+  dialog.showModal();
+}
 function coinImage(path, label) {
   const img = el("img", undefined, "challenge-coin");
   img.src = "/api/coin?case=" + selected + "&path=" + encodeURIComponent(path);
   img.alt = label + " — decorative image identity, not forensic evidence";
   img.title = img.alt;
   img.onerror = () => img.remove();
+  img.tabIndex = 0;
+  img.setAttribute("role", "button");
+  img.setAttribute("aria-label", "Enlarge " + label + " coin");
+  img.onclick = () => enlargeCoin(img);
+  img.onkeydown = (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      enlargeCoin(img);
+    }
+  };
   return img;
 }
 function renderMarkdown(text, base) {

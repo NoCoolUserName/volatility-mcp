@@ -190,3 +190,12 @@ coin without inventing report content. Eleven historical report/artwork/checksum
 markers were unchanged. The standalone core import did not load the UI/coin layer.
 No real Volatility analysis or source-image hashing was performed for this feature.
 The active user investigation was allowed to finish before reloading Workbench.
+
+## Coin enlargement interaction
+
+A read-only Chrome interaction check verified that clicking a coin opens a larger
+image, left-clicking either the image or backdrop dismisses it, right-clicking
+keeps it open, and Enter/Escape provide keyboard access. The normal browser
+context menu remains available for saving the image; no custom download handler
+was added. JavaScript syntax passed and no browser console errors occurred.
+No test suite, analysis jobs, or report regeneration ran for this UI change.

@@ -196,6 +196,9 @@ immutable master and provenance; `<case-id>/assets/coins/` stores case copies.
 New report versions carry portable copies, Markdown image links, manifest coin
 metadata, and checksums. The report viewer also displays coins above old reports
 without changing their sealed files. Hover artwork for its decorative label.
+Click a coin to enlarge it. Left-click anywhere (including the coin) or press
+Escape to dismiss; right-click the enlarged image to use the browser's Save Image
+As menu. Keyboard users can focus a coin and press Enter or Space.
 
 Populate existing images from saved metadata only (safe to repeat):
 
