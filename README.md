@@ -160,6 +160,33 @@ OS-specific match, inspect its schema, then call `run_plugin` with an exact name
 and arguments such as `[]` or `["--pid", "1234"]`. Do not pass shell command strings.
 Refer to live `tools/list` for complete schemas.
 
+### Execution, evidence, and recovery
+
+- Input paths must resolve inside the evidence root; symlink escapes, shell syntax,
+  arbitrary plugin directories, and output overrides are rejected. Plugin options
+  and value types are checked against the installed catalog. Execution uses argument
+  arrays with `shell=False`; there is no generic shell tool.
+- Each plugin request runs once with Volatility's JSON renderer. Complete stdout,
+  stderr, execution metadata, and any extracted files stay in the configured output
+  directory. A readable text view is derived from saved JSON without another scan.
+  Conversion failures retain the original bytes and an explicit error.
+- Run records include source fingerprints and SHA-256 before/after execution,
+  tool versions, exact arguments, timestamps, status, and artifact hashes. Local
+  compatibility-addon runs also preserve the addon source and its hash.
+- Analysis is serialized within each server process. Timeouts, cancellation,
+  client disconnects, and graceful shutdown retain partial output and status.
+  Forced termination can leave child processes or interrupted records; inspect
+  them before retrying. Failed or incomplete work is never a clean finding.
+- Output previews are bounded; `read_output` pages saved text in chunks of at most
+  65,536 bytes, and `case_history` provides paginated execution summaries. These
+  are byte reads, not structured row/field queries.
+
+Saved outputs persist, but there is **no automatic content/version-aware result
+cache**: another `run_plugin` request executes again. Discovery is not persistently
+cached either. Full-image integrity hashing still occurs around runs; plugin
+timeouts do not include all hashing and conversion time. See
+[architecture](docs/ARCHITECTURE.md) for execution and recovery details.
+
 The included `xpnet.XpNetScan` is a **local compatibility addon**, separate from
 official Volatility plugins. It carves Windows XP x86 TCPT/TCPA pool candidates;
 stale or damaged allocations are possible. It cannot prove active connection
@@ -196,9 +223,17 @@ provenance check:
 
 Required deliverables are `report.md`, `case-manifest.json`, `investigation.jsonl`,
 `iocs.csv`, and `artifacts/`. Hunting content is conditional. Markdown is canonical;
-HTML, PDF, DOCX, custom artwork, and elaborate presentation are deferred. The
+the Workbench supplies safe browser viewing and optional per-image decorative
+coins. Polished standalone HTML, PDF, and DOCX exports remain deferred. The core
 server never assembles a report itself. The reporting workflow adds no runtime
 dependencies and is not loaded during ordinary tool interactions.
+
+Reports link findings and contextualized IOCs to stable artifact IDs and useful
+locators, retain failures and limitations, and separate observations from inference
+and unknowns. The checker validates artifact paths/hashes, run ownership, required
+structure, and references. It does **not** verify that a claimed PID, address, or
+other observable value appears at the cited locator; analytical review is required.
+Changes to sealed bundles belong in a new revision, not an overwrite.
 
 ## Optional local browser interface
 
@@ -216,6 +251,68 @@ configured output root. See [LOCAL_UI.md](docs/LOCAL_UI.md) for choosing another
 private output directory, security boundaries, and platform/validation limits.
 Images remain local, while questions and selected outputs may reach your configured
 AI service. The first version adds no runtime dependencies.
+
+### Implemented Workbench features
+
+| Capability | Current behavior |
+| --- | --- |
+| Image selection | Path entry, configured-evidence-folder browsing, and a macOS Finder helper. Images are read in place, not uploaded or copied. |
+| Multiple images | Unrelated images become separate cases; explicitly related captures can share a case with separate image identities and provenance. Jobs run sequentially, with one dedicated Codex conversation per case. |
+| Readiness | Checks account/tool access, plugin discovery, image hashes with byte progress, and OS/symbol discovery through MCP. Reports **Ready**, **Ready with limitations**, or **Blocked** with reasons; these are not malware verdicts. |
+| Activity and evidence | Shows current operations, elapsed time, conversation, saved outputs, errors, and failures. Text, JSON/JSONL, and raw-output views are bounded; complete artifacts remain on disk. |
+| Questions | Resumes the case's conversation and instructs the agent to use saved evidence first, making additional MCP queries when needed. Questions do not rewrite reports. Saved-evidence-first behavior is guidance, not an enforced result cache. |
+| Report generation and updates | Explicit actions create new timestamped revisions. Packaging copies actual artifacts, records provenance, checks source integrity, validates the bundle, and seals it with checksums. Updates link to the previous sealed version and preserve earlier versions and evidence IDs. Failed drafts remain incomplete. |
+| Report viewing | Section navigation, constrained local evidence links, and a version selector. New bundles contain portable relative artifact and artwork links; source memory images are not included. Recovered HTML is not executed. |
+| Image coins | One stable decorative coin per saved image hash, reused across reopening and report revisions. Original PNGs can be imported; otherwise a local SVG renderer creates a distinct coin without malware attribution, analysis, or extra image hashing. Artwork failure does not block reporting. |
+| Human-readable times | UI labels use U.S. Central time with date-aware CST/CDT and the Zulu clock in parentheses. Metadata stays UTC; new filenames use readable UTC timestamps with unique suffixes. Original evidence content and historical paths are preserved. |
+
+Click a coin to enlarge it; left-click anywhere or press Escape to close it.
+Right-click the enlarged image to use the browser's **Save Image As** menu.
+Keyboard users can focus a coin and press Enter or Space. For existing saved
+images, the [metadata-only coin population/import commands](docs/LOCAL_UI.md#image-coins)
+preserve historical report bundles; the viewer can display coins above old reports
+without editing their files.
+
+### Jobs, cancellation, and persistence
+
+Case records, job status, conversation excerpts, activity, image identities, and
+reports are saved in the private Workbench state directory. Codex retains its own
+thread history. Keep the same `--state-dir` when relaunching to reopen the same
+cases. Browser refresh/reconnection reads existing state without starting scans;
+launching again against the same state directory reopens the existing application.
+The launcher detects stale application code and asks for a backend restart.
+
+Repeated request IDs return the existing job, and a second operation of the same
+kind cannot be queued while that operation is active or queued for the case.
+This prevents duplicate submissions, not equivalent plugin requests across runs.
+Jobs distinguish queued, running, stopping, completed, cancelled, failed, and
+incomplete states.
+
+**Stop all work** interrupts the active operation and cancels all queued follow-on
+work, including other cases. Completed artifacts survive; interrupted jobs and
+unsealed drafts remain incomplete. On application restart, unfinished jobs are
+marked incomplete and are **not automatically retried or resumed**. Explicitly
+submit a new question or report operation to continue the saved case conversation.
+Cancellation during core hashing/conversion may wait for that stage to finish;
+forced process death cannot guarantee child cleanup.
+
+### Access boundaries and verified scope
+
+The UI binds to loopback, validates Host/Origin, and uses a per-launch capability
+and HttpOnly session cookie. Keep its launch URL private. Case threads receive
+scoped Volatility tools preauthorized for requested analysis, without exposing a
+generic shell tool or changing global Codex configuration. Other supported approval
+requests remain explicit; incompatible enforced settings block investigation.
+
+Recorded checks include harmless-fixture MCP/HTTP/browser workflows, cancellation,
+duplicate submissions, restart handling, portable report links and immutable
+revisions, plus a short real Codex/Volatility integration with saved-evidence
+follow-ups. See [UI_VALIDATION.md](docs/UI_VALIDATION.md) for the actual runs and
+their limits. Interactive Finder selection, non-macOS hosts, and other browsers
+remain unverified. There is no comprehensive per-plugin coverage ledger or curated
+detection-quality evaluation yet. Parallel investigations, multiple agents per
+case, additional agent adapters, hosted access, and polished exports remain future
+work. Structural report validation is not forensic certification.
 
 ## Configuration and troubleshooting
 
