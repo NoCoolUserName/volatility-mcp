@@ -42,8 +42,11 @@ the module command above also works with an existing editable installation.
 
 ## Workflow
 
-The Cases list displays newest first by case creation time, including after
-refresh. Reordering the list does not change the selected case.
+The Cases list displays newest first by case creation time. A fresh page selects
+the first displayed case unless a valid `?case=<case-id>` URL requests another.
+Background refreshes preserve the selected case, including a manual selection.
+If the selected/requested case no longer exists, selection falls back to the
+first displayed case; an empty list shows the start screen.
 
 1. Add existing `.raw`, `.mem`, `.vmem`, `.dmp`, `.lime`, or `.dd` files through
    path entry, evidence-folder browsing, or **Choose in Finder** on macOS. The

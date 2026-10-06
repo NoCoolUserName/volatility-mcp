@@ -237,3 +237,17 @@ The existing citation/report/evidence controls also passed. No jobs or Volatilit
 subprocesses were submitted by these views. Real private cases were checked separately
 through read-only scoped MCP with subprocess/image-hash guards; the active Workbench
 was not restarted. See VALIDATION.md for the 78 targeted tests and offline scenarios.
+
+## Initial case selection — 2026-10-06
+
+Installed Chrome with the actual static UI and intercepted synthetic API responses
+passed fresh newest-first selection, selected ID/card/details/chat/report agreement,
+and manual selection across the actual background refresh when a newer case arrived.
+Valid `?case=` links survived launch-token cleanup; stale IDs fell back to the first
+displayed case. Empty lists, removal of the selected case, and later list population
+also passed. Switching to a case without reports cleared the old report, and a
+delayed response from a previously selected case did not overwrite the current one.
+No browser errors occurred. JavaScript syntax and both existing timestamp tests
+passed. These were browser fixture checks, not a live backend/investigation test;
+no analysis/report-generation requests were made, private cases were untouched,
+and no running Workbench was restarted.

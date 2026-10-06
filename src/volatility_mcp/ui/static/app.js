@@ -26,8 +26,11 @@ function readableTime(value) {
 function timestampMillis(value) {
   return Date.parse(String(value).replace(/^(\d{4}-\d{2}-\d{2}) /, "$1T"));
 }
+function orderedCases() {
+  return [...state.cases].sort((a, b) => timestampMillis(b.created_at) - timestampMillis(a.created_at));
+}
 let state,
-  selected = null,
+  selected = new URLSearchParams(location.search).get("case") || null,
   selectedVersion = null,
   shownReport = "",
   shownActivity = "",
@@ -74,8 +77,14 @@ function choose(id) {
   shownActivity = "";
   shownMessages = "";
   shownImages = "";
-  approvalKey = "";
+  approvalKey = null;
+  artifact = null;
+  $("reportView").replaceChildren();
+  $("toc").replaceChildren();
+  $("artifacts").replaceChildren();
+  $("artifactMeta").textContent = "";
   $("artifactView").textContent = "";
+  $("more").hidden = true;
   $("coverageView").replaceChildren();
   render();
   loadArtifacts().catch(error);
@@ -226,7 +235,12 @@ function renderMarkdown(text, base) {
   if (code) article.append(code);
 }
 async function showReport(version) {
-  if (!version) return;
+  if (!version) {
+    shownReport = "";
+    $("reportView").replaceChildren(el("p", "No report yet. Run readiness, then Generate report."));
+    $("toc").replaceChildren();
+    return;
+  }
   const key = selected + "/" + version.id + "/" + version.status;
   if (shownReport === key) return;
   shownReport = key;
@@ -235,6 +249,7 @@ async function showReport(version) {
     const data = await api(
       "file?case=" + selected + "&path=" + encodeURIComponent(path),
     );
+    if (shownReport !== key) return;
     renderMarkdown(data.text, "reports/" + version.id);
     const citationCase = selected;
     const checks = el("button", "Inspect evidence citations");
@@ -274,6 +289,7 @@ async function showReport(version) {
       $("reportView").append(b);
     }
   } catch (e) {
+    if (shownReport !== key) return;
     renderMarkdown("Report is not available yet: " + e.message, "reports/" + version.id);
     $("toc").replaceChildren();
   }
@@ -287,7 +303,7 @@ function render() {
   $("pick").disabled = !state.native_picker;
   const cases = $("cases");
   cases.replaceChildren();
-  for (const c of [...state.cases].sort((a, b) => timestampMillis(b.created_at) - timestampMillis(a.created_at))) {
+  for (const c of orderedCases()) {
     const b = el(
       "button",
       c.title,
@@ -516,7 +532,9 @@ function renderApprovals(c) {
 }
 async function loadArtifacts() {
   if (!selected) return;
-  const data = await api("artifacts?case=" + selected);
+  const caseId = selected;
+  const data = await api("artifacts?case=" + caseId);
+  if (selected !== caseId) return;
   $("artifacts").replaceChildren(
     ...data.files.map((f) => {
       const b = el(
@@ -534,14 +552,16 @@ async function loadArtifacts() {
     );
 }
 async function viewArtifact(path, offset = 0) {
+  const caseId = selected;
   const data = await api(
     "file?case=" +
-      selected +
+      caseId +
       "&path=" +
       encodeURIComponent(path) +
       "&offset=" +
       offset,
   );
+  if (selected !== caseId) return;
   artifact = { path, offset: data.next_offset };
   $("artifactMeta").textContent =
     readableTime(path) +
@@ -660,8 +680,8 @@ async function browse(path = "") {
 }
 async function refresh() {
   state = await api("state");
-  if (!selected && state.cases.length) selected = state.cases[0].id;
-  render();
+  if (!caseNow()) choose(orderedCases()[0]?.id || null);
+  else render();
 }
 $("add").onclick = act(async () => {
   const r = await api("cases", {
@@ -673,9 +693,9 @@ $("add").onclick = act(async () => {
     title: $("title").value,
     source: $("source").value,
   });
-  selected = r.cases[0].id;
   $("paths").value = "";
   await refresh();
+  choose(r.cases[0].id);
 });
 $("browse").onclick = act(() => browse());
 $("pick").onclick = act(async () => {
@@ -701,7 +721,7 @@ document
   try {
     const token = location.hash.slice(1);
     if (token) {
-      history.replaceState(null, "", location.pathname);
+      history.replaceState(null, "", location.pathname + location.search);
       await api("unlock", { token });
     }
     await refresh();
