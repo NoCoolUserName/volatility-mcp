@@ -32,6 +32,7 @@ let state,
   shownReport = "",
   shownActivity = "",
   shownMessages = "",
+  shownImages = "",
   approvalKey = "",
   artifact = null;
 const el = (tag, text, cls) => {
@@ -72,6 +73,7 @@ function choose(id) {
   shownReport = "";
   shownActivity = "";
   shownMessages = "";
+  shownImages = "";
   approvalKey = "";
   $("artifactView").textContent = "";
   render();
@@ -128,14 +130,34 @@ function inline(node, text, base) {
   }
   node.append(document.createTextNode(text.slice(start)));
 }
+function coinImage(path, label) {
+  const img = el("img", undefined, "challenge-coin");
+  img.src = "/api/coin?case=" + selected + "&path=" + encodeURIComponent(path);
+  img.alt = label + " — decorative image identity, not forensic evidence";
+  img.title = img.alt;
+  img.onerror = () => img.remove();
+  return img;
+}
 function renderMarkdown(text, base) {
   const article = $("reportView"),
     toc = $("toc");
   article.replaceChildren();
   toc.replaceChildren();
+  if (!text.includes("![Decorative coin for ")) {
+    const gallery = el("div", undefined, "coin-gallery");
+    for (const coin of caseNow()?.coins || []) {
+      if (coin.path) gallery.append(coinImage(coin.path, coin.label));
+    }
+    article.append(gallery);
+  }
   let code = null,
     count = 0;
   for (const line of text.split("\n")) {
+    const coin = /^!\[(Decorative coin for [^\]]+)\]\((assets\/coins\/[a-f0-9]{64}\.(?:png|svg))\)$/.exec(line);
+    if (!code && coin) {
+      article.append(coinImage(base + "/" + coin[2], coin[1]));
+      continue;
+    }
     if (line.startsWith("```")) {
       if (code) {
         article.append(code);
@@ -185,7 +207,7 @@ async function showReport(version) {
       $("reportView").append(b);
     }
   } catch (e) {
-    $("reportView").textContent = "Report is not available yet: " + e.message;
+    renderMarkdown("Report is not available yet: " + e.message, "reports/" + version.id);
     $("toc").replaceChildren();
   }
 }
@@ -213,6 +235,8 @@ function render() {
   if (c) {
     $("caseTitle").textContent = c.title;
     $("ready").textContent = c.readiness.status;
+    const imageKey = JSON.stringify([c.id, c.images, c.coins]);
+    if (shownImages !== imageKey) {
     $("images").replaceChildren(
       ...c.images.map((i) =>
         el(
@@ -228,6 +252,12 @@ function render() {
         ),
       ),
     );
+    for (const [index, image] of c.images.entries()) {
+      const coin = (c.coins || []).find(x => x.image_id === image.id && x.path);
+      if (coin) $("images").children[index].prepend(coinImage(coin.path, coin.label));
+    }
+    shownImages = imageKey;
+    }
     $("reasons").replaceChildren(
       ...c.readiness.reasons.map((r) => el("p", r, "subtle")),
     );

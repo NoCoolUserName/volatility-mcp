@@ -164,3 +164,29 @@ boundaries, midnight, year/date rollover, legacy labels, and elapsed-time parsin
 A live read-only Chrome check verified three report labels, 76 evidence labels,
 and an original evidence link without console errors. An active investigation
 was left running; refreshing the browser loads the updated static JavaScript.
+
+## Stable per-image decorative coins
+
+The prior private report assets were located and visually inspected: antique
+silver concentric rims, graphite metal, emerald circuitry, curved lettering,
+and distinct worm/gear and lightning/chip centers. Their original PNG bytes were
+reused for their saved image identities; no private artwork or hashes are tracked.
+A synthetic SVG companion was rendered and visually inspected against that design
+vocabulary. It is a stylized local renderer, not a new image-generation service.
+
+Four focused coin tests and 21 Workbench tests passed. Checks covered stable assets
+across cases/reopening, distinct images, escaped labels, symlink rejection,
+metadata-only generation with subprocess creation forbidden and nonexistent source
+images, authenticated image serving, portable Markdown asset links and checksums,
+unchanged prior report revisions, and report completion when artwork fails.
+A test fixture initially used the platform's symlinked temporary-directory alias;
+resolving that fixture path preserved the production symlink boundary.
+
+Read-only Chrome checks verified both original PNGs byte-for-byte in image and
+report areas, successful reopening, and no console errors. A browser-only synthetic
+two-image case verified two identity coins and two portable report image links.
+The existing incomplete report remained incomplete; its viewer can display the
+coin without inventing report content. Eleven historical report/artwork/checksum
+markers were unchanged. The standalone core import did not load the UI/coin layer.
+No real Volatility analysis or source-image hashing was performed for this feature.
+The active user investigation was allowed to finish before reloading Workbench.

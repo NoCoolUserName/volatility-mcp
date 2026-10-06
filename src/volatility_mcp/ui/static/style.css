@@ -323,3 +323,11 @@ footer {
     padding: 20px;
   }
 }
+
+/* Decorative per-image identities, matching the earlier report hero placement. */
+.challenge-coin { width: 132px; height: 132px; object-fit: contain; flex: 0 0 auto; filter: drop-shadow(0 5px 7px #07190f28); }
+.image .challenge-coin { width: 96px; height: 96px; float: right; margin: 0 0 8px 14px; }
+.image::after { content: ''; display: block; clear: both; }
+.coin-gallery { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 12px; float: right; max-width: 100%; margin: 0 0 12px 16px; }
+#reportView > .challenge-coin { float: right; margin: 0 0 12px 16px; }
+#reportView h2 { clear: both; }

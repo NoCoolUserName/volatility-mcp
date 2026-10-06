@@ -12,6 +12,7 @@ import uuid
 from ..backend import file_fingerprint
 from ..reporting import check_bundle
 from ..timestamps import utc_now as now
+from .coins import populate
 
 
 def uid():
@@ -160,7 +161,19 @@ class Bundle:
             evidence.append({'id': image['id'], 'path': image['path'], 'sha256': image['sha256'],
                 'sha256_before': image['sha256'], 'sha256_after': image['sha256'],
                 'size_bytes': image['size_bytes'], 'source': image.get('source') or 'Local file; acquisition provenance unknown', 'acquired_at': None})
-        manifest = {'schema_version': '0.1', 'report_spec_version': '0.1', 'case_id': self.case['id'],
+        coins=populate(self.case_dir,self.case['images'])
+        for coin in coins:
+            if 'path' not in coin:continue
+            try:
+                source=safe_file(self.case_dir,coin['path'])
+                target=safe_file(self.root,coin['path'])
+                private_dir(target.parent)
+                if target.exists() and target.read_bytes()!=source.read_bytes():
+                    raise ValueError('Existing report coin differs')
+                if not target.exists():shutil.copyfile(source,target)
+            except Exception as exc:
+                coin.pop('path',None);coin['error']=str(exc)
+        manifest = {'coins':coins,'schema_version': '0.1', 'report_spec_version': '0.1', 'case_id': self.case['id'],
             'synthetic': False, 'status': 'in_progress', 'created_at': self.version['created_at'], 'completed_at': None,
             'evidence': evidence, 'tools': versions, 'runs': runs, 'artifacts': artifacts, 'findings': [],
             'previous_report_version': self.version.get('previous'), 'codex_thread_id': self.case.get('thread_id')}
@@ -179,7 +192,8 @@ class Bundle:
         manifest = self.prepare()
         manifest['findings'] = findings
         atomic_json(self.root / 'case-manifest.json', manifest)
-        (self.root / 'report.md').write_text(markdown)
+        badges='\n'.join(f"![Decorative coin for {c['image_id']}]({c['path']})" for c in manifest['coins'] if 'path' in c)
+        (self.root / 'report.md').write_text((badges+'\n\n' if badges else '')+markdown)
         fields = ['type','value','evidence_ref','confidence','relevance','status','context']
         with (self.root / 'iocs.csv').open('w', newline='') as stream:
             writer = csv.DictWriter(stream, fieldnames=fields, lineterminator='\n')

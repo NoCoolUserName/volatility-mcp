@@ -179,3 +179,40 @@ configured AI service**. Volatility may fetch symbols. See `SECURITY.md`.
   advanced Markdown/export styling, artwork and polished document exports are deferred.
 
 See `docs/UI_VALIDATION.md` for actual checks and their limits.
+
+## Image coins
+
+Each image gets a stable, decorative coin once normal readiness has saved its
+SHA-256. Original report PNGs can be imported explicitly; otherwise a local SVG
+renderer uses the existing display name (or filename), a hash-derived monogram,
+and distinct circuit traces. Silver concentric rims, graphite faces, emerald
+inlays and curved lettering follow the earlier report coins. The SVG companion
+is stylized rather than the originals' photographic metal finish. It assigns no
+malware family. No image model, network call, forensic command, or evidence hashing
+is involved in artwork creation.
+
+Assets stay in private Workbench storage: `coin-library/<image-sha256>/` stores the
+immutable master and provenance; `<case-id>/assets/coins/` stores case copies.
+New report versions carry portable copies, Markdown image links, manifest coin
+metadata, and checksums. The report viewer also displays coins above old reports
+without changing their sealed files. Hover artwork for its decorative label.
+
+Populate existing images from saved metadata only (safe to repeat):
+
+```sh
+python -m volatility_mcp.ui.coins --state-dir /path/to/private/workbench
+```
+
+To reuse original PNG artwork, import it **before** population for that identity:
+
+```sh
+python -m volatility_mcp.ui.coins --state-dir /path/to/private/workbench \
+  --sha256 <already-recorded-image-sha256> --png /path/to/original-coin.png \
+  --label 'Existing image display name' \
+  --provenance 'Original report asset; decorative, not forensic evidence'
+```
+
+Then run the population command. Existing coins are never replaced. Restart an
+idle Workbench to load populated assets; do not interrupt an active investigation.
+An artwork error is recorded without preventing analysis or report generation.
+Core MCP tools remain entirely independent of this optional presentation layer.

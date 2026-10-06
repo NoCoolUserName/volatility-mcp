@@ -19,6 +19,7 @@ from ..backend import VolatilityBackend, SUPPORTED_EXTENSIONS
 from ..cli import decode_result
 from ..config import load_config
 from ..timestamps import timestamped_id
+from .coins import populate
 from .codex import CodexClient, CodexError
 from .storage import Bundle, atomic_json, now, private_dir, read_chunk, safe_file, uid
 
@@ -52,6 +53,7 @@ class Workbench:
             if job['status'] in ('queued','running','stopping'):
                 job.update(status='incomplete',error='Application stopped before completion. Explicitly enqueue new work to resume.',finished_at=now())
         for case in self.state['cases']:
+            case['coins']=populate(self.root/case['id'],case['images'])
             for report in case['reports']:
                 if report['status']=='draft':
                     report['status']='incomplete'
@@ -237,6 +239,7 @@ class Workbench:
             case['catalog_summary']={k:v for k,v in catalog.items() if k!='plugins'}
             for image in case['images']:
                 image.update(await self.fingerprint(image,job))
+                case['coins']=populate(self.directory(case),case['images'])
                 self.progress(job,'OS/symbol discovery: '+Path(image['path']).name)
                 info=decode_result(await client.call_tool('get_image_info',{'image':image['path']}))
                 image['discovery']=info

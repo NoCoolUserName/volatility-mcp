@@ -20,13 +20,23 @@ unchanged. Their earlier schemas and HTML presentation need not be retroactively
 converted to 0.1.
 
 Prior presentation preferences are retained as future optional design work:
-linked left contents, Light/Matrix radio theme, original challenge-coin artwork,
+linked left contents, Light/Matrix radio theme,
 human-readable JSON/JSONL views, and boxes/arrows for actual call dependencies.
 They are **not prerequisites** for this initial Markdown workflow. No new HTML,
 PDF, DOCX, image-generation, or rendering dependency is required. If later enabled,
 artwork must be labeled decorative and record its generation provenance; never
 send private evidence for artwork generation. Views must escape untrusted content,
 work without external resources, and never replace raw evidence.
+
+Optional challenge coins are implemented in Workbench: one stable decorative
+asset per saved image SHA-256, displayed in the identity area and report header.
+New Markdown bundles include relative `assets/coins/` images and a `coins`
+manifest field recording source-image identity, asset hash, label, and generation
+or reuse provenance. Assets are covered by final bundle checksums. Coins do not
+establish attribution or findings; unknown images use neutral memory-chip imagery.
+Artwork failure is nonfatal and recorded in that optional manifest field.
+Historical bundles are never rewritten. See [LOCAL_UI.md](LOCAL_UI.md#image-coins)
+for metadata-only population and original-artwork import.
 
 ## Evidence handling and investigation
 

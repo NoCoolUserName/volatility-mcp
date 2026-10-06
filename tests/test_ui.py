@@ -126,6 +126,12 @@ class UITests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(report['status'],'sealed')
         manifest=json.loads((self.app.directory(self.case)/'reports'/report['id']/'case-manifest.json').read_text())
         self.assertTrue(manifest['artifacts'])
+        self.assertEqual(len(manifest['coins']),1)
+        coin=manifest['coins'][0]
+        bundle=self.app.directory(self.case)/'reports'/report['id']
+        self.assertTrue((bundle/coin['path']).is_file())
+        self.assertIn(coin['path'],(bundle/'report.md').read_text())
+        self.assertIn(coin['path'],(bundle/'SHA256SUMS').read_text())
         self.assertTrue(all(r['image_id']=='E001' for r in manifest['runs']))
         self.assertEqual(self.fixture.image.read_bytes(),before)
         a=manifest['artifacts'][0]
@@ -144,6 +150,9 @@ class UITests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.case['thread_id'],thread)
         self.assertEqual(path.read_bytes(),original)
         self.assertEqual(self.case['reports'][1]['previous'],report['id'])
+        roots=[self.app.directory(self.case)/'reports'/r['id'] for r in self.case['reports']]
+        coins=[json.loads((r/'case-manifest.json').read_text())['coins'][0] for r in roots]
+        self.assertEqual(coins[0]['asset_sha256'],coins[1]['asset_sha256'])
         with self.assertRaises(ValueError):Bundle(self.app.directory(self.case),self.case,report).prepare()
     async def test_duplicate_submission_and_stop_queue(self):
         job=self.app.enqueue(self.case['id'],'question','WAIT_FOR_STOP','request-1')
@@ -206,6 +215,12 @@ class UITests(unittest.IsolatedAsyncioTestCase):
         job=self.app.enqueue(self.case['id'],'report');await self.wait_job(job)
         self.assertEqual(job['status'],'failed')
         self.assertIn('changed',job['error'])
+    async def test_coin_failure_does_not_block_report(self):
+        await self.ready()
+        with patch('volatility_mcp.ui.storage.populate',return_value=[{'image_id':'E001','error':'Artwork unavailable'}]):
+            job=self.app.enqueue(self.case['id'],'report');await self.wait_job(job)
+        self.assertEqual(job['status'],'completed',job)
+        self.assertEqual(self.case['reports'][0]['status'],'sealed')
     async def test_http_origin_auth_and_preview_boundaries(self):
         server=Server(self.app,0,asyncio.get_running_loop())
         thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
@@ -223,6 +238,15 @@ class UITests(unittest.IsolatedAsyncioTestCase):
             self.assertIn('HttpOnly',headers['Set-Cookie'])
             status,body,_=await asyncio.to_thread(request,'/api/state',None,{'Cookie':cookie});self.assertEqual(status,200)
             self.assertEqual(len(json.loads(body)['cases']),1)
+            from volatility_mcp.ui.coins import ensure_coin
+            coin=ensure_coin(self.app.directory(self.case),{**self.case['images'][0],'sha256':'a'*64})
+            url='/api/coin?case='+self.case['id']+'&path='+coin['path']
+            status,_,_=await asyncio.to_thread(request,url);self.assertEqual(status,403)
+            status,body,h=await asyncio.to_thread(request,url,None,{'Cookie':cookie})
+            self.assertEqual(status,200);self.assertEqual(h['Content-Type'],'image/svg+xml')
+            self.assertIn(b'<svg',body)
+            status,_,_=await asyncio.to_thread(request,'/api/coin?case='+self.case['id']+'&path=../config.json',None,{'Cookie':cookie})
+            self.assertEqual(status,400)
             status,_,_=await asyncio.to_thread(request,'/api/stop',{}, {'Cookie':cookie});self.assertEqual(status,403)
             status,_,_=await asyncio.to_thread(request,'/api/state',None,{'Cookie':cookie,'Host':'evil.example'});self.assertEqual(status,403)
             for _ in range(2):await asyncio.to_thread(request,'/api/state',None,{'Cookie':cookie})

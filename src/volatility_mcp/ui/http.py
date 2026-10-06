@@ -9,12 +9,13 @@ from http.cookies import SimpleCookie
 import json
 from pathlib import Path
 import secrets
+import re
 import signal
 import threading
 from urllib.parse import urlsplit, parse_qs
 import webbrowser
 from .app import Workbench
-from .storage import atomic_json, private_dir
+from .storage import atomic_json, private_dir, safe_file
 from ..config import load_config
 
 
@@ -112,6 +113,15 @@ class Handler(BaseHTTPRequestHandler):
                 name,mime=assets[url.path]
                 return self.send(200,(Path(__file__).parent/'static'/name).read_bytes(),mime)
             self.authenticated()
+            if url.path=='/api/coin':
+                query=parse_qs(url.query)
+                case=self.server.app.case(query['case'][0])
+                path=query['path'][0]
+                if not re.fullmatch(r'(?:reports/[A-Za-z0-9_+. -]+/)?assets/coins/[a-f0-9]{64}\.(png|svg)',path):
+                    raise ValueError('Invalid coin path')
+                asset=safe_file(self.server.app.directory(case),path)
+                if asset.stat().st_size>8*1024*1024:raise ValueError('Coin exceeds size limit')
+                return self.send(200,asset.read_bytes(),'image/png' if path.endswith('.png') else 'image/svg+xml')
             self.send(200,self.invoke(self.get_data(url.path,parse_qs(url.query))))
         except PermissionError as exc:self.send(403,{'error':str(exc)})
         except (Exception,) as exc:self.send(400,{'error':str(exc)})
