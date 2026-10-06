@@ -135,3 +135,20 @@ verify that it does not reopen the browser. All 20 UI checks passed. A real
 Codex-to-scoped-MCP turn using the harmless simulated analyzer completed with one
 saved run, zero approval prompts, and unchanged source bytes. No private image
 was reanalyzed for this verification.
+
+## Readable UTC timestamps
+
+New execution/state timestamps use `YYYY-MM-DD HH:MM:SSZ`. New run/report and
+registration-backup directories use `YYYY-MM-DD_HH-MM-SSZ` plus a random suffix.
+Tests cover same-second name uniqueness, provenance timestamp parsing, old and
+new GUI formats, elapsed-time parsing, and unchanged non-UTC strings. The full
+suite ran 71 tests successfully with one optional test skipped. The isolated
+symbol-cache helper's CLI was also checked after preserving its standalone import
+behavior. No memory analysis was rerun.
+
+A read-only Chrome check against existing private case data verified three report
+version labels, 76 evidence labels, and an original evidence link, with no browser
+console errors. Initial browser harness waits assumed a disconnected Codex label;
+correcting the harness to wait for the loaded case resolved that test-only issue.
+The running investigation finished before Workbench was restarted. Existing raw
+artifacts, sealed bundles, paths and hashes were not migrated or rewritten.

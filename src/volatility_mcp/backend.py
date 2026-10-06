@@ -19,7 +19,7 @@ import time
 from . import __version__
 from .config import Config
 from .json_rows import iter_rows
-from datetime import datetime, timezone
+from .timestamps import utc_now, timestamped_id
 from typing import Any
 import uuid
 
@@ -37,10 +37,6 @@ class EvidenceError(ValueError):
 class SafeArgumentParser(argparse.ArgumentParser):
     def error(self, message: str) -> None:
         raise EvidenceError(message)
-
-
-def utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat(timespec="milliseconds")
 
 
 def validate_text(value: str, label: str, *, allow_home: bool = False) -> None:
@@ -421,7 +417,7 @@ class VolatilityBackend:
             normalized = self.validate_arguments(plugin, arguments)
             before = file_fingerprint(source)
             case = self.case_directory(source)
-            run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ") + "-" + uuid.uuid4().hex[:12]
+            run_id = timestamped_id()
             run = self._safe_directory(case / "runs" / run_id)
             manifest_path = run / "manifest.json"
             metadata = self.catalog()["plugins"][plugin]

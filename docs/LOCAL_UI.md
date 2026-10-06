@@ -118,6 +118,15 @@ instead of silently reopening outdated code. A browser refresh alone cannot
 restart the Python backend. Stopping marks active work incomplete and preserves
 completed artifacts; submit a follow-up after relaunch to continue.
 
+Workbench displays UTC timestamps as `2026-10-06 02:52:39Z`, including legacy
+report versions, activity, conversation timestamps, and evidence-path labels.
+New execution/state metadata uses that same seconds-resolution UTC format.
+New run/report folders and registration backups use portable names such as
+`2026-10-06_02-52-39Z-<unique suffix>`; the suffix prevents same-second collisions.
+Existing folders, sealed reports, and raw evidence remain unchanged. Evidence
+buttons retain their original link targets (hover to see the actual path), and
+the raw artifact preview preserves source content and timestamp precision.
+
 Other supported command/file approvals and scoped Volatility MCP form requests are
 shown with details and approve-once/decline/cancel choices; user-input requests
 accept answers. MCP forms support scalar and single-choice fields, with server-side

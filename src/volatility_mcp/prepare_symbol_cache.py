@@ -94,7 +94,7 @@ def prepare(symbols_path: Path, cache_path: Path) -> dict:
     if hashlib.sha256(isf_path.read_bytes()).hexdigest() != EXPECTED_SHA256:
         raise ValueError("Supplemental ISF changed during cache preparation.")
     result = {
-        "prepared_at": datetime.now(timezone.utc).isoformat(),
+        "prepared_at": datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%SZ'),
         "cache_database": str(database_path),
         "symbols_directory": str(symbols_path), "symbol_search_paths": list(symbols.__path__),
         "identifier": identifier.decode("latin-1"), "preferred_uri": preferred_uri,

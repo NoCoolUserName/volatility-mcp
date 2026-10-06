@@ -1,5 +1,20 @@
 "use strict";
 const $ = (id) => document.getElementById(id);
+// Normalize timestamp labels only. Saved evidence and link targets stay exact.
+function readableTime(value) {
+  return String(value)
+    .replace(/\b(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(?:[.-]\d+)?(?:Z|\+0000)\b/g,
+      "$1-$2-$3 $4:$5:$6Z")
+    .replace(/\b(\d{4}-\d{2}-\d{2})T(\d{2})(\d{2})(\d{2})(?:-\d+)?\+0000\b/g,
+      "$1 $2:$3:$4Z")
+    .replace(/\b(\d{4}-\d{2}-\d{2})_(\d{2})-(\d{2})-(\d{2})Z\b/g,
+      "$1 $2:$3:$4Z")
+    .replace(/\b(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}:\d{2})(?:\.\d+)?(?:Z|\+00:00)\b/g,
+      "$1 $2Z");
+}
+function timestampMillis(value) {
+  return Date.parse(String(value).replace(/^(\d{4}-\d{2}-\d{2}) /, "$1T"));
+}
 let state,
   selected = null,
   selectedVersion = null,
@@ -215,16 +230,16 @@ function render() {
       (j) => j.case_id === c.id && ["running", "stopping"].includes(j.status),
     );
     $("operation").textContent = running
-      ? (running.progress || running.kind) +
+      ? readableTime(running.progress || running.kind) +
         " · " +
-        Math.floor((Date.now() - Date.parse(running.started_at)) / 1000) +
+        Math.floor((Date.now() - timestampMillis(running.started_at)) / 1000) +
         "s elapsed" +
         (running.status === "stopping" ? " · stopping…" : "")
       : "";
     const versions = $("versions");
     versions.replaceChildren();
     for (const r of [...c.reports].reverse()) {
-      const b = el("button", r.created_at + " · " + r.status);
+      const b = el("button", readableTime(r.created_at) + " · " + r.status);
       b.onclick = () => {
         selectedVersion = r.id;
         shownReport = "";
@@ -241,7 +256,7 @@ function render() {
         ...c.messages.map((m) =>
           el(
             "div",
-            m.role.toUpperCase() + " · " + m.time + "\n" + m.text,
+            m.role.toUpperCase() + " · " + readableTime(m.time) + "\n" + m.text,
             "message " + m.role,
           ),
         ),
@@ -254,8 +269,8 @@ function render() {
         ...[...c.activity].reverse().map((a) => {
           const d = el("details", undefined, "event");
           d.append(
-            el("summary", a.time + " · " + a.kind),
-            el("pre", JSON.stringify(a.detail, null, 2)),
+            el("summary", readableTime(a.time) + " · " + a.kind),
+            el("pre", readableTime(JSON.stringify(a.detail, null, 2))),
           );
           return d;
         }),
@@ -398,9 +413,10 @@ async function loadArtifacts() {
     ...data.files.map((f) => {
       const b = el(
         "button",
-        f.path + " · " + f.size_bytes.toLocaleString() + " bytes",
+        readableTime(f.path) + " · " + f.size_bytes.toLocaleString() + " bytes",
       );
       b.onclick = act(() => viewArtifact(f.path));
+      b.title = f.path;
       return b;
     }),
   );
@@ -420,7 +436,7 @@ async function viewArtifact(path, offset = 0) {
   );
   artifact = { path, offset: data.next_offset };
   $("artifactMeta").textContent =
-    path +
+    readableTime(path) +
     " · bytes " +
     offset +
     "–" +
@@ -428,6 +444,7 @@ async function viewArtifact(path, offset = 0) {
     " of " +
     data.size +
     (data.truncated ? " · truncated; continue below" : "");
+  $("artifactMeta").title = path;
   let text = data.text;
   if (offset === 0 && !data.truncated && path.endsWith(".json")) {
     try {

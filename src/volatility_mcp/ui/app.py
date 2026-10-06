@@ -18,6 +18,7 @@ from mcp.client.stdio import StdioServerParameters
 from ..backend import VolatilityBackend, SUPPORTED_EXTENSIONS
 from ..cli import decode_result
 from ..config import load_config
+from ..timestamps import timestamped_id
 from .codex import CodexClient, CodexError
 from .storage import Bundle, atomic_json, now, private_dir, read_chunk, safe_file, uid
 
@@ -314,7 +315,7 @@ REPORT_SPEC follows:\n'''+spec
                 fresh=await self.fingerprint(image,job)
                 if fresh['sha256']!=image.get('sha256'):
                     raise ValueError('Image changed since readiness. Do not combine old and new evidence.')
-            report={'id':now().replace(':','').replace('.','-')+'-'+uid()[:8],'created_at':now(),'status':'draft',
+            report={'id':timestamped_id(),'created_at':now(),'status':'draft',
                 'previous':next((r['id'] for r in reversed(case['reports']) if r['status']=='sealed'),None)}
             case['reports'].append(report);job['report_id']=report['id']
             Bundle(self.directory(case),case,report)

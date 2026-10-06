@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-from datetime import datetime, timezone
+from .timestamps import timestamped_id
 import importlib.metadata
 import json
 import os
@@ -278,7 +278,7 @@ def register_codex(args: argparse.Namespace) -> dict:
         raise ConfigurationError("Codex CLI is unavailable on PATH. Install/authenticate Codex, or register the stdio command in another client.")
     # Backups are private local state, never part of the repository.
     destination = absolute_path(args.backup_dir or Path.home() / ".local" / "state" / "volatility-mcp" / "backups")
-    destination = destination / datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
+    destination = destination / timestamped_id()
     destination.mkdir(parents=True, mode=0o700)
     destination.chmod(0o700)
     codex_home = absolute_path(os.environ.get("CODEX_HOME") or Path.home() / ".codex")

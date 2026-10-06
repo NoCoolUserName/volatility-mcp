@@ -1,7 +1,6 @@
 """Private UI state and report packaging; never a core MCP requirement."""
 from __future__ import annotations
 import csv
-from datetime import datetime, timezone
 import hashlib
 import json
 import mimetypes
@@ -12,10 +11,7 @@ import stat
 import uuid
 from ..backend import file_fingerprint
 from ..reporting import check_bundle
-
-
-def now():
-    return datetime.now(timezone.utc).isoformat()
+from ..timestamps import utc_now as now
 
 
 def uid():
