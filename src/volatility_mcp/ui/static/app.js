@@ -119,7 +119,18 @@ function inline(node, text, base) {
       const a = el("a", m[1]);
       a.href = "#evidence";
       a.onclick = act(async () => {
-        await viewArtifact(base + "/" + value.split("#")[0]);
+        const citation = new URLSearchParams(value.split("#")[1] || "").get("citation");
+        if (citation && base.startsWith("reports/")) {
+          const match = /^(.*):(\d+)$/.exec(citation);
+          if (!match) throw Error("Invalid citation link");
+          const resolved = await api("citations?case=" + encodeURIComponent(selected) +
+            "&report=" + encodeURIComponent(base.slice(8)) + "&finding=" + encodeURIComponent(match[1]) + "&index=" + match[2]);
+          if (resolved.artifact_path !== base + "/" + value.split("#")[0]) throw Error("Citation link targets a different artifact");
+          await viewArtifact(resolved.artifact_path);
+          $("artifactView").textContent = JSON.stringify(resolved, null, 2) + "\n\nRaw artifact preview:\n" + $("artifactView").textContent;
+        } else {
+          await viewArtifact(base + "/" + value.split("#")[0]);
+        }
         setTab("evidence");
       });
       node.append(a);
@@ -223,6 +234,35 @@ async function showReport(version) {
       "file?case=" + selected + "&path=" + encodeURIComponent(path),
     );
     renderMarkdown(data.text, "reports/" + version.id);
+    const citationCase = selected;
+    const checks = el("button", "Inspect evidence citations");
+    const panel = el("div");
+    checks.onclick = act(async () => {
+      panel.replaceChildren();
+      async function page(offset = 0) {
+        const base = "citations?case=" + encodeURIComponent(citationCase) + "&report=" + encodeURIComponent(version.id);
+        const data = await api(base + "&offset=" + offset);
+        for (const ref of data.entries) {
+          const b = el("button", ref.finding + " · " + ref.artifact_id + " · " + ref.validation);
+          b.onclick = act(async () => {
+            const resolved = await api(base + "&finding=" + encodeURIComponent(ref.finding) + "&index=" + ref.index);
+            const value = el("pre", JSON.stringify(resolved, null, 2));
+            const raw = el("button", "Open supporting artifact");
+            raw.onclick = act(async () => { await viewArtifact(resolved.artifact_path); setTab("evidence"); });
+            panel.replaceChildren(value, raw);
+          });
+          panel.append(b);
+        }
+        if (data.next_offset !== null) {
+          const more = el("button", "More citations");
+          more.onclick = act(async () => { more.remove(); await page(data.next_offset); });
+          panel.append(more);
+        }
+        if (!data.entries.length) panel.append(el("p", "No finding citations in this report."));
+      }
+      await page();
+    });
+    $("reportView").append(checks, panel);
     if (data.truncated) {
       const b = el(
         "button",

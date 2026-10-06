@@ -12,7 +12,7 @@
 - Installed plugin/argument discovery, OS discovery, and the isolated XP x86
   network-pool compatibility addon with explicit carving limitations.
 - Setup, diagnostics, optional Codex registration, focused harmless tests, and CI.
-- Optional version 0.1 reporting contract, reusable prompts, editable Markdown
+- Optional version 0.2 reporting contract (legacy 0.1 readable), reusable prompts, editable Markdown
   template, synthetic example, and structural provenance validation.
 - Experimental optional loopback Workbench: native macOS selection/path entry,
   readiness, sequential cases, report/evidence views, resumable Codex conversations,
@@ -25,10 +25,9 @@ unverified conditions.
 
 ## Next: refine the report specification
 
-- Next focused execution/report changes (not implemented by result reuse): structured
-  queries over saved rows and observable-value citation checks; then explicit
-  coverage states and focused forensic evaluation fixtures. Keep these separate
-  from the completed backend reuse change.
+- Structured saved-row queries and deterministic observable-value citations are
+  implemented; see [SAVED_EVIDENCE.md](SAVED_EVIDENCE.md). Comprehensive coverage
+  tracking and the forensic evaluation program remain a separate future change.
 - Review finding structure, evidence locators, uncertainty language, hypothesis
   dispositions, timeline semantics, completion status, and revision provenance.
 - Evaluate report quality against curated, legally redistributable or locally

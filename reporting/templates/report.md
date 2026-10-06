@@ -1,6 +1,6 @@
 # {{CASE_ID}} — {{CASE_TITLE}}
 
-Report specification: 0.1. Status: {{COMPLETION_STATUS}}.
+Report specification: 0.2. Status: {{COMPLETION_STATUS}}.
 Analysis: {{START_UTC}} to {{END_UTC}}. Revision: {{REVISION_OR_FIRST}}.
 
 > Editable template fields use `{{...}}`. Replace them with observed values or

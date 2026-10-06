@@ -55,7 +55,7 @@ refresh. Reordering the list does not change the selected case.
    intentionally grouping them. Each capture keeps its own evidence ID, hash,
    discovery result, run associations, and report provenance. New cases get a
    dedicated conversation; the UI never controls an unrelated open Codex session.
-3. **Check readiness** connects to the existing Codex account, initializes the seven
+3. **Check readiness** connects to the existing Codex account, initializes the nine
    actual scoped MCP tools, discovers plugins, hashes each image with byte progress,
    and runs OS/symbol discovery through MCP. **Ready** means ready to attempt
    analysis. **Ready with limitations** records discovery/import/compatibility
@@ -238,3 +238,9 @@ Then run the population command. Existing coins are never replaced. Restart an
 idle Workbench to load populated assets; do not interrupt an active investigation.
 An artwork error is recorded without preventing analysis or report generation.
 Core MCP tools remain entirely independent of this optional presentation layer.
+
+Saved results can be filtered, counted, grouped and cited with the core
+`query_output` and `get_evidence` tools. Workbench follow-ups use saved evidence
+first; its report viewer can resolve checked citations to source values. Historical
+locators remain readable but are not promoted to value-verified citations. See
+[the saved-evidence contract](SAVED_EVIDENCE.md).

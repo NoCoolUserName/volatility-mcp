@@ -95,3 +95,8 @@ duplicate-option, file-path and unrelated-string restrictions remain intact;
 expensive regex evaluation remains under the existing plugin subprocess timeout.
 This change does not silently run that scan; prefer static artifact inspection
 when the bytes are already available.
+
+Saved inspection responses also include `evidence_reference`. Use `query_output`
+with `inspection-<inspection_id>` / `result.json`, then `get_evidence` to validate
+PE fields or recorded string values/offsets without repeating inspection. See
+[SAVED_EVIDENCE.md](SAVED_EVIDENCE.md).

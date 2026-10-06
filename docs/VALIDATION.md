@@ -251,3 +251,68 @@ import-resolution or malware verdict. Present ranges do not prove complete recov
 of original disk bytes or missing memory pages. File/section/page/timeout limits are
 explicit in [ARTIFACT_INSPECTION.md](ARTIFACT_INSPECTION.md). The real evidence check
 does not establish support for every PE variant or acquisition/reconstruction format.
+
+
+## Saved-evidence queries and observable checks — 2026-10-06
+
+Implemented `query_output` / `get_evidence`, optional report-spec 0.2 structured
+citations, inspection references and the existing Workbench viewer connection.
+The manifest schema/layout remains compatible with legacy 0.1 bundles.
+
+Automated checks actually run: 72 distinct targeted unittest cases: saved evidence
+(8), reporting (15), inspection (11), persistent reuse (15), stdio protocol (2),
+and Workbench (21). The HTTP-origin test initially could not bind loopback under
+the execution sandbox; that one test passed with permission for a local fixture
+server. No product network/authentication configuration was changed. JavaScript
+syntax, Python compilation and diff whitespace checks also passed.
+
+- The saved-evidence suite sends 20 representative queries through actual stdio
+  MCP sessions, across process restart, using both official SDK protocol modes.
+  Every fake Volatility interpreter launch (catalogs included) has a counter;
+  **zero launches** occurred. No analysis-count file was created.
+- A report assembled/sealed from saved harmless fixtures runs under a subprocess
+  spy that rejects all launches: **zero subprocesses**. Its checked PID reference
+  passes; historical source/report bytes remain unchanged. This is deterministic
+  fixture packaging, not a model-written real forensic investigation.
+- Fixtures check filtering, selection, counts, grouping, stable pagination/sort,
+  nested parent relationships, null/missing/text markers, 64-bit integers,
+  malformed/duplicate/nonfinite JSON, processing/response budgets, unsafe paths,
+  symlink escapes, wrong case/hash/locator/type/value, byte bounds, and PE/string
+  references (ASCII/UTF-16LE). Lazy normalization preserves references on restart
+  and rederivation; there is no persistent index to corrupt or migrate.
+- Failed/unsupported/incomplete collection statuses remain distinct from verified
+  successful-empty sources. Wrong report-link targets/indices and changed original
+  output hashes are refused. Legacy citations explicitly remain value-unverified.
+- Existing reuse, cross-process duplicate prevention, artifact inspection, jobs,
+  cancellation, report revisions, coins and source-preservation regressions pass.
+
+Read-only real-output integration: two existing private cases' saved process tables
+were queried through their case-scoped MCP implementation, and an actual PID field
+from each was resolved/checked. Explicit guards prohibited all subprocess launches
+and memory-image hashing. No memory analysis, reconstruction, private report
+regeneration or active Workbench restart was performed. Private results stay local.
+
+Manual browser integration: installed Chrome with existing Playwright tooling
+against an isolated synthetic local fixture server exercised citation listing,
+resolved source value/validation, raw evidence navigation, exact inline citation
+links, and page refresh. No JavaScript errors, queued jobs or Volatility launches.
+A temporary test-driver cleanup mistake (closing an unstarted worker) was corrected;
+the complete browser driver then exited successfully. This did not affect project
+runtime code. No new browser/runtime dependency was installed.
+
+Two focused implementation reviews checked the diff, boundaries, status handling,
+report contracts and publication content. Repairs included rejecting nonfinite JSON
+and malformed filter objects, verifying legacy-viewer artifact hashes, checking
+inline citation link ownership, and refusing altered registered output during
+packaging. Relevant saved-evidence/report/browser checks passed after repair.
+This is a self-review, not an independent review.
+
+Limitations: 64 MiB structured sources, bounded nodes/depth/output, lazy parsing
+and full saved-artifact hashing per call (no query-speed claim). Oversized or
+unsupported results retain raw-reader access. New collection remains an explicit
+separate tool; saved-first investigator behavior is guidance, not an agent efficacy
+evaluation. Narrative semantics/inference are never certified by matching values.
+No new live Codex/other vendor AI conversation was exercised; SDK MCP protocol and
+local browser checks do not certify untested clients. Comprehensive coverage and
+forensic evaluation (#3) remain deferred. Ready for the documented use case with
+these limitations; restart idle MCP/Workbench processes to load new code.

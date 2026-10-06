@@ -122,7 +122,13 @@ def inspect_saved(backend, image, run_id, artifact, operation, min_length, encod
 
 
 def response(meta, path, result, reused):
-    return {'status': meta['status'], 'reused': reused, 'source_ref': meta['source_ref'],
+    from .saved_evidence import source_identity, reference
+    saved_reference = None
+    if meta['status'] == 'success':
+        saved_reference = reference(source_identity(path.parents[3], path.parents[2],
+            meta['source_ref']['image_relative_path'], 'inspection-'+path.parent.name,
+            'result.json', meta['result_sha256']), {'kind':'json', 'pointer':''})
+    return {'status': meta['status'], 'reused': reused, 'evidence_reference': saved_reference, 'source_ref': meta['source_ref'],
             'source_run_status': meta.get('source_run_status'),
             'source_run_integrity_verified': meta.get('source_run_integrity_verified'),
             'integrity_verified': meta.get('integrity_verified'), 'parser': meta['parser'],

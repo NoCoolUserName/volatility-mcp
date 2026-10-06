@@ -9,7 +9,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
-from urllib.parse import unquote, urlsplit
+from urllib.parse import unquote, urlsplit, parse_qs
 
 
 def _require(condition, message):
@@ -62,7 +62,7 @@ def _check_bundle(directory: Path) -> dict:
     required = {'schema_version','report_spec_version','case_id','synthetic','status','created_at',
                 'completed_at','evidence','tools','runs','artifacts','findings'}
     _require(required <= manifest.keys(), f'Missing manifest fields: {sorted(required - manifest.keys())}')
-    _require(manifest['schema_version'] == manifest['report_spec_version'] == '0.1', 'Unsupported schema/report spec version')
+    _require(manifest['schema_version'] == '0.1' and manifest['report_spec_version'] in ('0.1', '0.2'), 'Unsupported schema/report spec version')
     _require(type(manifest['synthetic']) is bool, 'synthetic must be a boolean')
     _require(manifest['status'] in {'in_progress','complete','complete_with_limitations','blocked'}, 'Unknown completion status')
     complete = manifest['status'].startswith('complete')
@@ -148,11 +148,14 @@ def _check_bundle(directory: Path) -> dict:
     for name in ('Scope','Technical findings','Investigative workflow','Limitations'):
         _require(any(h.lower().startswith(name.lower()) for h in headings), f'Missing report section: {name}')
     findings = _unique(manifest['findings'],'finding_id')
+    citation_checks = []
     for fid, finding in findings.items():
         _require(fid in report, f'Finding missing from report: {fid}')
         _require(bool(finding['evidence_refs']), f'Finding lacks evidence: {fid}')
         for ref in finding['evidence_refs']:
             _require(ref['artifact_id'] in artifacts and bool(ref.get('locator')), f'Invalid finding locator: {fid}')
+            checked = check_citation(root, manifest, ref)
+            citation_checks.append({'finding_id':fid, 'artifact_id':ref['artifact_id'], **checked})
     for target in re.findall(r'\[[^\]]*\]\(([^)]+)\)',report):
         target = target.strip('<>')
         parsed = urlsplit(target)
@@ -160,6 +163,14 @@ def _check_bundle(directory: Path) -> dict:
             _require(parsed.scheme in {'http','https'}, 'Unsafe report link scheme')
         elif parsed.path:
             _path(root, unquote(parsed.path))
+            citation = parse_qs(parsed.fragment).get('citation')
+            if citation:
+                fid, separator, index = citation[0].rpartition(':')
+                _require(separator and fid in findings and index.isdecimal(), 'Invalid report citation link')
+                refs = findings[fid]['evidence_refs']
+                _require(int(index) < len(refs), 'Report citation index out of bounds')
+                _require(artifacts[refs[int(index)]['artifact_id']]['path'] == unquote(parsed.path),
+                         'Report citation link targets a different artifact')
     with (root / 'iocs.csv').open(newline='') as stream:
         reader = csv.DictReader(stream)
         _require(reader.fieldnames == ['type','value','evidence_ref','confidence','relevance','status','context'], 'Unexpected IOC columns')
@@ -180,7 +191,36 @@ def _check_bundle(directory: Path) -> dict:
         _require(files == listed.keys(), 'Checksum coverage must include every final bundle file except SHA256SUMS')
     return {'status':'valid','case_id':manifest['case_id'],'synthetic':manifest['synthetic'],
             'artifacts':len(artifacts),'calls':len(calls),'findings':len(findings),'iocs':len(iocs),
-            'scope':'Structural provenance and links only; forensic conclusions require analyst review.'}
+            'citation_validation':citation_checks,
+            'scope':'Provenance and supported observable values only; free-form narrative and inference require analyst review.'}
+
+
+def check_citation(root, manifest, ref):
+    """Resolve against this portable bundle, not caller-supplied validation flags."""
+    from .saved_evidence import resolve_reference
+    artifacts = _unique(manifest['artifacts'], 'artifact_id')
+    artifact = artifacts.get(ref.get('artifact_id'))
+    _require(artifact is not None, 'Citation artifact is absent from this case')
+    path = _path(Path(root).resolve(), artifact['path'])
+    _require(path.stat().st_size == artifact['size_bytes'] and _sha(path) == artifact['sha256'],
+             'Citation artifact hash/size mismatch')
+    if 'structured' not in ref:
+        return {'provenance_validation':'legacy_artifact_only',
+                'observable_validation':'not_checked', 'interpretation_validation':'not_checked',
+                'limitation':'Legacy locator is readable but not deterministically verified.'}
+    source = artifact.get('source_ref')
+    _require(isinstance(source, dict), 'Structured citation requires packaged source provenance')
+    runs = _unique(manifest['runs'], 'run_id')
+    run = runs.get(artifact['run_id'])
+    _require(run is not None and source['run_id'] == run['run_id'] and
+             source['case_id'] == run.get('source_case_id') and
+             source['image'] == run.get('image_relative_path') and
+             run.get('image_id') in {e['id'] for e in manifest['evidence']},
+             'Citation source/run/image ownership mismatch')
+    _require(source['sha256'] == artifact['sha256'], 'Citation and bundled artifact hashes disagree')
+    state = artifact.get('source_result', {})
+    _require(state.get('source_status') == run['status'], 'Citation source status disagrees with run')
+    return resolve_reference(path, ref['structured'], source, state, ref.get('observable'))
 
 
 def check_bundle(directory: Path) -> dict:

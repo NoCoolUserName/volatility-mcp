@@ -597,6 +597,15 @@ class VolatilityBackend:
                 "For Linux/macOS analysis, install matching symbols in the existing Volatility symbol directory. "
                 "Unknown means no usable identification was obtained; inspect the saved probe artifacts."}
 
+    def query_output(self, image, run_id, artifact, fields=None, filters=None, sort=None,
+                     offset=0, limit=100, group_by=None):
+        from .saved_evidence import query_output
+        return query_output(self, image, run_id, artifact, fields, filters, sort, offset, limit, group_by)
+
+    def get_evidence(self, reference, observable=None):
+        from .saved_evidence import get_evidence
+        return get_evidence(self, reference, observable)
+
     def read_output(self, path: str, offset: int = 0, limit: int = 16384) -> dict[str, Any]:
         validate_text(path, "Artifact path", allow_home=True)
         if type(offset) is not int or offset < 0 or type(limit) is not int or not 1 <= limit <= 65536:

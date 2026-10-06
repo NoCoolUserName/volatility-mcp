@@ -217,3 +217,13 @@ updated code, and an authenticated read-only HTTP request retrieved the private
 inspection supplement. Case IDs, conversation IDs, report records and job count
 were preserved. No new job or model turn was submitted; this was an HTTP integration
 check, not a new browser interaction test or report-generation run.
+
+
+## Saved citation viewer — 2026-10-06
+
+Installed Chrome, using existing Playwright tooling and a synthetic local fixture
+server, passed citation listing, exact resolved value/status, raw evidence opening,
+inline `#citation=F1:0` links and refresh without JS errors. The fixture created no
+Workbench jobs or Volatility subprocesses. Core query/value/provenance checks and
+legacy compatibility are recorded in [VALIDATION.md](VALIDATION.md). Active private
+Workbench sessions were not restarted; live model behavior was not re-evaluated.

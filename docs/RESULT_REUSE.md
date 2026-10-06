@@ -69,8 +69,8 @@ Local POSIX filesystem lock semantics are required; network filesystems are unte
 Workbench's scheduler, submission IDs, conversation persistence, Stop action, report
 revisions and presentation are unchanged. Cached results keep the original run ID,
 so report packaging and evidence references continue to identify the actual run.
-No historical report bundle is rewritten. Structured evidence queries, observable-
-value citation validation, and explicit coverage tracking remain future work.
+No historical report bundle is rewritten. Structured evidence queries and observable-value checks are now described in
+[SAVED_EVIDENCE.md](SAVED_EVIDENCE.md); comprehensive coverage tracking remains future work.
 
 ## Records and hashing measurements
 

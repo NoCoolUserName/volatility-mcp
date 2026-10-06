@@ -27,7 +27,7 @@ class ProtocolTests(unittest.IsolatedAsyncioTestCase):
             async with Client(self.transport,mode=mode,read_timeout_seconds=15) as client:
                 tools = await client.list_tools()
                 self.assertEqual({t.name for t in tools.tools}, {'list_memory_images','get_image_info',
-                    'list_plugins','run_plugin','read_output','case_history','inspect_artifact'})
+                    'list_plugins','run_plugin','read_output','case_history','inspect_artifact','query_output','get_evidence'})
                 images = decode_result(await client.call_tool('list_memory_images',{}))
                 self.assertEqual(images['count'],1)
                 plugins = decode_result(await client.call_tool('list_plugins',{'query':'windows.pslist.PsList'}))

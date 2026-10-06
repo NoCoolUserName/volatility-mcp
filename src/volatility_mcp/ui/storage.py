@@ -11,6 +11,7 @@ import stat
 import uuid
 from ..backend import file_fingerprint
 from ..reporting import check_bundle
+from ..saved_evidence import source_identity
 from ..timestamps import utc_now as now
 from .coins import populate
 
@@ -101,10 +102,19 @@ class Bundle:
                         self.check_cancel()
                         dst.write(chunk)
                 identity = file_fingerprint(dest)
+                registered = next((a for c in record.get('commands', []) for a in c.get('artifacts', [])
+                                   if a['path'] == str(original)), None)
+                if registered and any(identity[k] != registered[k] for k in ('sha256', 'size_bytes')):
+                    raise ValueError('Saved output disagrees with execution manifest; cannot package changed evidence')
                 aid = cid + '-A-' + hashlib.sha256(str(relative).encode()).hexdigest()[:10]
                 ids.append(aid)
                 artifacts.append({'artifact_id': aid, 'path': str(relative), 'sha256': identity['sha256'],
                     'size_bytes': dest.stat().st_size, 'media_type': mimetypes.guess_type(dest.name)[0] or 'application/octet-stream', 'run_id': rid})
+                if registered:
+                    artifacts[-1].update(source_ref=source_identity(self.case_dir/'analysis', source.parent.parent.parent,
+                        record['image_relative_path'], rid, str(original.relative_to(source.parent)), identity['sha256']),
+                        source_result={'source_status':record['status'], 'completed':bool(record.get('completed_at')),
+                                       'integrity_verified':record.get('integrity_verified') is True})
             image = next((i for i in self.case['images'] if i['path'] == record['image']), None)
             if image is None:
                 raise ValueError('Run has evidence outside the registered case')
@@ -114,7 +124,8 @@ class Bundle:
                 raise ValueError('Run evidence integrity/identity disagrees with case readiness; cannot combine these results')
             runs.append({'run_id': rid, 'call_id': cid, 'status': record['status'],
                 'started_at': record['started_at'], 'finished_at': record['completed_at'],
-                'artifact_ids': ids, 'image_id': image['id']})
+                'artifact_ids': ids, 'image_id': image['id'],
+                'source_case_id':source.parent.parent.parent.name, 'image_relative_path':record['image_relative_path']})
             note = notes.get(rid, {})
             steps.append({'call_id': cid, 'timestamp': record['started_at'],
                 'question': note.get('question', 'Not recorded; consult the preserved command and result.'),
@@ -165,8 +176,17 @@ class Bundle:
                 ids.append(aid)
                 artifacts.append({'artifact_id':aid, 'path':str(relative), 'sha256':identity['sha256'],
                     'size_bytes':identity['size_bytes'], 'media_type':mimetypes.guess_type(dest.name)[0] or 'application/octet-stream', 'run_id':rid})
+                if original.name == 'result.json' and record.get('result_sha256'):
+                    artifacts[-1].update(source_ref=source_identity(self.case_dir/'analysis', source.parent.parent.parent,
+                        ref['image_relative_path'], rid, 'result.json', identity['sha256']),
+                        source_result={'source_status':record['status'], 'completed':bool(record.get('completed_at')),
+                            'integrity_verified':record.get('integrity_verified') is True,
+                            'source_run_status':record.get('source_run_status'),
+                            'source_run_integrity_verified':record.get('source_run_integrity_verified'), 'source_artifact':ref,
+                            'inspection_parser':record['parser'], 'inspection_settings':record['settings']})
             runs.append({'run_id':rid,'call_id':cid,'status':record['status'],'started_at':record['started_at'],
-                'finished_at':record['completed_at'],'artifact_ids':ids,'image_id':parent['image_id']})
+                'finished_at':record['completed_at'],'artifact_ids':ids,'image_id':parent['image_id'],
+                'source_case_id':source.parent.parent.parent.name,'image_relative_path':ref['image_relative_path']})
             steps.append({'call_id':cid,'run_id':rid,'timestamp':record['started_at'],
                 'question':'Inspect existing extracted artifact: '+record['settings']['operation'],
                 'tool':'inspect_artifact','arguments':{'source_ref':ref, **record['settings']},
@@ -219,7 +239,7 @@ class Bundle:
                 if not target.exists():shutil.copyfile(source,target)
             except Exception as exc:
                 coin.pop('path',None);coin['error']=str(exc)
-        manifest = {'coins':coins,'schema_version': '0.1', 'report_spec_version': '0.1', 'case_id': self.case['id'],
+        manifest = {'coins':coins,'schema_version': '0.1', 'report_spec_version': '0.2', 'case_id': self.case['id'],
             'synthetic': False, 'status': 'in_progress', 'created_at': self.version['created_at'], 'completed_at': None,
             'evidence': evidence, 'tools': versions, 'runs': runs, 'artifacts': artifacts, 'findings': [],
             'previous_report_version': self.version.get('previous'), 'codex_thread_id': self.case.get('thread_id')}

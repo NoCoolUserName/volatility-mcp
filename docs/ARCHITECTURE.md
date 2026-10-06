@@ -26,7 +26,7 @@ actual outputs plus the versioned report specification.
 A third independently optional layer, the experimental local Workbench, provides
 a loopback browser UI and sequential case jobs. Its replaceable Codex app-server
 adapter creates/resumes one conversation per case using existing authentication.
-A scoped backend reuses the same seven MCP tools, restricting inputs to explicitly
+A scoped backend reuses the same nine MCP tools, restricting inputs to explicitly
 registered case images and outputs to that case. UI-only dynamic tools package
 reports without adding reporting fields to core MCP calls. See
 [LOCAL_UI.md](LOCAL_UI.md) for architecture, launch, authentication and boundaries.
@@ -195,3 +195,12 @@ tool. A malicious concurrent local writer, compromised configured executable,
 dependency/parser vulnerability, exhausted disk, or forced process death can exceed
 its guarantees. See [SECURITY.md](../SECURITY.md) for data handling and AI-service
 exposure. No report or core tool uploads evidence on its own.
+
+## Saved-evidence access
+
+The core `query_output` and `get_evidence` tools lazily parse hash-verified saved
+outputs without invoking analysis. Versioned original-JSON pointers retain nested
+row ownership and exact typed values; byte locators remain distinct. There is no
+second evidence store or index service. Portable reports copy source identities
+and resolve structured citations against their own verified artifacts. See
+[SAVED_EVIDENCE.md](SAVED_EVIDENCE.md) for contracts, budgets and limitations.

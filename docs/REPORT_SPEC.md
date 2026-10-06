@@ -1,6 +1,6 @@
 # Optional investigation and report specification
 
-**Report specification: 0.1. Manifest schema: 0.1. Status: initial, editable.**
+**Report specification: 0.2. Manifest schema: 0.1. Status: initial, editable.**
 
 This is the authoritative reporting contract for this repository. Apply it only
 when an investigation/report workflow is requested. The core MCP tools require
@@ -171,7 +171,7 @@ Use JSON with these required top-level fields:
 
 | Field | Meaning |
 | --- | --- |
-| `schema_version`, `report_spec_version` | Both `"0.1"` for this contract. |
+| `schema_version`, `report_spec_version` | Schema `"0.1"`; report specification `"0.2"` for new bundles (`"0.1"` remains supported). |
 | `case_id`, `synthetic` | Stable case identity and explicit boolean example status. |
 | `status` | `in_progress`, `complete`, `complete_with_limitations`, or `blocked`. |
 | `created_at`, `completed_at` | ISO 8601 timestamps with explicit UTC/offset; null completion while unfinished. |
@@ -255,3 +255,50 @@ rule validation status. Keep cases separate. Run `report-check` for structural
 provenance, then review the narrative: a passing structural check cannot establish
 correctness of forensic conclusions. Record human-review needs and remaining gaps.
 Finalize checksums last; do not call missing or blocked deliverables complete.
+
+## Structured citations (specification 0.2)
+
+The report layout and manifest schema remain 0.1; report-spec 0.2 adds optional,
+versioned deterministic citations without rewriting historical reports. Both spec
+versions remain readable. New Workbench bundles record report-spec 0.2.
+
+Use `query_output` to select/filter/count saved rows before requesting new collection.
+Use `get_evidence` to resolve exact fields and check observable values. See
+[SAVED_EVIDENCE.md](SAVED_EVIDENCE.md) for limits, types, source status, and locator
+semantics. Insufficient saved evidence is a documented gap, not implicit permission
+to run a new scan. Report regeneration should reuse saved evidence.
+
+For each supported observation, add `structured` (the exact core reference object)
+and `observable: {"type":"integer","value":42}` to its existing evidence-ref object,
+retaining `artifact_id` and a readable `locator`. The structured locator must select
+the actual field being asserted. String equality is case-sensitive; decimal/hex
+normalization is explicit with type integer. Byte ranges are offsets in the cited
+artifact, not invented memory addresses. Preserve inspection page/fragment limits.
+
+The packaged artifact records `source_ref` and `source_result`; its run records
+`image_id`, `image_relative_path`, and `source_case_id`. Workbench derives these
+from execution records, checks registered artifact hashes, and maps the same source
+to its portable copy. For manually composed bundles, retain these exact provenance
+fields from saved tool results and source-run metadata. `report-check` verifies
+ownership, source hash, locator resolution, and declared typed value. Cross-case,
+stale, nonexistent, out-of-range, or mismatched references fail validation.
+
+Validation returns separate provenance, observable, and interpretation statuses.
+Keep findings labeled observation, inference, or unknown in the prose (an optional
+`kind` field may mirror that label). Matching observations do not certify an
+inference or any free-form narrative; interpretation remains `not_checked`.
+Failed/incomplete/unsupported collection stays explicit even when a saved row can
+be resolved. Zero matches in a filtered view is not a successful-empty collection.
+
+Legacy refs without `structured` still open and pass legacy structural checks,
+but return `legacy_artifact_only` / `not_checked`. They never acquire verified-value
+status automatically. Existing checksum-sealed bundles are not rewritten. IOC CSV
+format remains unchanged; deterministic support should be linked through the
+corresponding structured finding. External research remains separate.
+
+For exact Workbench evidence links, append `#citation=F1:0` to the artifact's normal
+relative Markdown link, where F1 is the finding ID and 0 is its evidence-ref index.
+The viewer resolves and checks that citation, verifies the linked artifact matches,
+and shows the exact source value/validation above the raw preview. The underlying
+file link remains portable; other Markdown viewers may ignore this optional fragment.
+The Inspect evidence citations control also works without special link fragments.
