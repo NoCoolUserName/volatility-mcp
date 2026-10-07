@@ -6,6 +6,7 @@ from dataclasses import dataclass
 import json
 import os
 from pathlib import Path
+from .relocation import logical_path, resolved_path, mapping
 
 
 class ConfigurationError(ValueError):
@@ -24,6 +25,15 @@ def config_path(value: str | Path | None = None) -> Path:
 
 def _directory(value: str | Path, label: str) -> Path:
     path = absolute_path(value)
+    pair = mapping()
+    if pair and any(path.is_relative_to(root) for root in pair):
+        try:
+            result = resolved_path(logical_path(path))
+            if result.exists() and not result.is_dir():
+                raise ConfigurationError(f"{label} must be a directory: {path}")
+            return result
+        except ValueError as exc:
+            raise ConfigurationError(str(exc)) from exc
     if path.is_symlink():
         raise ConfigurationError(f"{label} must not be a symlink: {path}")
     if path.exists() and not path.is_dir():

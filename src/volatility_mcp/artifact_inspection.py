@@ -3,6 +3,7 @@ import json
 from importlib.metadata import version
 import os
 from pathlib import Path
+from .relocation import resolved_path
 import platform
 import re
 import subprocess
@@ -44,7 +45,7 @@ def inspect_saved(backend, image, run_id, artifact, operation, min_length, encod
             raise EvidenceError('Run does not belong to the selected registered image')
         source = run / relative
         backend._check_components(source)
-        if source.resolve(strict=True) != source or not source.is_relative_to(run):
+        if resolved_path(source, strict=True) != source or not source.is_relative_to(run):
             raise EvidenceError('Artifact escapes the registered run')
         recorded = next((a for c in record.get('commands', []) for a in c.get('artifacts', [])
                          if a['path'] == str(source)), None)

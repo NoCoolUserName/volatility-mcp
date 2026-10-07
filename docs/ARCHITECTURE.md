@@ -215,3 +215,21 @@ retry. Workbench joins its existing orchestration jobs/request failures separate
 New bundles package a hashed snapshot and required mechanical limitations summary.
 State/authority/budget definitions and the deterministic synthetic evaluation command
 are documented in [COVERAGE_EVALUATION.md](COVERAGE_EVALUATION.md).
+
+### Explicit administrative relocation
+
+An operator can preserve historical absolute paths and evidence-reference
+namespaces when moving a complete local data tree. This is opt-in through
+`VOLATILITY_MCP_RELOCATION`, an absolute path to a private JSON file containing
+`logical_root` (the old absolute directory) and `physical_root` (the new absolute
+directory). The old root must be an actual symlink to exactly the canonical new
+root; roots must be distinct and nonoverlapping. The mapping is checked on access
+and fails closed when the alias changes. Subordinate symlinks and traversal remain
+forbidden. New physical input paths map back to the historical logical namespace;
+original manifests and sealed reports need no rewriting.
+
+The compatibility `server.py` entry point loads an optional, untracked
+`relocation.local.json` beside itself. Workbench launchers must export the same
+variable; Workbench explicitly passes it to its readiness and case MCP processes.
+Keep the administrative alias and mapping in place while historical records depend
+on them. This is not a general symlink permission or an automatic migration tool.

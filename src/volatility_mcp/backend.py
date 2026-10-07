@@ -8,6 +8,7 @@ from importlib.metadata import version
 import platform
 import json
 import os
+from .relocation import logical_path, resolved_path, check_components
 from pathlib import Path
 import re
 import signal
@@ -108,13 +109,14 @@ class VolatilityBackend:
 
     @staticmethod
     def _check_components(path: Path) -> None:
-        for part in (path, *path.parents):
-            if part.is_symlink():
-                raise EvidenceError(f"Symlink paths are forbidden: {part}")
+        try:
+            check_components(path)
+        except ValueError as exc:
+            raise EvidenceError(str(exc)) from exc
 
     def resolve_input(self, value: str, *, memory_image: bool = True) -> Path:
         validate_text(value, "Image path" if memory_image else "Input file", allow_home=True)
-        candidate = Path(value).expanduser()
+        candidate = logical_path(Path(value).expanduser())
         if not candidate.is_absolute():
             candidate = self.cases / candidate
         try:
@@ -131,7 +133,7 @@ class VolatilityBackend:
             if current.is_symlink():
                 raise EvidenceError(f"Symlink inputs are forbidden: {current}")
         try:
-            resolved = candidate.resolve(strict=True)
+            resolved = resolved_path(candidate, strict=True)
         except FileNotFoundError as exc:
             raise EvidenceError(f"File does not exist: {candidate}. Put the acquisition in {self.cases}.") from exc
         if not resolved.is_relative_to(self.cases):
@@ -149,7 +151,7 @@ class VolatilityBackend:
             raise EvidenceError("Artifact directory escapes the configured output root.")
         self._check_components(directory)
         directory.mkdir(mode=0o700, parents=True, exist_ok=True)
-        if directory.resolve() != directory:
+        if resolved_path(directory) != directory:
             raise EvidenceError("Artifact directory changed its resolved location.")
         return directory
 
@@ -634,13 +636,13 @@ class VolatilityBackend:
         validate_text(path, "Artifact path", allow_home=True)
         if type(offset) is not int or offset < 0 or type(limit) is not int or not 1 <= limit <= 65536:
             raise EvidenceError("offset must be nonnegative and limit must be 1..65536 bytes.")
-        candidate = Path(path).expanduser()
+        candidate = logical_path(Path(path).expanduser())
         if not candidate.is_absolute():
             candidate = self.outputs / candidate
         if not candidate.is_relative_to(self.outputs):
             raise EvidenceError("Artifact must be inside configured output root.")
         self._check_components(candidate)
-        resolved = candidate.resolve(strict=True)
+        resolved = resolved_path(candidate, strict=True)
         if not resolved.is_relative_to(self.outputs):
             raise EvidenceError("Artifact escapes output root.")
         fingerprint = file_fingerprint(resolved)

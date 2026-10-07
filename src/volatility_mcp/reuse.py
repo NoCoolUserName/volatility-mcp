@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+from .relocation import resolved_path
 import stat
 import time
 
@@ -151,7 +152,7 @@ def find_completed(backend, case, key, hashes):
                 if not item.is_relative_to(path.parent):
                     raise ValueError('Cached artifact outside original run')
                 backend._check_components(item)
-                if item.resolve(strict=True) != item or not item.resolve().is_relative_to(path.parent):
+                if resolved_path(item, strict=True) != item or not resolved_path(item).is_relative_to(path.parent):
                     raise ValueError('Cached artifact escapes original run')
                 current = hashes.file(item, 'saved_artifacts')
                 if any(current[k] != artifact[k] for k in ('sha256', 'size_bytes')):

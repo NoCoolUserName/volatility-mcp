@@ -7,6 +7,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+from ..relocation import logical_path, resolved_path, environment as relocation_environment
 import platform
 import shutil
 import stat
@@ -40,7 +41,7 @@ TOOLS = [
 class Workbench:
     def __init__(self, config_path, state_dir, project, codex_factory=CodexClient):
         self.config = load_config(config_path)
-        self.project = Path(project).resolve()
+        self.project = logical_path(Path(project).resolve())
         if not (self.project / 'docs/REPORT_SPEC.md').is_file():
             raise ValueError('Use --project pointing at this repository, containing docs/REPORT_SPEC.md')
         self.root = private_dir(Path(state_dir).expanduser().absolute())
@@ -107,7 +108,7 @@ class Workbench:
         if Path(relative).is_absolute() or '..' in Path(relative).parts or '\\' in relative:
             raise ValueError('Browse paths must remain inside the configured evidence folder')
         self.backend._check_components(path)
-        if not path.resolve().is_relative_to(self.config.evidence_root) or path.is_relative_to(self.root):
+        if not resolved_path(path).is_relative_to(self.config.evidence_root) or path.is_relative_to(self.root):
             raise ValueError('Evidence browsing excludes UI outputs')
         entries = []
         for p in sorted(path.iterdir(),key=lambda p:(not p.is_dir(),p.name.lower())):
@@ -228,7 +229,7 @@ class Workbench:
     async def readiness(self,case,job):
         self.progress(job,'Checking Codex authentication')
         await self.connect()
-        transport=StdioServerParameters(command=sys.executable,args=['-m','volatility_mcp.ui.scoped_mcp',str(self.directory(case)/'mcp.json')])
+        transport=StdioServerParameters(command=sys.executable,args=['-m','volatility_mcp.ui.scoped_mcp',str(self.directory(case)/'mcp.json')],env=relocation_environment())
         reasons=[]
         async with Client(transport,read_timeout_seconds=max(1800,self.config.command_timeout*3)) as client:
             tools=await client.list_tools()
@@ -268,7 +269,7 @@ class Workbench:
                 settings[f'mcp_servers.{name}.enabled']=False
         settings.update({'mcp_servers.volatility':{'command':sys.executable,
             'args':['-m','volatility_mcp.ui.scoped_mcp',str(self.directory(case)/'mcp.json')],
-            'default_tools_approval_mode':'approve',
+            'default_tools_approval_mode':'approve','env':relocation_environment(),
             'enabled':True,'required':True,'startup_timeout_sec':90,'tool_timeout_sec':max(1800,self.config.command_timeout*3)},
             'web_search':'disabled','features.shell_tool':False,'features.unified_exec':False,
             'features.multi_agent':False,'features.multi_agent_v2':False,'features.apps':False,
@@ -320,7 +321,7 @@ Include all required sections in REPORT_SPEC, including no-hunt justification. N
 Each finding/IOC must reference an artifact ID and useful locator. Distinguish each image in related cases.
 No invented source identity or metadata. Concise rationale is a reviewable record, not hidden reasoning.
 REPORT_SPEC follows:\n'''+spec
-        params={'cwd':str(self.directory(case)),'sandbox':'read-only','approvalPolicy':'on-request',
+        params={'cwd':str(self.directory(case).resolve()),'sandbox':'read-only','approvalPolicy':'on-request',
             'approvalsReviewer':'user','config':self.thread_config(case),'developerInstructions':instructions}
         if case['thread_id']:
             result=await self.agent.call('thread/resume',{'threadId':case['thread_id'],**params},timeout=180)

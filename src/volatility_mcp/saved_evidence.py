@@ -8,6 +8,7 @@ import hashlib
 import json
 import math
 from pathlib import Path
+from .relocation import resolved_path
 import re
 import time
 
@@ -69,7 +70,7 @@ def resolve_source(backend, image, run_id, artifact):
     record = json.loads(manifest.read_text())
     path = folder/artifact
     backend._check_components(path)
-    require(path.resolve().is_relative_to(folder) and path.is_file(), 'Saved artifact is missing or escapes its run')
+    require(resolved_path(path).is_relative_to(folder) and path.is_file(), 'Saved artifact is missing or escapes its run')
     if inspection:
         parent = record['source_ref']
         require(not parent['run_id'].startswith('inspection-'), 'Inspection parent must be an original extraction run')

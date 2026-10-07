@@ -315,3 +315,14 @@ fingerprint. Case/image identities, conversations, report records and job status
 were preserved; 12 historical report/manifest/checksum files retained their hashes.
 The browser was reopened with the new local session. No new analysis job or model
 turn was submitted, and the earlier failed draft remains preserved as a failed draft.
+
+## Administrative relocation fixture checks
+
+`PYTHONPATH=tests .venv/bin/python -m unittest test_relocation -q` passed three
+checks using a physically moved harmless fixture tree and a registered old-root
+alias. Saved queries, observable-value citations, history, raw reads, and namespace
+identity survived; original manifest bytes remained unchanged. Physical-path inputs
+and configuration returned the old logical identity. Inner symlinks, traversal,
+invalid mappings, and a retargeted administrative alias were rejected. The saved
+query/history check asserted zero subprocess launches. These are local fixture
+checks, not an investigation or a claim of unrestricted symlink support.
