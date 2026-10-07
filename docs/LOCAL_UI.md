@@ -48,6 +48,10 @@ Background refreshes preserve the selected case, including a manual selection.
 If the selected/requested case no longer exists, selection falls back to the
 first displayed case; an empty list shows the start screen.
 The **Add evidence** panel starts collapsed; click its heading to expand it.
+The **Theme** selector in the upper-right header offers Matrix green (default),
+Soft black and white, and Light blue. The selection is stored in this browser's
+local storage and restored on reload. It changes presentation only; case state,
+saved evidence, and reports are unaffected.
 
 1. Add existing `.raw`, `.mem`, `.vmem`, `.dmp`, `.lime`, or `.dd` files through
    path entry, evidence-folder browsing, or **Choose in Finder** on macOS. The

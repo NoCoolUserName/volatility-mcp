@@ -1,5 +1,16 @@
 "use strict";
 const $ = (id) => document.getElementById(id);
+const themes = new Set(["matrix", "mono", "blue"]);
+function setTheme(value) {
+  const theme = themes.has(value) ? value : "matrix";
+  document.documentElement.dataset.theme = theme;
+  $("theme").value = theme;
+  try { localStorage.setItem("volatility-workbench-theme", theme); } catch {}
+}
+let savedTheme = "matrix";
+try { savedTheme = localStorage.getItem("volatility-workbench-theme"); } catch {}
+setTheme(savedTheme);
+$("theme").onchange = (event) => setTheme(event.target.value);
 // Normalize timestamp labels only. Saved evidence and link targets stay exact.
 const centralTime = new Intl.DateTimeFormat("en-US", {
   timeZone: "America/Chicago", year: "numeric", month: "2-digit", day: "2-digit",

@@ -1,5 +1,16 @@
 # Workbench validation — experimental first version
 
+## Theme selector — 2026-10-07
+
+The static Workbench UI was opened in the in-app browser against a local static
+server. Selecting Soft black and white produced an almost-black background,
+off-white text, and a neutral gray accent. Selecting Light blue changed the
+background and accent to the blue palette, and the selected option survived a
+reload. This isolated preview has no Workbench API, so its connection error is
+expected. The existing 22 UI tests passed under the repository virtual
+environment; JavaScript syntax passed. No memory analysis or report operation
+was run. The header was also adjusted for the narrow preview viewport.
+
 Validation: 2026-10-04 UTC. Assessment: **ready with stated limitations for the
 local Apple-silicon/Codex use case**. This records project-team implementation
 review and testing, not an independent security audit or forensic certification.
