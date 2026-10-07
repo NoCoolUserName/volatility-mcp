@@ -1,8 +1,8 @@
 # Project instructions
 
 The core is a standalone, client-neutral stdio MCP server. Reporting is an
-optional companion; the local UI is a third optional layer (see
-[LOCAL_UI.md](docs/LOCAL_UI.md)). Do not require report fields, report configuration, or Codex
+optional companion; the local UI is maintained in the separate
+[volatility-workbench repository](https://github.com/NoCoolUserName/volatility-workbench). Do not require report fields, report configuration, or Codex
 to invoke analysis tools; do not generate reports as a tool-call side effect.
 
 - Preserve source evidence. Write derived files only to configured case outputs.
@@ -24,9 +24,12 @@ to invoke analysis tools; do not generate reports as a tool-call side effect.
   API/Git results from DNS-only probes and `gh auth status` summaries.
 
 **Only when an investigation/report workflow is requested**, read
-[docs/REPORT_SPEC.md](docs/REPORT_SPEC.md) before preparing the report. It is the
+[the packaged report contract](src/volatility_mcp/resources/REPORT_SPEC.md) before preparing the report. It is the
 authoritative specification; templates and prompts implement it. Preserve sealed
 bundles and create a new timestamped revision for changes. Do not load reporting
 instructions for routine individual queries. Report-specific presentation is
 optional. The local Workbench provides basic safe viewing; polished exports remain
 deferred.
+
+Shared public integration APIs live in `volatility_mcp.api`; keep dependencies one way.
+Do not add Workbench, model providers, or app assets to core. See docs/SEPARATION.md.

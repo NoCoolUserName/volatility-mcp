@@ -12,9 +12,8 @@ from volatility_mcp.backend import EvidenceError, VolatilityBackend, file_finger
 from volatility_mcp.cli import decode_result
 from volatility_mcp.saved_evidence import reference, resolve_source
 from volatility_mcp.reporting import check_bundle, check_citation
-from volatility_mcp.ui.scoped_mcp import CaseBackend
-from volatility_mcp.ui.storage import Bundle, now
-from volatility_mcp.ui.app import Workbench
+from volatility_mcp.scoped import CaseBackend
+from volatility_mcp.timestamps import utc_now as now
 from volatility_mcp.inspect_worker import pe_headers, strings_page
 from fixtures.synthetic_pe import synthetic_pe
 import io
@@ -189,57 +188,7 @@ class SavedTests(unittest.TestCase):
         ref['locator']['offset']=99999
         with self.assertRaises(EvidenceError):self.backend.get_evidence(ref)
 
-    def test_report_link_and_packaged_integrity_failures(self):
-        image=file_fingerprint(self.fixture.image)
-        case={'id':'synthetic','images':[{'id':'E001',**image}],'notes':{}}
-        version={'id':'links','status':'draft','created_at':now()}
-        bundle=Bundle(self.case_dir,case,version)
-        m=bundle.prepare();a=next(a for a in m['artifacts'] if a['path'].endswith('stdout.json'))
-        ref={'artifact_id':a['artifact_id'],'locator':'/0/PID','structured':self.ref(), 'observable':{'type':'integer','value':4}}
-        text='\n\n'.join(['## Executive summary','F1 synthetic only.','## Scope','Fixture.',
-            '## Technical findings','LINK','## Investigative workflow','Saved only.','## Limitations','Synthetic.','## IOCs','None.'])
-        for fragment in ['absent:0','F1:99']:
-            with self.subTest(fragment=fragment),self.assertRaisesRegex(ValueError,'citation'):
-                bundle.save(text.replace('LINK',f"[source]({a['path']}#citation={fragment})"),[{'finding_id':'F1','evidence_refs':[ref]}],[])
-        path,_,_=resolve_source(self.backend,'example.raw','saved','json/stdout.json')
-        path.write_text('[{"PID":999}]')
-        with self.assertRaisesRegex(ValueError,'disagrees with execution manifest'):bundle.prepare()
 
-    def test_saved_fixture_report_no_subprocess_and_legacy_readability(self):
-        image=file_fingerprint(self.fixture.image)
-        case={'id':'synthetic','images':[{'id':'E001',**image}],'notes':{}}
-        version={'id':'saved-only','status':'draft','created_at':now()}
-        bundle=Bundle(self.case_dir,case,version)
-        with patch('subprocess.Popen',side_effect=AssertionError('NO SUBPROCESS AUTHORIZED')) as spy:
-            manifest=bundle.prepare()
-            a=next(a for a in manifest['artifacts'] if a['path'].endswith('stdout.json'))
-            ref={'artifact_id':a['artifact_id'],'locator':'JSON /0/PID','structured':self.ref(), 'observable':{'type':'integer','value':4}}
-            markdown='\n\n'.join(['## Executive summary','F1: Synthetic PID 4 observed; no malware inference.',
-                '## Scope and evidence','Harmless saved fixture.', '## Technical findings',f"[F1 source]({a['path']})",
-                '## Investigative workflow','Saved evidence only.', '## Limitations','Simulated data; no hunt justified.', '## IOCs','None.'])
-            checked=bundle.save(markdown,[{'finding_id':'F1','kind':'observation','evidence_refs':[ref]}],[])
-            self.assertEqual(checked['citation_validation'][0]['observable_validation'],'matched')
-            bundle.seal({'E001':image})
-            self.assertEqual(spy.call_count,0)
-        self.assertFalse(self.counter.exists())
-        before={p:p.read_bytes() for p in bundle.root.rglob('*') if p.is_file()}
-        checked=check_bundle(bundle.root)
-        self.assertEqual(before,{p:p.read_bytes() for p in before})
-        manifest=json.loads((bundle.root/'case-manifest.json').read_text())
-        for change in [lambda r:r['observable'].update(value=99),lambda r:r['structured']['source'].update(case_id='other')]:
-            bad=copy.deepcopy(ref);change(bad)
-            with self.assertRaises(EvidenceError):check_citation(bundle.root,manifest,bad)
-        legacy=copy.deepcopy(ref);legacy.pop('structured')
-        self.assertEqual(check_citation(bundle.root,manifest,legacy)['observable_validation'],'not_checked')
-        example=Path(__file__).resolve().parents[1]/'examples/synthetic-case'
-        self.assertTrue(all(c['observable_validation']=='not_checked' for c in check_bundle(example)['citation_validation']))
-        # Exercise actual viewer data path without starting jobs or an agent.
-        app=object.__new__(Workbench);app.root=self.case_dir.parent
-        case['reports']=[version]
-        self.assertEqual(app.citations(case,version['id'])['entries'][0]['finding'],'F1')
-        resolved=app.citations(case,version['id'],finding='F1')
-        self.assertEqual(resolved['value'],4)
-        self.assertTrue((self.case_dir/resolved['artifact_path']).is_file())
 
 
 class SavedProtocolTests(unittest.IsolatedAsyncioTestCase):

@@ -8,7 +8,7 @@ from unittest.mock import patch
 from volatility_mcp.backend import VolatilityBackend
 from volatility_mcp.config import Config
 from volatility_mcp.relocation import ENV, logical_path, mapping
-from volatility_mcp.ui.storage import safe_file, private_dir
+from volatility_mcp.files import safe_file, private_dir
 import test_saved_evidence
 
 

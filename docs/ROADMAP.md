@@ -40,20 +40,11 @@ unverified conditions.
 
 - Additional host testing (Linux first; Windows requires process-management work),
   guest OS/symbol combinations, acquisition formats, and client interoperability.
-- Further evidence-view/export improvements. The UI provides bounded JSON/JSONL
-  views and a linked report contents panel; remaining design preferences include
-  Light/Matrix radio theme, original
-  decorative case coins, and an actual decision/call dependency graph. Keep
-  presentation dependencies optional and the Markdown report canonical.
-- PDF/DOCX/HTML packaging, accessibility, print/offline review, and schema migration
-  only after the reporting contract is refined. The optional local UI does not
-  imply hosted deployment or polished standalone HTML exports.
-- Parallel image analysis, multiple investigating agents per case, additional
-  model providers and hosted deployment remain future work.
+- Application presentation, model adapters and desktop integration are tracked in
+  [Workbench](https://github.com/NoCoolUserName/volatility-workbench).
 - Reproducible detection evaluation using appropriate positive/negative controls
   and real telemetry coverage; no unsupported claim of detection efficacy.
 
 An **ICS memory-image collection is a separate future project**. This repository
 does not contain or create that collection, a Dragos dataset, malware samples, or
-private case reports. No separate server repository or duplicate implementation is
-planned. Core and optional companion remain in this one repository.
+private case reports. The existing server repository remains authoritative for forensic code. Core and Workbench are independently maintained; see [SEPARATION.md](SEPARATION.md).

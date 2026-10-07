@@ -1,1 +1,1 @@
-"""Optional local workbench. Never imported by ordinary MCP tool calls."""
+"""Legacy launch bridges. Workbench now lives in volatility-workbench."""

@@ -14,8 +14,8 @@ from mcp.client.stdio import StdioServerParameters
 from volatility_mcp.backend import EvidenceError, VolatilityBackend, file_fingerprint
 from volatility_mcp.cli import decode_result
 from volatility_mcp.inspect_worker import pe_headers, strings_page
-from volatility_mcp.ui.scoped_mcp import CaseBackend
-from volatility_mcp.ui.storage import Bundle, now
+from volatility_mcp.scoped import CaseBackend
+from volatility_mcp.timestamps import utc_now as now
 from fixtures.synthetic_pe import synthetic_pe
 import test_backend
 
@@ -154,7 +154,7 @@ class InspectionTests(unittest.IsolatedAsyncioTestCase):
         cfg = self.fixture.root/'scope.json'
         cfg.write_text(json.dumps({'config':self.fixture.config.to_dict(),'images':[str(self.fixture.image)]}))
         transport = StdioServerParameters(command=sys.executable,
-            args=['-m','volatility_mcp.ui.scoped_mcp',str(cfg)])
+            args=['-m','volatility_mcp.scoped',str(cfg)])
         async with Client(transport,mode='legacy',read_timeout_seconds=15) as client:
             self.assertIn('inspect_artifact',{t.name for t in (await client.list_tools()).tools})
             params = dict(image='example.raw',run_id=self.run['run_id'],artifact=self.relative)
@@ -176,26 +176,6 @@ class InspectionTests(unittest.IsolatedAsyncioTestCase):
             with self.assertRaises(ValueError):self.backend.validate_arguments(plugin,['--pattern',invalid])
         with self.assertRaises(ValueError):self.backend.validate_arguments('windows.pslist.PsList',['--text',regex])
 
-    async def test_new_bundle_includes_inspection_provenance_as_separate_run(self):
-        result = self.inspect()
-        case_dir = self.fixture.root/'ui-case'
-        # Existing fixture output layout becomes a private synthetic case analysis root.
-        case_dir.mkdir()
-        import shutil
-        shutil.copytree(self.fixture.config.output_root,case_dir/'analysis')
-        case = {'id':'synthetic','images':[{'id':'E001','path':str(self.fixture.image),
-            'sha256':file_fingerprint(self.fixture.image)['sha256'],'size_bytes':6}], 'notes':{}}
-        version={'id':'new','status':'draft','created_at':now()}
-        bundle=Bundle(case_dir,case,version)
-        manifest = bundle.prepare()
-        self.assertTrue(any(r['run_id'].startswith('inspection-') for r in manifest['runs']))
-        self.assertTrue(any(a['path'].endswith('/result.json') for a in manifest['artifacts']))
-        artifact=next(a for a in manifest['artifacts'] if a['path'].endswith('/result.json'))
-        from test_ui import report_text
-        bundle.save(report_text(artifact['path'],artifact['artifact_id']),
-                    [{'finding_id':'F001','evidence_refs':[{'artifact_id':artifact['artifact_id'],'locator':'format'}]}],[])
-        bundle.seal({'E001':file_fingerprint(self.fixture.image)})
-        self.assertEqual(version['status'],'sealed')
 
 
 if __name__ == '__main__':unittest.main()

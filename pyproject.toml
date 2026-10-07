@@ -20,14 +20,12 @@ classifiers = [
 
 [project.scripts]
 volatility-mcp = "volatility_mcp.cli:main"
-volatility-workbench = "volatility_mcp.ui.http:main"
 
 [project.optional-dependencies]
-ui = [] # The optional interface uses the standard library and the existing MCP SDK.
+ui = [] # Legacy extra; Workbench is a separate distribution. See its repository.
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-volatility_mcp = ["plugins/*.py"]
-"volatility_mcp.ui" = ["static/*.html", "static/*.js", "static/*.css"]
+volatility_mcp = ["plugins/*.py", "resources/*.md"]

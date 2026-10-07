@@ -23,7 +23,7 @@ remain in a separate environment. The optional reporting checker uses the Python
 standard library. A reporting client composes the report only when asked, using
 actual outputs plus the versioned report specification.
 
-A third independently optional layer, the experimental local Workbench, provides
+The independently installed [Workbench](https://github.com/NoCoolUserName/volatility-workbench) provides
 a loopback browser UI and sequential case jobs. Its replaceable Codex app-server
 adapter creates/resumes one conversation per case using existing authentication.
 A scoped backend reuses the same ten MCP tools, restricting inputs to explicitly
@@ -233,3 +233,9 @@ The compatibility `server.py` entry point loads an optional, untracked
 variable; Workbench explicitly passes it to its readiness and case MCP processes.
 Keep the administrative alias and mapping in place while historical records depend
 on them. This is not a general symlink permission or an automatic migration tool.
+
+## Package ownership
+
+See [PUBLIC_API.md](PUBLIC_API.md) and [SEPARATION.md](SEPARATION.md). The report
+contract is a core package resource; Workbench orchestration and presentation are
+owned by its separate distribution. Core imports no application modules.

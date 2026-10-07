@@ -386,3 +386,30 @@ and no model/malware accuracy evaluation. Legacy launches without exit metadata 
 be uncountable; bounded reads can leave coverage unknown. Optional XP validates one
 synthetic legacy layout, not all kernels/families. See COVERAGE_EVALUATION.md for
 state/budget definitions. Restart only idle MCP/Workbench processes after upgrading.
+
+## Independent package extraction — 2026-10-07
+
+The pre-separation source checkpoint is `3ecc22e1275467879005556f5340fbc863bc3281`.
+The baseline ran 121 tests: 119 passed, one optional addon check skipped, and the
+browser timestamp harness failed because theme startup now needs a DOM. That
+harness moved to Workbench and was corrected to evaluate the formatter only.
+
+After separation, all 91 core tests passed (one expected optional skip), both in
+the existing environment and against a wheel installed into an isolated temporary
+environment. The wheel started actual stdio MCP connections in legacy and auto
+modes, exposing the same ten tools without Workbench installed. Packaged report
+contract access and the synthetic report check passed from outside the checkout.
+
+The fresh build smoke check caught an ignored historical build directory retaining
+removed UI assets; smoke builds now copy only declared package sources into a clean
+temporary tree. The installed-core regression explicitly rejects bundled UI assets.
+Forensic execution, reuse, catalog, conversion and server-version bytes stayed
+unchanged. Result-reuse, inspection, query/citation, relocation and coverage tests
+remain with core and use harmless fixtures.
+
+A guarded read of the existing private Workbench data opened two cases, five report
+records, and 49 saved history entries using the new integration API. Existing sealed
+report validation passed; 13 historical report/manifest/checksum markers were unchanged.
+The guard observed zero subprocess launches. No source images were rehashed or
+analyzed, and no old report bundle was regenerated. See the Workbench validation
+record for application, browser, launcher and dependency-update checks.

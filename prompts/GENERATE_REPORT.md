@@ -12,8 +12,8 @@ Inputs:
 - Memory image: ~/Forensics/cases/example.vmem
 - Case output parent: ~/Forensics/outputs/reports
 
-Read AGENTS.md and docs/REPORT_SPEC.md first. REPORT_SPEC.md is authoritative;
-use reporting/templates/report.md as an editable starting point. The repository's
+Read AGENTS.md and src/volatility_mcp/resources/REPORT_SPEC.md first. REPORT_SPEC.md is authoritative;
+use the optional Workbench template linked from README as an editable starting point. The repository's
 synthetic example illustrates packaging only and must never supply case findings.
 
 Inspect the actual image, existing MCP tool schemas, and configured output roots.

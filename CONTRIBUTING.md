@@ -28,8 +28,9 @@ dumps, live malware, recovered binaries, private reports, credentials, or person
 configuration to ordinary issues or pull requests.** See [SECURITY.md](SECURITY.md)
 for private vulnerability reporting.
 
-The optional UI lives under `src/volatility_mcp/ui/`. `tests/test_ui.py` uses
-harmless analyzer fixtures, simulated Codex responses, and real local HTTP/MCP
-exchanges; it needs no browser, model credentials, or UI-only dependencies. For UI
-changes, also exercise the browser flow in `docs/LOCAL_UI.md` and record the actual
-scope in `docs/UI_VALIDATION.md`. Keep screenshots and real case receipts private.
+Workbench development and browser checks belong to the
+[Workbench repository](https://github.com/NoCoolUserName/volatility-workbench).
+Keep core independently installable. Shared interface changes must preserve or
+explicitly version `volatility_mcp.api.API_VERSION`. Tag tested core releases as
+`v<package-version>`; Workbench adopts eligible releases through tested dependency
+PRs. Never float a production dependency on main.

@@ -285,13 +285,13 @@ codex -C "$PWD" --add-dir "$HOME/Forensics/outputs" --no-daemon
 
 Copyable request:
 
-> Read `docs/REPORT_SPEC.md` and `prompts/GENERATE_REPORT.md`. Investigate
+> Read `src/volatility_mcp/resources/REPORT_SPEC.md` and `prompts/GENERATE_REPORT.md`. Investigate
 > `~/Forensics/cases/example.vmem` using the existing volatility MCP server. Create
 > a new timestamped case bundle under `~/Forensics/outputs/reports` with all required
 > deliverables. Discover plugins, follow evidence-supported pivots, preserve exact
 > outputs and failures, and distinguish observations, inference, and unknowns.
 
-The companion supplies an [editable template](reporting/templates/report.md),
+The companion supplies an [editable Workbench template](https://github.com/NoCoolUserName/volatility-workbench/blob/main/src/volatility_workbench/templates/report.md),
 an [explicitly synthetic example](examples/synthetic-case/README.md), and a structural
 provenance check:
 
@@ -316,87 +316,13 @@ and analytical conclusions still require review; see the
 [saved-evidence contract](docs/SAVED_EVIDENCE.md).
 Changes to sealed bundles belong in a new revision, not an overwrite.
 
-## Optional local browser interface
+## Optional Workbench application
 
-The experimental Workbench adds image selection, readiness, a sequential case
-queue, report/evidence viewing, case questions, and explicit versioned report
-updates. It reuses your existing Volatility and Codex login; ordinary MCP clients
-do not need the UI. From this repository:
-
-```sh
-.venv/bin/python -m volatility_mcp.ui.http --config config.local.json --project "$PWD"
-```
-
-This opens a loopback browser interface and stores private UI cases beneath the
-configured output root. See [LOCAL_UI.md](docs/LOCAL_UI.md) for choosing another
-private output directory, security boundaries, and platform/validation limits.
-Images remain local, while questions and selected outputs may reach your configured
-AI service. The first version adds no runtime dependencies.
-
-### Implemented Workbench features
-
-| Capability | Current behavior |
-| --- | --- |
-| Case selection | Newest first by creation time; fresh loads select the first case unless a valid `?case=` link requests another. Background refresh preserves manual selection; missing IDs fall back safely. |
-| Image selection | Path entry, configured-evidence-folder browsing, and a macOS Finder helper. Images are read in place, not uploaded or copied. |
-| Multiple images | Unrelated images become separate cases; explicitly related captures can share a case with separate image identities and provenance. Jobs run sequentially, with one dedicated Codex conversation per case. |
-| Readiness | Checks account/tool access, plugin discovery, image hashes with byte progress, and OS/symbol discovery through MCP. Reports **Ready**, **Ready with limitations**, or **Blocked** with reasons; these are not malware verdicts. |
-| Activity and evidence | Shows current operations, elapsed time, conversation, saved outputs, errors, and failures. Text, JSON/JSONL, and raw-output views are bounded; complete artifacts remain on disk. |
-| Questions | Resumes the case's conversation and instructs the agent to use saved evidence first, making additional MCP queries when needed. Questions do not rewrite reports. Equivalent analysis requests also benefit from backend result reuse; the agent's investigative choices remain guidance-driven. |
-| Report generation and updates | Explicit actions create new timestamped revisions. Packaging copies actual artifacts, records provenance, checks source integrity, validates the bundle, and seals it with checksums. Updates link to the previous sealed version and preserve earlier versions and evidence IDs. Failed drafts remain incomplete. |
-| Report viewing | Section navigation, constrained local evidence links, and a version selector. New bundles contain portable relative artifact and artwork links; source memory images are not included. Recovered HTML is not executed. |
-| Image coins | One stable decorative coin per saved image hash, reused across reopening and report revisions. Original PNGs can be imported; otherwise a local SVG renderer creates a distinct coin without malware attribution, analysis, or extra image hashing. Artwork failure does not block reporting. |
-| Human-readable times | UI labels use U.S. Central time with date-aware CST/CDT and the Zulu clock in parentheses. Metadata stays UTC; new filenames use readable UTC timestamps with unique suffixes. Original evidence content and historical paths are preserved. |
-
-Click a coin to enlarge it; left-click anywhere or press Escape to close it.
-Right-click the enlarged image to use the browser's **Save Image As** menu.
-Keyboard users can focus a coin and press Enter or Space. For existing saved
-images, the [metadata-only coin population/import commands](docs/LOCAL_UI.md#image-coins)
-preserve historical report bundles; the viewer can display coins above old reports
-without editing their files.
-
-### Jobs, cancellation, and persistence
-
-Case records, job status, conversation excerpts, activity, image identities, and
-reports are saved in the private Workbench state directory. Codex retains its own
-thread history. Keep the same `--state-dir` when relaunching to reopen the same
-cases. Browser refresh/reconnection reads existing state without starting scans;
-launching again against the same state directory reopens the existing application.
-The launcher detects stale application code and asks for a backend restart.
-
-Repeated request IDs return the existing job, and a second operation of the same
-kind cannot be queued while that operation is active or queued for the case.
-This prevents duplicate UI submissions; backend reuse separately handles equivalent
-plugin requests across runs and client restarts.
-Jobs distinguish queued, running, stopping, completed, cancelled, failed, and
-incomplete states.
-
-**Stop all work** interrupts the active operation and cancels all queued follow-on
-work, including other cases. Completed artifacts survive; interrupted jobs and
-unsealed drafts remain incomplete. On application restart, unfinished jobs are
-marked incomplete and are **not automatically retried or resumed**. Explicitly
-submit a new question or report operation to continue the saved case conversation.
-Cancellation during core hashing/conversion may wait for that stage to finish;
-forced process death cannot guarantee child cleanup.
-
-### Access boundaries and verified scope
-
-The UI binds to loopback, validates Host/Origin, and uses a per-launch capability
-and HttpOnly session cookie. Keep its launch URL private. Case threads receive
-scoped Volatility tools preauthorized for requested analysis, without exposing a
-generic shell tool or changing global Codex configuration. Other supported approval
-requests remain explicit; incompatible enforced settings block investigation.
-
-Recorded checks include harmless-fixture MCP/HTTP/browser workflows, cancellation,
-duplicate submissions, restart handling, portable report links and immutable
-revisions, plus a short real Codex/Volatility integration with saved-evidence
-follow-ups. See [UI_VALIDATION.md](docs/UI_VALIDATION.md) for the actual runs and
-their limits. Interactive Finder selection, non-macOS hosts, and other browsers
-remain unverified. Explicit plan-scoped coverage and a deterministic synthetic
-evaluation harness are implemented; they do not establish comprehensive plugin
-coverage or real-world detection accuracy. Parallel investigations, multiple agents per
-case, additional agent adapters, hosted access, and polished exports remain future
-work. Structural report validation is not forensic certification.
+The local browser application is maintained independently in
+[volatility-workbench](https://github.com/NoCoolUserName/volatility-workbench).
+Its installer brings in a tested, pinned core dependency. Standalone MCP installs
+remain independent of Workbench and model providers. See the
+[shared API](docs/PUBLIC_API.md) and [separation record](docs/SEPARATION.md).
 
 ## Configuration and troubleshooting
 

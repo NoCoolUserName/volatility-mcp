@@ -19,7 +19,7 @@ from volatility_mcp.backend import VolatilityBackend, file_fingerprint, Evidence
 from volatility_mcp.config import Config
 from volatility_mcp.coverage import snapshot, set_plan
 from volatility_mcp.inspect_worker import pe_headers, strings_page
-from volatility_mcp.ui.scoped_mcp import CaseBackend
+from volatility_mcp.scoped import CaseBackend
 from fixtures.synthetic_pe import synthetic_pe
 
 ROOT=Path(__file__).parent
