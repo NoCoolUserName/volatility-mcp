@@ -15,4 +15,6 @@ concurrency:
 
 jobs:
   quality:
-    uses: NoCoolUserName/code-quality/.github/workflows/quality.yml@c0b9e6d953735ff648acbfda743b2b33f6ba1551
+    uses: NoCoolUserName/code-quality/.github/workflows/quality.yml@3e2c62bef33c74904a7700d79e72c13a6d8cee74 # v1.1.0
+    with:
+      typecheck-command: python -m mypy --follow-imports=silent --check-untyped-defs src/volatility_mcp/timestamps.py src/volatility_mcp/json_rows.py src/volatility_mcp/config.py
