@@ -15,4 +15,4 @@ concurrency:
 
 jobs:
   quality:
-    uses: NoCoolUserName/code-quality/.github/workflows/quality.yml@19ee6299d0da5c7ccb0570f2ad9143f065feaff1
+    uses: NoCoolUserName/code-quality/.github/workflows/quality.yml@c0b9e6d953735ff648acbfda743b2b33f6ba1551
