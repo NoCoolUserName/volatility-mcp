@@ -1,0 +1,19 @@
+{
+  "enabled": true,
+  "allow_dev_minor": false,
+  "dependency_files": [
+    "requirements.txt",
+    "requirements.lock.txt"
+  ],
+  "required_workflows": [
+    ".github/workflows/code-quality.yml",
+    ".github/workflows/ci.yml",
+    ".github/workflows/security.yml"
+  ],
+  "required_checks": [
+    "quality / Lint, tests and secrets",
+    "test (3.12)",
+    "test (3.13)",
+    "security / Security / CodeQL"
+  ]
+}
