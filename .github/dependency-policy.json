@@ -1,5 +1,5 @@
 {
-  "enabled": true,
+  "enabled": false,
   "allow_dev_minor": false,
   "dependency_files": [
     "requirements.txt",
@@ -15,5 +15,6 @@
     "test (3.12)",
     "test (3.13)",
     "security / Security / CodeQL"
-  ]
+  ],
+  "blocked_reason": "Activation requires separately approved rollout and verified native strict required checks; assessment remains non-merging."
 }
