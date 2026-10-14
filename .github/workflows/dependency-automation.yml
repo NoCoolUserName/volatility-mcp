@@ -21,4 +21,4 @@ jobs:
     uses: NoCoolUserName/code-quality/.github/workflows/dependency-merge.yml@a7806408229cb84347ec1bb1651672d68a891b47
     with:
       framework-ref: a7806408229cb84347ec1bb1651672d68a891b47
-      merge: true
+      merge: false
