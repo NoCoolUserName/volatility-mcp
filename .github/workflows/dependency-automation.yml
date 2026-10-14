@@ -1,0 +1,24 @@
+name: Dependency automation
+on:
+  workflow_run:
+    workflows: ["Code quality","Core tests","Security"]
+    types: [completed]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: dependency-automation
+  cancel-in-progress: false
+jobs:
+  guarded-merge:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.event == 'pull_request'
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: read
+      checks: read
+      statuses: read
+    uses: NoCoolUserName/code-quality/.github/workflows/dependency-merge.yml@7301db3486bf182012a0ab8005207dd9b35f471c
+    with:
+      framework-ref: 7301db3486bf182012a0ab8005207dd9b35f471c
+      merge: false

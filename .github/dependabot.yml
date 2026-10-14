@@ -1,4 +1,4 @@
-# Monthly reviewable proposals. No automatic merge or permission changes.
+# Monthly proposals; the separate guarded merge controller enforces eligibility.
 version: 2
 updates:
 - package-ecosystem: github-actions
@@ -14,8 +14,15 @@ updates:
   directory: /
   schedule:
     interval: monthly
-  open-pull-requests-limit: 1
+  open-pull-requests-limit: 2
   groups:
-    monthly-updates:
-      patterns:
-      - '*'
+    compatible-patches:
+      patterns: ['*']
+      update-types: [patch]
+    compatibility-review:
+      patterns: ['*']
+      update-types: [minor, major]
+  # pydantic 2.13.5 requires pydantic-core==2.46.5; this candidate cannot resolve.
+  ignore:
+  - dependency-name: pydantic-core
+    versions: ['2.49.0']
