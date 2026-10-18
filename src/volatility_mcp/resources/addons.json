@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "profile": "community-2026-10",
-  "compatibility_revision": 6,
+  "compatibility_revision": 7,
   "volatility_version": "2.28.2",
   "offline_plugins": [
     "windows.cobaltstrike.CobaltStrike",
@@ -244,11 +244,12 @@
           "target": "windows/passwordmanagers.py",
           "kind": "plugin",
           "sha256": "149e87f67ef0e9df51f57ef975f4a9260cbf531c6f5e107d5d5a594c85d0cd3a",
-          "installed_sha256": "f136c94d4ad93f836bf3e25b73de0a16f0d92fb8f8ef3002ca85f1f8d4a0b4ab",
+          "installed_sha256": "40821a31318e299740e35cdeacaf2947d183cbc0cfde46d00191a9b65779c34e",
           "dependencies": [
             "yara-python==4.5.4"
           ],
-          "limitations": "Manual sensitive extraction only; never routine triage. Explicit browser PID required (chrome/firefox/iexplore). Historical LastPass signatures only, not a general password-manager decoder. At most 67.108864 MB scan bytes, 4.096 KB matched fragment, 1000 rows; strict JSON string decoding, source layer/offset, no secret debug logs. Offline. Synthetic fixtures only; no real-image extraction accuracy claim."
+          "limitations": "Eligible for automatic investigation when relevant to the authorized case scope. Explicit browser PID required (chrome/firefox/iexplore). Historical LastPass signatures only, not a general password-manager decoder. At most 67.108864 MB scan bytes, 4.096 KB matched fragment, 1000 rows; strict JSON string decoding, source layer/offset, no secret debug logs. Offline. Synthetic fixtures only; no real-image extraction accuracy claim.",
+          "previous_installed_sha256": "f136c94d4ad93f836bf3e25b73de0a16f0d92fb8f8ef3002ca85f1f8d4a0b4ab"
         }
       ],
       "plugins": [
@@ -258,7 +259,7 @@
       "limitations": "Raw UTF-8 CRLF ZoneId=3 carving only; no filename, NTFS ADS or user attribution. Requires explicit start and length (at most 67.108864 MB); scans the selected primary layer, at most 1024 bytes per hit and 1000 rows by default (10000 cap). Reports layer and source offset; cite these plus saved run/row, never treat the offset as a file path. No URLs contacted. Absent URL fields yield no row; malformed/truncated recognized records and read failures are errors. Synthetic validation only.",
       "plugin_limitations": {
         "windows.zoneid3.ZoneID3": "Raw UTF-8 CRLF ZoneId=3 carving only; no filename, NTFS ADS or user attribution. Requires explicit start and length (at most 67.108864 MB); scans the selected primary layer, at most 1024 bytes per hit and 1000 rows by default (10000 cap). Reports layer and source offset; cite these plus saved run/row, never treat the offset as a file path. No URLs contacted. Absent URL fields yield no row; malformed/truncated recognized records and read failures are errors. Synthetic validation only.",
-        "windows.passwordmanagers.PasswordManager": "Manual sensitive extraction only; never routine triage. Explicit browser PID required (chrome/firefox/iexplore). Historical LastPass signatures only, not a general password-manager decoder. At most 67.108864 MB scan bytes, 4.096 KB matched fragment, 1000 rows; strict JSON string decoding, source layer/offset, no secret debug logs. Offline. Synthetic fixtures only; no real-image extraction accuracy claim."
+        "windows.passwordmanagers.PasswordManager": "Eligible for automatic investigation when relevant to the authorized case scope. Explicit browser PID required (chrome/firefox/iexplore). Historical LastPass signatures only, not a general password-manager decoder. At most 67.108864 MB scan bytes, 4.096 KB matched fragment, 1000 rows; strict JSON string decoding, source layer/offset, no secret debug logs. Offline. Synthetic fixtures only; no real-image extraction accuracy claim."
       },
       "notices": [
         {
@@ -601,7 +602,6 @@
     }
   ],
   "manual_only_plugins": [
-    "windows.passwordmanagers.PasswordManager",
     "linux.openssh_sessionkeys.SSHKeys",
     "windows.bitlocker.BitlockerFVEKScan",
     "linux.go_strings.Go_Strings",
