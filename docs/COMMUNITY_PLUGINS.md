@@ -188,8 +188,9 @@ also requires one suspected `sshenc` address. No investigation mode is added.
   from chrome/firefox/iexplore only. Strict JSON string decoding, no recovered
   values in debug logs, layer/offset provenance; default 16 MiB scan / 100 rows,
   hard limits 64 MiB / 1000 rows and 4096 bytes per matched fragment.
-- `linux.openssh_sessionkeys.SSHKeys`: fox-it/OpenSSH-Session-Key-Recovery,
-  `78f7955b1e1fccb4b1a7e2382e0ed5a7c8becea3`, Apache-2.0. Installs both pinned
+- `linux.openssh_sessionkeys.SSHKeys` comes from the Apache-2.0 repository
+  fox-it/OpenSSH-Session-Key-Recovery at upstream commit
+  `78f7955b1e1fccb4b1a7e2382e0ed5a7c8becea3`. Installs both pinned
   `openssh32.json` and `openssh64.json` ISFs; matching Linux kernel symbols still
   must be supplied separately. Uses the current Linux PsList API. Targets one
   virtual structure address, with historical 6.1p1/6.1p2 layouts only. Unbounded
