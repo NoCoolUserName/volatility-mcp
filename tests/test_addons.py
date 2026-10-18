@@ -17,7 +17,10 @@ class AddonTests(unittest.TestCase):
     def test_profile_is_pinned_and_has_all_requested_commands(self):
         data = addons.profile()
         names = {name for source in data['sources'] for name in source['plugins']}
-        self.assertEqual(len(names), 13)
+        self.assertEqual(len(names), 15)
+        self.assertEqual(set(data['manual_only_plugins']), {'windows.passwordmanagers.PasswordManager', 'linux.openssh_sessionkeys.SSHKeys'})
+        self.assertTrue(set(data['manual_only_plugins']) <= set(data['offline_plugins']))
+        self.assertEqual(sum(f.get('kind') == 'symbol' for source in data['sources'] for f in source['files']), 2)
         self.assertIn('windows.simple_pteenum.SimplePteEnumerator', names)
         self.assertIn('windows.browserhistoryextractor.BrowserHistoryExtractor', names)
         self.assertTrue(all(source['license'] for source in data['sources']))
@@ -96,8 +99,25 @@ class AddonTests(unittest.TestCase):
             data = addons.profile()
             data['sources'][0]['files'][0]['path'] = invalid
             with patch.object(Path, 'read_text', return_value=json.dumps(data)):
-                with self.assertRaisesRegex(ValueError, 'fixed Windows'): addons.profile()
+                with self.assertRaisesRegex(ValueError, 'fixed plugin or symbol'): addons.profile()
         data = addons.profile()
         data['sources'][0]['files'].append(data['sources'][0]['files'][0])
         with patch.object(Path, 'read_text', return_value=json.dumps(data)):
-            with self.assertRaisesRegex(ValueError, 'fixed Windows'): addons.profile()
+            with self.assertRaisesRegex(ValueError, 'fixed plugin or symbol'): addons.profile()
+
+    def test_symbol_preparation_preserves_original_bytes(self):
+        raw = b'{"symbols": {}, "user_types": {}}'
+        item = {'path':'volatility3/symbols/openssh64.json', 'kind':'symbol',
+                'sha256':addons.sha(raw), 'installed_sha256':addons.sha(raw)}
+        with patch.object(addons, 'fetch', return_value=raw):
+            self.assertEqual(addons.prepare({}, item), (raw, raw))
+
+    def test_invalid_symbol_destination_and_manual_policy_rejected(self):
+        for target in ('../openssh64.json','windows/openssh64.json','linux/wrong.json'):
+            data = addons.profile()
+            data['sources'][-1]['files'][-1]['target'] = target
+            with patch.object(Path, 'read_text', return_value=json.dumps(data)):
+                with self.assertRaises(ValueError): addons.profile()
+        data = addons.profile(); data['manual_only_plugins'] = ['not.installed.Command']
+        with patch.object(Path, 'read_text', return_value=json.dumps(data)):
+            with self.assertRaisesRegex(ValueError, 'Manual-only'): addons.profile()

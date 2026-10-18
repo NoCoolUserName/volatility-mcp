@@ -34,11 +34,17 @@ def profile():
         if not re.fullmatch(r'[\w.-]+/[\w.-]+', source['repository']) or not re.fullmatch('[0-9a-f]{40}', source['commit']):
             raise ValueError('Invalid pinned addon source')
         for item in source['files']:
-            if (not re.fullmatch(r'(?:[a-z0-9_-]+/)*[a-z_][a-z0-9_]*\.py', item['path'])
-                    or item['target'] != 'windows/' + Path(item['path']).name
-                    or item['target'] in targets):
-                raise ValueError('Addon file must have a fixed Windows plugin destination')
-            targets.add(item['target'])
+            kind = item.get('kind', 'plugin')
+            suffix = 'json' if kind == 'symbol' else 'py'
+            allowed = {'linux'} if kind == 'symbol' else {'windows', 'linux'}
+            destination = Path(item['target'])
+            identity = (kind, item['target'])
+            if (kind not in {'plugin', 'symbol'}
+                    or not re.fullmatch(r'(?:[a-z0-9_-]+/)*[a-z_][a-z0-9_]*\.' + suffix, item['path'])
+                    or len(destination.parts) != 2 or destination.parts[0] not in allowed
+                    or destination.name != Path(item['path']).name or identity in targets):
+                raise ValueError('Addon file must have a fixed plugin or symbol destination')
+            targets.add(identity)
             if not all(re.fullmatch('[0-9a-f]{64}', item[key]) for key in ('sha256', 'installed_sha256')):
                 raise ValueError('Addon hash is missing')
             if 'previous_installed_sha256' in item and not re.fullmatch('[0-9a-f]{64}', item['previous_installed_sha256']):
@@ -47,11 +53,13 @@ def profile():
             if notice['path'] != 'LICENSE' or not re.fullmatch('[0-9a-f]{64}', notice['sha256']):
                 raise ValueError('Invalid upstream license notice')
         for name in source['plugins']:
-            if not re.fullmatch(r'windows\.[a-z_][a-z0-9_]*\.[A-Za-z_][A-Za-z0-9_]*', name) or name in names:
+            if not re.fullmatch(r'(?:windows|linux)\.[a-z_][a-z0-9_]*\.[A-Za-z_][A-Za-z0-9_]*', name) or name in names:
                 raise ValueError('Invalid or duplicate expected addon command')
             names.add(name)
     if not set(data.get('offline_plugins', [])) <= names:
         raise ValueError('Offline policy references an unknown addon')
+    if not set(data.get('manual_only_plugins', [])) <= names:
+        raise ValueError('Manual-only policy references an unknown addon')
     return data
 
 
@@ -70,7 +78,9 @@ def fetch(source, item):
 
 def prepare(source, item):
     raw = fetch(source, item)
-    installed = adapt(Path(item['path']).name, raw.decode('utf-8').replace('\r\n', '\n')).encode()
+    installed = raw if item.get('kind') == 'symbol' else adapt(Path(item['path']).name, raw.decode('utf-8').replace('\r\n', '\n')).encode()
+    if item.get('kind') == 'symbol':
+        json.loads(installed)
     if sha(installed) != item['installed_sha256']:
         raise ValueError(f"Adapted addon hash mismatch: {item['path']}")
     return raw, installed
@@ -107,7 +117,7 @@ def install(config):
         raise ValueError('This addon profile is tested only with Volatility ' + data['volatility_version'] + '; existing Volatility was not changed')
     code = ('import json,sys,volatility3,importlib.metadata as m; from pathlib import Path; '
             'print(json.dumps({"prefix":sys.prefix,"plugins":str(Path(volatility3.__file__).parent/"framework/plugins"),'
-            '"packages":{d.metadata["Name"].lower().replace("_","-"):d.version for d in m.distributions()},'
+            '"symbols":str(Path(volatility3.__file__).parent/"framework/symbols"),"packages":{d.metadata["Name"].lower().replace("_","-"):d.version for d in m.distributions()},'
             '"native":[str(Path(d.locate_file(f)).resolve()) for d in [m.distribution("volatility3")] for f in d.files or []]}))')
     result = run([str(config.vol_python), '-I', '-c', code])
     if result.returncode:
@@ -127,7 +137,10 @@ def install(config):
     prepared, notices = [], []
     for source in data['sources']:
         for item in source['files']:
-            target = safe_target(root, item['target'])
+            destination_root = Path(environment['symbols']) if item.get('kind') == 'symbol' else root
+            if not destination_root.resolve().is_relative_to(prefix.resolve()):
+                raise ValueError('Symbol destination escapes analyzer environment')
+            target = safe_target(destination_root, item['target'])
             if str(target.resolve()) in environment['native']:
                 raise ValueError('Refusing to replace an official Volatility distribution file: ' + item['target'])
             known_hashes = {item['installed_sha256'], item.get('previous_installed_sha256')}
@@ -152,7 +165,8 @@ def install(config):
         # Recheck under the lock: downloads may have taken time, and another
         # operator could have edited a plugin since preflight.
         for _, item, target, _, _ in prepared:
-            safe_target(root, item['target'])
+            destination_root = Path(environment['symbols']) if item.get('kind') == 'symbol' else root
+            safe_target(destination_root, item['target'])
             if target.exists() and sha(target.read_bytes()) not in {
                     item['installed_sha256'], item.get('previous_installed_sha256')}:
                 raise ValueError('Addon changed during preflight: ' + item['target'])
