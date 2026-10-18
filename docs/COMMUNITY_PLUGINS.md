@@ -159,12 +159,10 @@ budgets to validate before any separate integration.
 | Docker | community3 `5ae4e232e14667277a0cc74848b87b634b4d8ad1`, Sheffer_Shaked_Docker. Matching Linux kernel ISF for task, namespaces, mount, net and cgroup structures. Port container logic without replacing native PsList/PsTree or other installed commands. | cgroup v1/v2, rootful/rootless, privileged/unprivileged, shared PID/net namespace, no-Docker and malformed/cyclic lists. Cap tasks/namespaces/mounts and traversal depth independently (initial 10,000 nodes, depth 128, 64 MiB reads, 60 seconds). No blanket container-inventory claim. |
 | Alternate EVTX carver | Same community3 pin, Stelte_Evtx/evtx.py. EVTXtract and its dependencies need separate version/license pins; normal carving need not require kernel symbols. Port old namespace, raw-file/layer handling, Provider/Keywords mapping and exception suppression; avoid nested repeated template rescans. | Synthetic valid chunks/records/templates, deleted fragments, bad checksums, truncated XML, duplicate records, missing templates and layered inputs. Preserve physical offsets and validity. Start with 64 MiB input, 10,000 records, one template pass, 64 MiB output and 60 seconds. Compare recovery with existing EVTXLog; never replace it. |
 
-PasswordManager and SSHKeys remain explicitly opt-in sensitive extraction and are
-excluded from the installed profile. SSHKeys needs both OpenSSH schemas, current
-Linux APIs, corrected filters and framework-managed output. PasswordManager needs
-bounded parsing/provenance and removal of secret debug logging. PFNInfo/P2V/RamMap
-and WinObj are deferred pending justification for their larger compatibility and
-traversal work. CryptoScan requires an offline redesign that removes network
+PasswordManager and SSHKeys are installed as manually selected sensitive
+extraction in revision 4, described below, and remain excluded from routine
+triage. PFNInfo/P2V/RamMap and WinObj are deferred pending justification for their
+larger compatibility and traversal work. CryptoScan requires an offline redesign that removes network
 address/transaction enrichment and separates PDF generation before consideration.
 
 Any later compatibility/accuracy campaign must name each selected OS/build,
