@@ -14,6 +14,25 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  community-addons:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements.lock.txt && python -m pip install --no-deps -e .
+      - name: Prepare isolated official analyzer (no private images)
+        run: |
+          python -c 'import json; print("\n".join(json.load(open("src/volatility_mcp/resources/addons.json"))["dependencies"]))' > "$RUNNER_TEMP/addon-constraints.txt"
+          python -m venv "$RUNNER_TEMP/analyzer"
+          "$RUNNER_TEMP/analyzer/bin/python" -m pip install -c "$RUNNER_TEMP/addon-constraints.txt" 'volatility3[full]==2.28.2'
+          python -m volatility_mcp setup --config "$RUNNER_TEMP/addons.json" --vol-python "$RUNNER_TEMP/analyzer/bin/python" --vol "$RUNNER_TEMP/analyzer/bin/vol" --evidence-root "$RUNNER_TEMP/evidence" --output-root "$RUNNER_TEMP/outputs" --cache-path "$RUNNER_TEMP/symbol-cache"
+      - run: python -m volatility_mcp plugins-install --config "$RUNNER_TEMP/addons.json"
+      - run: '"$RUNNER_TEMP/analyzer/bin/python" tests/addon_runtime_smoke.py'
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 10

@@ -27,3 +27,12 @@ No memory images, malware samples, symbol archives, commercial reference books,
 or real investigation reports are distributed here. The example is original,
 synthetic text. Product and organization names identify compatibility and context;
 they do not imply sponsorship or endorsement.
+## Optional downloaded analyzer addons
+
+The opt-in installer downloads pinned third-party sources into the operator's
+Volatility environment, not this repository or its wheel. See
+[COMMUNITY_PLUGINS.md](docs/COMMUNITY_PLUGINS.md) for sources, original notices,
+mixed MIT/BSD/GPL-derived code, and unresolved redistribution licensing for two
+upstream repositories. Original notices and available license files are retained
+locally with the installation receipt. This project's MIT license does not grant
+rights to redistribute those upstream sources.
