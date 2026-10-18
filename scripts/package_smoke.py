@@ -11,18 +11,25 @@ with tempfile.TemporaryDirectory(prefix='core-package-') as temp:
     temp=Path(temp).resolve();env=temp/'venv';venv.EnvBuilder(with_pip=True).create(env)
     python=str(env/'bin/python')
     source=temp/'source';source.mkdir()
-    for name in ('pyproject.toml','README.md','LICENSE','THIRD_PARTY_NOTICES.md'): shutil.copy2(ROOT/name,source/name)
+    for name in ('pyproject.toml','README.md','LICENSE','THIRD_PARTY_NOTICES.md','LICENSING.md'): shutil.copy2(ROOT/name,source/name)
+    shutil.copytree(ROOT/'licenses',source/'licenses')
     shutil.copytree(ROOT/'src',source/'src',ignore=shutil.ignore_patterns('__pycache__','*.egg-info','*.pyc'))
     run(sys.executable,'-m','pip','wheel','--no-deps','--wheel-dir',str(temp),str(source))
     run(python,'-m','pip','install','-c',str(ROOT/'requirements.lock.txt'),str(next(temp.glob('volatility_mcp-*.whl'))),cwd=temp)
     run(python,'-m','pip','check',cwd=temp)
     code=r'''
 import asyncio,json,sys,importlib.util
+from importlib.metadata import distribution
 from pathlib import Path
 from mcp import Client
 from mcp.client.stdio import StdioServerParameters
 from volatility_mcp.api import Config,report_spec
 assert importlib.util.find_spec('volatility_workbench') is None
+core_dist=distribution('volatility-mcp')
+notices=[f for f in core_dist.files if str(f).endswith('/licenses/DEPENDENCY_LICENSES.txt')]
+assert len(notices)==1
+notice_text=core_dist.locate_file(notices[0]).read_text()
+assert all(name in notice_text for name in ('lorelyai/volatility3-bitlocker','HalaAli198/Go-Memory-Forensics','HalaAli198/Volatility-3-Plugins-for-Python-Runtime-Analysis'))
 assert 'Executive summary' in report_spec()
 root=Path.cwd();evidence=root/'evidence';evidence.mkdir()
 config=Config(evidence,root/'outputs',Path(sys.executable),Path(sys.executable),cache_path=root/'cache',enable_xpnet=False)
