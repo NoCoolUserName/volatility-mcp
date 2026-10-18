@@ -91,8 +91,8 @@ There is no destructive migration or copied evidence database: import is the sam
 idempotent saved-record projection on each read. Missing/malformed legacy metadata
 is unknown or an explicit issue, never reconstructed intent or a clean result. The
 current plan plus original records survive restarts. Historical report bundles stay
-untouched. Bounds: 2,000 records per image per category, 4 MiB per manifest, 256 MiB
-saved-output budget per retrieval, inherited 64 MiB/JSON parser limits, 50 entries or
+untouched. Bounds: 2,000 records per image per category, 4.19 MB per manifest, 268.44 MB
+saved-output budget per retrieval, inherited 67.11 MB/JSON parser limits, 50 entries or
 attempts per page, approximately 60 KB core response. Over-budget records stay unknown;
 issues and receipt lists are explicitly truncated with totals. Large single entries
 produce an actionable error instead of a nonadvancing cursor.

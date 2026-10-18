@@ -136,7 +136,7 @@ def main():
     with os.fdopen(fd, 'rb') as stream:
         info = os.fstat(stream.fileno())
         if not stat.S_ISREG(info.st_mode) or info.st_size > MAX_FILE:
-            raise ValueError('Inspection requires a regular artifact no larger than 64 MiB')
+            raise ValueError('Inspection requires a regular artifact no larger than 67.11 MB')
         if settings['operation'] == 'pe':
             result = pe_headers(stream.read(MAX_FILE+1))
         else:

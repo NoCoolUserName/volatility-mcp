@@ -50,7 +50,7 @@ original integer. This tag is accepted by integer filters/observable checks.
 
 There is deliberately no second persisted evidence store or database. Normalization
 is lazy and rebuilt from verified saved JSON on each call. Source files up to
-64 MiB, 200,000 JSON nodes, and depth 64 are supported. Tree traversal has a
+67.11 MB, 200,000 JSON nodes, and depth 64 are supported. Tree traversal has a
 10-second budget; bounded source reading/JSON decoding/hashing happens separately.
 An oversized source is rejected before hashing with a raw-reader instruction.
 This favors simplicity and integrity over query speed for large files. Malformed,
