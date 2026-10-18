@@ -72,7 +72,7 @@
             "pefile==2024.8.26",
             "future==1.0.0"
           ],
-          "limitations": "Targeted Windows Intel64 resolution only; matching kernel _MMPTE/_MMPFN symbols and the pinned ptenum helper required. One selector, at most one PID; virtual selectors require PID. 4 KiB pages only; subsection mode, large/huge pages and unknown states rejected. PFN reads are per-entry, at most 64 KiB per read, 16 MiB aggregate nested reads/65536 calls; output at most 64 KiB. Upstream partial failures surface as errors. Synthetic contracts only; build-specific accuracy remains unvalidated."
+          "limitations": "Targeted Windows Intel64 resolution only; matching kernel _MMPTE/_MMPFN symbols and the pinned ptenum helper required. One selector, at most one PID; virtual selectors require PID. 4.096 KB pages only; subsection mode, large/huge pages and unknown states rejected. PFN reads are per-entry, at most 65.536 KB per read, 16.777216 MB aggregate nested reads/65536 calls; output at most 65.536 KB. Upstream partial failures surface as errors. Synthetic contracts only; build-specific accuracy remains unvalidated."
         }
       ],
       "plugins": [
@@ -84,7 +84,7 @@
       ],
       "limitations": "Windows Intel64 only; matching PTE/kernel symbols required. Modified/executable memory is a lead, not proof of maliciousness. Import/help and synthetic contract checks only; real-image accuracy unvalidated.",
       "plugin_limitations": {
-        "windows.pte_resolve.PteResolve": "Targeted Windows Intel64 resolution only; matching kernel _MMPTE/_MMPFN symbols and the pinned ptenum helper required. One selector, at most one PID; virtual selectors require PID. 4 KiB pages only; subsection mode, large/huge pages and unknown states rejected. PFN reads are per-entry, at most 64 KiB per read, 16 MiB aggregate nested reads/65536 calls; output at most 64 KiB. Upstream partial failures surface as errors. Synthetic contracts only; build-specific accuracy remains unvalidated."
+        "windows.pte_resolve.PteResolve": "Targeted Windows Intel64 resolution only; matching kernel _MMPTE/_MMPFN symbols and the pinned ptenum helper required. One selector, at most one PID; virtual selectors require PID. 4.096 KB pages only; subsection mode, large/huge pages and unknown states rejected. PFN reads are per-entry, at most 65.536 KB per read, 16.777216 MB aggregate nested reads/65536 calls; output at most 65.536 KB. Upstream partial failures surface as errors. Synthetic contracts only; build-specific accuracy remains unvalidated."
       }
     },
     {
@@ -174,7 +174,7 @@
           "dependencies": [
             "yara-python==4.5.4"
           ],
-          "limitations": "Windows process/VAD kernel symbols required. XOR 0x2e/0x69 configurations matching pinned upstream signatures only; no coverage claim for all Cobalt Strike versions. Maximum 64 processes by default (1024 cap), 64 MiB scanned, 4 KiB per candidate, 1000 rows by default (10000 cap). Strict read/parser errors fail instead of producing an empty success. Layer/virtual offset supplied; a config is a lead, not proof of execution. Offline; synthetic validation only."
+          "limitations": "Windows process/VAD kernel symbols required. XOR 0x2e/0x69 configurations matching pinned upstream signatures only; no coverage claim for all Cobalt Strike versions. Maximum 64 processes by default (1024 cap), 67.108864 MB scanned, 4.096 KB per candidate, 1000 rows by default (10000 cap). Strict read/parser errors fail instead of producing an empty success. Layer/virtual offset supplied; a config is a lead, not proof of execution. Offline; synthetic validation only."
         },
         {
           "path": "richheader/richheader.py",
@@ -182,17 +182,17 @@
           "sha256": "3be8347582e506f2b27e96a112886f334d68d577c6605de990e1dbdeb4da83d1",
           "installed_sha256": "79bc12079dfd47536ef450a02ea78a5bd948375c47ab17e52ed243a9cdad9336",
           "dependencies": [],
-          "limitations": "Windows process/PEB kernel symbols required. Examines each selected process main executable DOS/Rich header only, at most 64 KiB per header plus 64-byte DOS probe; 64 processes by default (1024 cap). Intel32/Intel64 declared; not validated across Windows builds. Reports layer, image base and Rich marker offset; MD5 of the decoded DanS-through-records header is a fingerprint, not attribution. Absent Rich header is empty; malformed/unreadable header is an error."
+          "limitations": "Windows process/PEB kernel symbols required. Examines each selected process main executable DOS/Rich header only, at most 65.536 KB per header plus 64-byte DOS probe; 64 processes by default (1024 cap). Intel32/Intel64 declared; not validated across Windows builds. Reports layer, image base and Rich marker offset; MD5 of the decoded DanS-through-records header is a fingerprint, not attribution. Absent Rich header is empty; malformed/unreadable header is an error."
         }
       ],
       "plugins": [
         "windows.cobaltstrike.CobaltStrike",
         "windows.richheader.RichHeader"
       ],
-      "limitations": "Windows process/VAD kernel symbols required. XOR 0x2e/0x69 configurations matching pinned upstream signatures only; no coverage claim for all Cobalt Strike versions. Maximum 64 processes by default (1024 cap), 64 MiB scanned, 4 KiB per candidate, 1000 rows by default (10000 cap). Strict read/parser errors fail instead of producing an empty success. Layer/virtual offset supplied; a config is a lead, not proof of execution. Offline; synthetic validation only. Windows process/PEB kernel symbols required. Examines each selected process main executable DOS/Rich header only, at most 64 KiB per header plus 64-byte DOS probe; 64 processes by default (1024 cap). Intel32/Intel64 declared; not validated across Windows builds. Reports layer, image base and Rich marker offset; MD5 of the decoded DanS-through-records header is a fingerprint, not attribution. Absent Rich header is empty; malformed/unreadable header is an error.",
+      "limitations": "Windows process/VAD kernel symbols required. XOR 0x2e/0x69 configurations matching pinned upstream signatures only; no coverage claim for all Cobalt Strike versions. Maximum 64 processes by default (1024 cap), 67.108864 MB scanned, 4.096 KB per candidate, 1000 rows by default (10000 cap). Strict read/parser errors fail instead of producing an empty success. Layer/virtual offset supplied; a config is a lead, not proof of execution. Offline; synthetic validation only. Windows process/PEB kernel symbols required. Examines each selected process main executable DOS/Rich header only, at most 65.536 KB per header plus 64-byte DOS probe; 64 processes by default (1024 cap). Intel32/Intel64 declared; not validated across Windows builds. Reports layer, image base and Rich marker offset; MD5 of the decoded DanS-through-records header is a fingerprint, not attribution. Absent Rich header is empty; malformed/unreadable header is an error.",
       "plugin_limitations": {
-        "windows.cobaltstrike.CobaltStrike": "Windows process/VAD kernel symbols required. XOR 0x2e/0x69 configurations matching pinned upstream signatures only; no coverage claim for all Cobalt Strike versions. Maximum 64 processes by default (1024 cap), 64 MiB scanned, 4 KiB per candidate, 1000 rows by default (10000 cap). Strict read/parser errors fail instead of producing an empty success. Layer/virtual offset supplied; a config is a lead, not proof of execution. Offline; synthetic validation only.",
-        "windows.richheader.RichHeader": "Windows process/PEB kernel symbols required. Examines each selected process main executable DOS/Rich header only, at most 64 KiB per header plus 64-byte DOS probe; 64 processes by default (1024 cap). Intel32/Intel64 declared; not validated across Windows builds. Reports layer, image base and Rich marker offset; MD5 of the decoded DanS-through-records header is a fingerprint, not attribution. Absent Rich header is empty; malformed/unreadable header is an error."
+        "windows.cobaltstrike.CobaltStrike": "Windows process/VAD kernel symbols required. XOR 0x2e/0x69 configurations matching pinned upstream signatures only; no coverage claim for all Cobalt Strike versions. Maximum 64 processes by default (1024 cap), 67.108864 MB scanned, 4.096 KB per candidate, 1000 rows by default (10000 cap). Strict read/parser errors fail instead of producing an empty success. Layer/virtual offset supplied; a config is a lead, not proof of execution. Offline; synthetic validation only.",
+        "windows.richheader.RichHeader": "Windows process/PEB kernel symbols required. Examines each selected process main executable DOS/Rich header only, at most 65.536 KB per header plus 64-byte DOS probe; 64 processes by default (1024 cap). Intel32/Intel64 declared; not validated across Windows builds. Reports layer, image base and Rich marker offset; MD5 of the decoded DanS-through-records header is a fingerprint, not attribution. Absent Rich header is empty; malformed/unreadable header is an error."
       },
       "notices": [
         {
@@ -214,7 +214,7 @@
           "dependencies": [
             "yara-python==4.5.4"
           ],
-          "limitations": "Raw UTF-8 CRLF ZoneId=3 carving only; no filename, NTFS ADS or user attribution. Requires explicit start and length (at most 64 MiB); scans the selected primary layer, at most 1024 bytes per hit and 1000 rows by default (10000 cap). Reports layer and source offset; cite these plus saved run/row, never treat the offset as a file path. No URLs contacted. Absent URL fields yield no row; malformed/truncated recognized records and read failures are errors. Synthetic validation only."
+          "limitations": "Raw UTF-8 CRLF ZoneId=3 carving only; no filename, NTFS ADS or user attribution. Requires explicit start and length (at most 67.108864 MB); scans the selected primary layer, at most 1024 bytes per hit and 1000 rows by default (10000 cap). Reports layer and source offset; cite these plus saved run/row, never treat the offset as a file path. No URLs contacted. Absent URL fields yield no row; malformed/truncated recognized records and read failures are errors. Synthetic validation only."
         },
         {
           "path": "vol3/passwordmanagers/passwordmanagers.py",
@@ -225,17 +225,17 @@
           "dependencies": [
             "yara-python==4.5.4"
           ],
-          "limitations": "Manual sensitive extraction only; never routine triage. Explicit browser PID required (chrome/firefox/iexplore). Historical LastPass signatures only, not a general password-manager decoder. At most 64 MiB scan bytes, 4 KiB matched fragment, 1000 rows; strict JSON string decoding, source layer/offset, no secret debug logs. Offline. Synthetic fixtures only; no real-image extraction accuracy claim."
+          "limitations": "Manual sensitive extraction only; never routine triage. Explicit browser PID required (chrome/firefox/iexplore). Historical LastPass signatures only, not a general password-manager decoder. At most 67.108864 MB scan bytes, 4.096 KB matched fragment, 1000 rows; strict JSON string decoding, source layer/offset, no secret debug logs. Offline. Synthetic fixtures only; no real-image extraction accuracy claim."
         }
       ],
       "plugins": [
         "windows.zoneid3.ZoneID3",
         "windows.passwordmanagers.PasswordManager"
       ],
-      "limitations": "Raw UTF-8 CRLF ZoneId=3 carving only; no filename, NTFS ADS or user attribution. Requires explicit start and length (at most 64 MiB); scans the selected primary layer, at most 1024 bytes per hit and 1000 rows by default (10000 cap). Reports layer and source offset; cite these plus saved run/row, never treat the offset as a file path. No URLs contacted. Absent URL fields yield no row; malformed/truncated recognized records and read failures are errors. Synthetic validation only.",
+      "limitations": "Raw UTF-8 CRLF ZoneId=3 carving only; no filename, NTFS ADS or user attribution. Requires explicit start and length (at most 67.108864 MB); scans the selected primary layer, at most 1024 bytes per hit and 1000 rows by default (10000 cap). Reports layer and source offset; cite these plus saved run/row, never treat the offset as a file path. No URLs contacted. Absent URL fields yield no row; malformed/truncated recognized records and read failures are errors. Synthetic validation only.",
       "plugin_limitations": {
-        "windows.zoneid3.ZoneID3": "Raw UTF-8 CRLF ZoneId=3 carving only; no filename, NTFS ADS or user attribution. Requires explicit start and length (at most 64 MiB); scans the selected primary layer, at most 1024 bytes per hit and 1000 rows by default (10000 cap). Reports layer and source offset; cite these plus saved run/row, never treat the offset as a file path. No URLs contacted. Absent URL fields yield no row; malformed/truncated recognized records and read failures are errors. Synthetic validation only.",
-        "windows.passwordmanagers.PasswordManager": "Manual sensitive extraction only; never routine triage. Explicit browser PID required (chrome/firefox/iexplore). Historical LastPass signatures only, not a general password-manager decoder. At most 64 MiB scan bytes, 4 KiB matched fragment, 1000 rows; strict JSON string decoding, source layer/offset, no secret debug logs. Offline. Synthetic fixtures only; no real-image extraction accuracy claim."
+        "windows.zoneid3.ZoneID3": "Raw UTF-8 CRLF ZoneId=3 carving only; no filename, NTFS ADS or user attribution. Requires explicit start and length (at most 67.108864 MB); scans the selected primary layer, at most 1024 bytes per hit and 1000 rows by default (10000 cap). Reports layer and source offset; cite these plus saved run/row, never treat the offset as a file path. No URLs contacted. Absent URL fields yield no row; malformed/truncated recognized records and read failures are errors. Synthetic validation only.",
+        "windows.passwordmanagers.PasswordManager": "Manual sensitive extraction only; never routine triage. Explicit browser PID required (chrome/firefox/iexplore). Historical LastPass signatures only, not a general password-manager decoder. At most 67.108864 MB scan bytes, 4.096 KB matched fragment, 1000 rows; strict JSON string decoding, source layer/offset, no secret debug logs. Offline. Synthetic fixtures only; no real-image extraction accuracy claim."
       },
       "notices": [
         {
@@ -259,7 +259,7 @@
             "symbols:linux/openssh32.json",
             "symbols:linux/openssh64.json"
           ],
-          "limitations": "Manual sensitive extraction only; never routine triage. Linux matching kernel symbols plus pinned openssh32/openssh64 ISFs required. Explicit PID and one suspected sshenc address; unbounded heap scan and arbitrary --out writes removed. Historical 6.1p1/6.1p2 layouts only, no modern OpenSSH coverage claim. Key <=64 bytes, IV <=32 bytes, name <=64 bytes; 16 MiB aggregate nested read/65536-call cap. Layer/address provenance, no secret logging. Offline. Synthetic 32/64-bit structure checks only; real Linux build accuracy unvalidated."
+          "limitations": "Manual sensitive extraction only; never routine triage. Linux matching kernel symbols plus pinned openssh32/openssh64 ISFs required. Explicit PID and one suspected sshenc address; unbounded heap scan and arbitrary --out writes removed. Historical 6.1p1/6.1p2 layouts only, no modern OpenSSH coverage claim. Key <=64 bytes, IV <=32 bytes, name <=64 bytes; 16.777216 MB aggregate nested read/65536-call cap. Layer/address provenance, no secret logging. Offline. Synthetic 32/64-bit structure checks only; real Linux build accuracy unvalidated."
         },
         {
           "path": "volatility3/symbols/openssh32.json",
@@ -279,7 +279,7 @@
       "plugins": [
         "linux.openssh_sessionkeys.SSHKeys"
       ],
-      "limitations": "Manual sensitive extraction only; never routine triage. Linux matching kernel symbols plus pinned openssh32/openssh64 ISFs required. Explicit PID and one suspected sshenc address; unbounded heap scan and arbitrary --out writes removed. Historical 6.1p1/6.1p2 layouts only, no modern OpenSSH coverage claim. Key <=64 bytes, IV <=32 bytes, name <=64 bytes; 16 MiB aggregate nested read/65536-call cap. Layer/address provenance, no secret logging. Offline. Synthetic 32/64-bit structure checks only; real Linux build accuracy unvalidated.",
+      "limitations": "Manual sensitive extraction only; never routine triage. Linux matching kernel symbols plus pinned openssh32/openssh64 ISFs required. Explicit PID and one suspected sshenc address; unbounded heap scan and arbitrary --out writes removed. Historical 6.1p1/6.1p2 layouts only, no modern OpenSSH coverage claim. Key <=64 bytes, IV <=32 bytes, name <=64 bytes; 16.777216 MB aggregate nested read/65536-call cap. Layer/address provenance, no secret logging. Offline. Synthetic 32/64-bit structure checks only; real Linux build accuracy unvalidated.",
       "notices": [
         {
           "path": "LICENSE",
