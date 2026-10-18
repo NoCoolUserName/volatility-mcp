@@ -33,6 +33,7 @@ jobs:
           python -m volatility_mcp setup --config "$RUNNER_TEMP/addons.json" --vol-python "$RUNNER_TEMP/analyzer/bin/python" --vol "$RUNNER_TEMP/analyzer/bin/vol" --evidence-root "$RUNNER_TEMP/evidence" --output-root "$RUNNER_TEMP/outputs" --cache-path "$RUNNER_TEMP/symbol-cache"
       - run: python -m volatility_mcp plugins-install --config "$RUNNER_TEMP/addons.json"
       - run: '"$RUNNER_TEMP/analyzer/bin/python" tests/addon_runtime_smoke.py'
+      - run: '"$RUNNER_TEMP/analyzer/bin/python" tests/addon_first_batch_smoke.py -v'
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 10

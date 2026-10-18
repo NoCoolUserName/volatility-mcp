@@ -48,3 +48,13 @@ unverified conditions.
 An **ICS memory-image collection is a separate future project**. This repository
 does not contain or create that collection, a Dragos dataset, malware samples, or
 private case reports. The existing server repository remains authoritative for forensic code. Core and Workbench are independently maintained; see [SEPARATION.md](SEPARATION.md).
+
+## Community3 integration
+
+The first four additions (CobaltStrike, RichHeader, ZoneID3 and PteResolve) use the
+core's versioned community inventory, bounded offline adaptations and harmless
+fixtures. See [COMMUNITY_PLUGINS.md](COMMUNITY_PLUGINS.md) for command limitations,
+provenance and separate evaluation gates. SwapEnumerator, parent-spoof checks,
+Docker and alternate EVTX carving remain separate proposed changes; sensitive
+extraction stays opt-in. Real OS/build validation requires a separately authorized
+fixture set and bounded runs. Existing private cases are not authorized fixtures.

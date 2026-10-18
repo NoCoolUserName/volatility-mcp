@@ -44,6 +44,8 @@ with patch('subprocess.Popen', side_effect=AssertionError('Subprocess forbidden'
         context = SimpleNamespace(config=HierarchicalDict(), modules={'kernel': SimpleNamespace(layer_name='layer', symbol_table_name='symbols')})
         context.config['synthetic.kernel'] = 'kernel'
         context.config['synthetic.pid'] = [123] if any(r.name == 'pid' and type(r).__name__ == 'ListRequirement' for r in cls.get_requirements()) else 123
+        if name == 'windows.pte_resolve.PteResolve':
+            context.config['synthetic.vaddr'] = 4096
         obj._context = context; obj._config_path = 'synthetic'
         with patch.object(filescan.FileScan, 'scan_files', autospec=True, return_value=iter(())), \
              patch.object(pslist.PsList, 'list_processes', autospec=True, return_value=iter(())), \
@@ -91,4 +93,4 @@ with patch('subprocess.Popen', side_effect=AssertionError('Subprocess forbidden'
     try: browser.find_output_directory()
     except ValueError: pass
     else: raise AssertionError('Host directory fallback accepted')
-print('PASS: nine addon import/requirement/run-wrapper contracts; synthetic Prefetch, AnyDesk, KeePass, EVTX and SQLite checks; zero analysis subprocesses/network. PTE/ImageMalfind algorithms not evaluated.')
+print('PASS: profile import/requirement/run-wrapper contracts; synthetic Prefetch, AnyDesk, KeePass, EVTX and SQLite checks; zero analysis subprocesses/network. PTE/ImageMalfind algorithms not evaluated here; first-batch fixtures are separate.')
