@@ -161,9 +161,9 @@ class VolatilityBackend:
         identity = hashlib.sha256(relative.encode("utf-8")).hexdigest()[:16]
         return self.outputs / f"{slug}-{identity}"
 
-    def catalog(self) -> dict[str, Any]:
+    def catalog(self, refresh: bool = False) -> dict[str, Any]:
         with self._lock:
-            if self._catalog is None:
+            if self._catalog is None or refresh:
                 try:
                     result = subprocess.run(
                         [str(self.vol_python), "-I", str(self.project / "catalog.py"),
@@ -175,7 +175,9 @@ class VolatilityBackend:
                     raise EvidenceError(f"Plugin discovery timed out after {self.config.catalog_timeout} seconds. Check the existing vol -h.") from exc
                 if result.returncode:
                     raise EvidenceError(f"Installed plugin discovery failed: {result.stderr[-2400:]}")
-                self._catalog = json.loads(result.stdout)
+                discovered = json.loads(result.stdout)
+                discovered['discovered_at'] = utc_now()
+                self._catalog = discovered
             return self._catalog
 
     def list_memory_images(self) -> dict[str, Any]:
@@ -197,14 +199,17 @@ class VolatilityBackend:
                     skipped.append({"path": str(path), "reason": str(exc)})
         return {"cases_directory": str(self.cases), "images": images, "count": len(images), "skipped": skipped}
 
-    def list_plugins(self, query: str = "") -> dict[str, Any]:
+    def list_plugins(self, query: str = "", refresh: bool = False) -> dict[str, Any]:
         if query:
             validate_text(query, "Plugin filter")
-        catalog = self.catalog()
+        catalog = self.catalog(refresh=refresh)
         matched = [(name, value) for name, value in sorted(catalog["plugins"].items()) if query.lower() in name.lower()]
         plugins = [{"name": name, "description": value["description"],
                     "origin": value.get("origin", "installed_volatility"),
-                    "plugin_version": value.get("plugin_version")} for name, value in matched]
+                    "plugin_version": value.get("plugin_version"),
+                    "source": value.get("source", {"kind": "unknown", "label": "Source unknown", "url": None,
+                        "basis": "Source metadata unavailable; installation origin does not establish authorship."}),
+                    "target_os": value.get("target_os", "other")} for name, value in matched]
         for plugin in plugins:
             if plugin["name"] == "vol_pypykatz.pypykatz":
                 plugin["compatibility_note"] = (
@@ -218,6 +223,7 @@ class VolatilityBackend:
         if len(matched) == 1:
             plugins[0]["options"] = matched[0][1]["options"]
         return {"volatility_version": catalog["version"], "architecture": catalog["architecture"],
+                "discovered_at": catalog.get("discovered_at"),
                 "total": len(catalog["plugins"]), "count": len(plugins), "plugins": plugins,
                 "import_failures": catalog.get("import_failures", []),
                 "installed_volatility_plugins": sum(p.get("origin", "installed_volatility") == "installed_volatility"

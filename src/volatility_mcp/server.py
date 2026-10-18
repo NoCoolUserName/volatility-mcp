@@ -97,9 +97,13 @@ def create_server(config: Config, *, backend: VolatilityBackend | None = None) -
         return await invoke(backend.get_image_info, image, os_hint, cancellable=True)
 
     @mcp.tool(annotations=read)
-    async def list_plugins(query: str = "") -> dict:
-        """Discover installed plugin names/import health; a single match includes its accepted argument schema."""
-        return await invoke(backend.list_plugins, query)
+    async def list_plugins(query: str = "", refresh: bool = False) -> dict:
+        """List installed plugins, source attribution and import health; one match includes arguments.
+
+        refresh=True repeats discovery only, never memory analysis. Source unknown is
+        explicit; installed_volatility is a location classification, not authorship.
+        """
+        return await invoke(backend.list_plugins, query, refresh)
 
     @mcp.tool(annotations=analysis)
     async def run_plugin(image: str, plugin: str, arguments: list[str] | None = None) -> dict:
