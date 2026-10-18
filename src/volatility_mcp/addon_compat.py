@@ -3,7 +3,7 @@ import ast
 import textwrap
 
 
-REVISION = 2
+REVISION = 3
 
 
 def replace_method(source, name, replacement):
@@ -105,5 +105,7 @@ def adapt(filename, source):
                         return str(Path(instance.output_dir).resolve(strict=True))
                 raise ValueError("No framework-managed output directory; refusing host-file fallback")
         ''')
+    from .addon_batch import adapt_batch
+    source = adapt_batch(filename, source, replace_method)
     ast.parse(source)
     return source

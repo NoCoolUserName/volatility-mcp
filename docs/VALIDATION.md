@@ -447,3 +447,36 @@ Volatility 2.28.2. No explicit source redistribution license was found for two
 upstreams; public container/app bundling remains subject to permission review.
 See COMMUNITY_PLUGINS.md for exact pins and scope. Synthetic passing checks do
 not establish malware-detection accuracy or compatibility with all Windows builds.
+
+## First community3 batch — 2026-10-18
+
+Core profile `community-2026-10`, compatibility revision 3, was staged in an
+isolated copy of the existing Volatility 2.28.2 analyzer. The original 208-name
+set remained intact; discovery returned 212 names and zero import failures.
+The four additions are CobaltStrike, RichHeader, ZoneID3 and PteResolve. Each
+original/adapted source hash and repository notice was checked against the
+versioned inventory; current catalog attribution was checked for every addition.
+No dependency upgrade was needed. The only changes to prior plugin source bytes
+are revision 2's already-pinned decimal MB wording in Prefetch, AnyDesk and EVTXLog.
+
+Validation includes exact CLI help (ZoneID3 help also needs its required start/
+length under the current Volatility parser), required-argument validation, all
+profile dependency requirements and existing-addon synthetic smoke checks.
+Twenty first-batch fixture tests cover real YARA scanning across chunk boundaries,
+valid/malformed records, bounded strict reads and row/text limits, current process
+API signatures, source offsets, real JSON rendering and error versus empty
+outcomes. Network and subprocess creation are denied before plugin import.
+PteResolve fixtures include the last valid PFN index, per-entry reads, aggregate
+budget enforcement, restoration after failure, errors swallowed by upstream
+helpers, selector contracts and real hardware/transition bit decoding with
+synthetic layouts. Symbol initialization and full PFN/process corroboration are
+isolated, not claimed validated.
+
+The installed-core wheel smoke completed 103 tests (102 passed, one expected
+optional addon skip), dependency checks, ten-tool negotiation in both MCP modes,
+and synthetic report/provenance validation outside the checkout without
+Workbench installed. The core forces `--offline` for the four new names; existing
+commands retain their previous invocation policy. No memory-image analysis,
+private case access, live endpoint access or OS/build accuracy evaluation was
+performed. Separate candidate and authorized fixture gates are recorded in
+[COMMUNITY_PLUGINS.md](COMMUNITY_PLUGINS.md).

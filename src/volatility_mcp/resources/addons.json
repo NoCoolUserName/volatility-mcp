@@ -1,14 +1,21 @@
 {
   "schema_version": 1,
   "profile": "community-2026-10",
-  "compatibility_revision": 2,
+  "compatibility_revision": 3,
   "volatility_version": "2.28.2",
+  "offline_plugins": [
+    "windows.cobaltstrike.CobaltStrike",
+    "windows.richheader.RichHeader",
+    "windows.zoneid3.ZoneID3",
+    "windows.pte_resolve.PteResolve"
+  ],
   "dependencies": [
     "capstone==5.0.9",
     "pefile==2024.8.26",
     "future==1.0.0",
     "python-evtx==0.8.1",
-    "hexdump==3.3"
+    "hexdump==3.3",
+    "yara-python==4.5.4"
   ],
   "sources": [
     {
@@ -51,15 +58,32 @@
           "target": "windows/apisearch.py",
           "sha256": "c8ce10e3229c219d9aeb42f43f06d852bd91b973a3b925713815f07efa105796",
           "installed_sha256": "13e488813e52ce80c1d1a4a2d29e108d022d6c48a6b5428915cd1014620e89d1"
+        },
+        {
+          "path": "pte_resolve.py",
+          "target": "windows/pte_resolve.py",
+          "sha256": "363d1bcc6423293232572ce8fdb6461f5a74dd4bb73e2a08e91792de13b62644",
+          "installed_sha256": "48ce1d16ad23a521621290e20d01d3a80c16a8c89f98abd054e80b3e6a0c2c18",
+          "dependencies": [
+            "windows/ptenum.py@c4b6ad45ce34f0b7eae9aef80dd6e9594e8c5b84",
+            "capstone==5.0.9",
+            "pefile==2024.8.26",
+            "future==1.0.0"
+          ],
+          "limitations": "Targeted Windows Intel64 resolution only; matching kernel _MMPTE/_MMPFN symbols and the pinned ptenum helper required. One selector, at most one PID; virtual selectors require PID. 4 KiB pages only; subsection mode, large/huge pages and unknown states rejected. PFN reads are per-entry, at most 64 KiB per read, 16 MiB aggregate nested reads/65536 calls; output at most 64 KiB. Upstream partial failures surface as errors. Synthetic contracts only; build-specific accuracy remains unvalidated."
         }
       ],
       "plugins": [
         "windows.ptemalfind.PteMalfind",
         "windows.simple_pteenum.SimplePteEnumerator",
         "windows.imgmalfind.ImageMalfind",
-        "windows.apisearch.ApiSearch"
+        "windows.apisearch.ApiSearch",
+        "windows.pte_resolve.PteResolve"
       ],
-      "limitations": "Windows Intel64 only; matching PTE/kernel symbols required. Modified/executable memory is a lead, not proof of maliciousness. Import/help and synthetic contract checks only; real-image accuracy unvalidated."
+      "limitations": "Windows Intel64 only; matching PTE/kernel symbols required. Modified/executable memory is a lead, not proof of maliciousness. Import/help and synthetic contract checks only; real-image accuracy unvalidated.",
+      "plugin_limitations": {
+        "windows.pte_resolve.PteResolve": "Targeted Windows Intel64 resolution only; matching kernel _MMPTE/_MMPFN symbols and the pinned ptenum helper required. One selector, at most one PID; virtual selectors require PID. 4 KiB pages only; subsection mode, large/huge pages and unknown states rejected. PFN reads are per-entry, at most 64 KiB per read, 16 MiB aggregate nested reads/65536 calls; output at most 64 KiB. Upstream partial failures surface as errors. Synthetic contracts only; build-specific accuracy remains unvalidated."
+      }
     },
     {
       "repository": "forensicxlab/volatility3_plugins",
@@ -134,6 +158,76 @@
         "windows.browserhistoryextractor.BrowserHistoryExtractor"
       ],
       "limitations": "Read-only immutable SQLite reconstruction with no WAL replay; missing/corrupt cached pages may prevent parsing. UTC timestamps. No upstream redistribution license found; resolve permission before public bundling. Browser records do not establish user intent."
+    },
+    {
+      "repository": "Immersive-Labs-Sec/volatility_plugins",
+      "commit": "032bc053556f529ca4f698c77a12542b0ea58557",
+      "license": "MIT; retain original notices and repository LICENSE",
+      "files": [
+        {
+          "path": "cobaltstrike/cobaltstrike.py",
+          "target": "windows/cobaltstrike.py",
+          "sha256": "0d333427513cbd9817a81f82fc6b0e06ae2f8fbd1d1120fa8a889d111f61e879",
+          "installed_sha256": "f23b773e1f001a587f5bcc877a0f3e141b458dc612464ef631c523315e9332fe",
+          "dependencies": [
+            "yara-python==4.5.4"
+          ],
+          "limitations": "Windows process/VAD kernel symbols required. XOR 0x2e/0x69 configurations matching pinned upstream signatures only; no coverage claim for all Cobalt Strike versions. Maximum 64 processes by default (1024 cap), 64 MiB scanned, 4 KiB per candidate, 1000 rows by default (10000 cap). Strict read/parser errors fail instead of producing an empty success. Layer/virtual offset supplied; a config is a lead, not proof of execution. Offline; synthetic validation only."
+        },
+        {
+          "path": "richheader/richheader.py",
+          "target": "windows/richheader.py",
+          "sha256": "3be8347582e506f2b27e96a112886f334d68d577c6605de990e1dbdeb4da83d1",
+          "installed_sha256": "79bc12079dfd47536ef450a02ea78a5bd948375c47ab17e52ed243a9cdad9336",
+          "dependencies": [],
+          "limitations": "Windows process/PEB kernel symbols required. Examines each selected process main executable DOS/Rich header only, at most 64 KiB per header plus 64-byte DOS probe; 64 processes by default (1024 cap). Intel32/Intel64 declared; not validated across Windows builds. Reports layer, image base and Rich marker offset; MD5 of the decoded DanS-through-records header is a fingerprint, not attribution. Absent Rich header is empty; malformed/unreadable header is an error."
+        }
+      ],
+      "plugins": [
+        "windows.cobaltstrike.CobaltStrike",
+        "windows.richheader.RichHeader"
+      ],
+      "limitations": "Windows process/VAD kernel symbols required. XOR 0x2e/0x69 configurations matching pinned upstream signatures only; no coverage claim for all Cobalt Strike versions. Maximum 64 processes by default (1024 cap), 64 MiB scanned, 4 KiB per candidate, 1000 rows by default (10000 cap). Strict read/parser errors fail instead of producing an empty success. Layer/virtual offset supplied; a config is a lead, not proof of execution. Offline; synthetic validation only. Windows process/PEB kernel symbols required. Examines each selected process main executable DOS/Rich header only, at most 64 KiB per header plus 64-byte DOS probe; 64 processes by default (1024 cap). Intel32/Intel64 declared; not validated across Windows builds. Reports layer, image base and Rich marker offset; MD5 of the decoded DanS-through-records header is a fingerprint, not attribution. Absent Rich header is empty; malformed/unreadable header is an error.",
+      "plugin_limitations": {
+        "windows.cobaltstrike.CobaltStrike": "Windows process/VAD kernel symbols required. XOR 0x2e/0x69 configurations matching pinned upstream signatures only; no coverage claim for all Cobalt Strike versions. Maximum 64 processes by default (1024 cap), 64 MiB scanned, 4 KiB per candidate, 1000 rows by default (10000 cap). Strict read/parser errors fail instead of producing an empty success. Layer/virtual offset supplied; a config is a lead, not proof of execution. Offline; synthetic validation only.",
+        "windows.richheader.RichHeader": "Windows process/PEB kernel symbols required. Examines each selected process main executable DOS/Rich header only, at most 64 KiB per header plus 64-byte DOS probe; 64 processes by default (1024 cap). Intel32/Intel64 declared; not validated across Windows builds. Reports layer, image base and Rich marker offset; MD5 of the decoded DanS-through-records header is a fingerprint, not attribution. Absent Rich header is empty; malformed/unreadable header is an error."
+      },
+      "notices": [
+        {
+          "path": "LICENSE",
+          "sha256": "12339c18a2c86ca47181d798d213aa2c4a960f5d5e334533bb9c0e57c19d1abe"
+        }
+      ]
+    },
+    {
+      "repository": "kevthehermit/volatility_plugins",
+      "commit": "0f4f2fbbc93b8b59ead45f82e3287859a5ebc469",
+      "license": "MIT; retain original notices and repository LICENSE",
+      "files": [
+        {
+          "path": "vol3/zone-identifier/zoneid3.py",
+          "target": "windows/zoneid3.py",
+          "sha256": "b2bca7934dabea5929c3733085b9141131646f995352f114b17781dda1727c63",
+          "installed_sha256": "165cd34c8b48805152fe74b3d8279f2822099597b8e570437aba1c194075aa04",
+          "dependencies": [
+            "yara-python==4.5.4"
+          ],
+          "limitations": "Raw UTF-8 CRLF ZoneId=3 carving only; no filename, NTFS ADS or user attribution. Requires explicit start and length (at most 64 MiB); scans the selected primary layer, at most 1024 bytes per hit and 1000 rows by default (10000 cap). Reports layer and source offset; cite these plus saved run/row, never treat the offset as a file path. No URLs contacted. Absent URL fields yield no row; malformed/truncated recognized records and read failures are errors. Synthetic validation only."
+        }
+      ],
+      "plugins": [
+        "windows.zoneid3.ZoneID3"
+      ],
+      "limitations": "Raw UTF-8 CRLF ZoneId=3 carving only; no filename, NTFS ADS or user attribution. Requires explicit start and length (at most 64 MiB); scans the selected primary layer, at most 1024 bytes per hit and 1000 rows by default (10000 cap). Reports layer and source offset; cite these plus saved run/row, never treat the offset as a file path. No URLs contacted. Absent URL fields yield no row; malformed/truncated recognized records and read failures are errors. Synthetic validation only.",
+      "plugin_limitations": {
+        "windows.zoneid3.ZoneID3": "Raw UTF-8 CRLF ZoneId=3 carving only; no filename, NTFS ADS or user attribution. Requires explicit start and length (at most 64 MiB); scans the selected primary layer, at most 1024 bytes per hit and 1000 rows by default (10000 cap). Reports layer and source offset; cite these plus saved run/row, never treat the offset as a file path. No URLs contacted. Absent URL fields yield no row; malformed/truncated recognized records and read failures are errors. Synthetic validation only."
+      },
+      "notices": [
+        {
+          "path": "LICENSE",
+          "sha256": "a446f219aabe3667850444bbd5f11b7e931889b4d5dbf3bc074fe00f25f1124c"
+        }
+      ]
     }
   ]
 }
