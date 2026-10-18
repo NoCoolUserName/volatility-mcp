@@ -496,14 +496,14 @@ Public corpus: volatilityfoundation/volatility3-test-data release v0.0.1, manife
 commit `1cd2df00a1a286c0948e09b220dc8c550f057d27`, Windows 10 build 19041 x64.
 Downloaded image and symbol archive SHA-256 values match the published release.
 The image expands to 2,094,154,496 bytes. Each command has a 90-second timeout,
-16 MiB output-file cap, `--offline`, isolated symbol/cache paths, and denied
+16.777216 MB output-file cap, `--offline`, isolated symbol/cache paths, and denied
 socket connections/DNS. Symbols were provisioned before analysis.
 
 | Bounded command | Outcome |
 | --- | --- |
 | RichHeader, PID 384 | Missing process image page: explicit failure, incomplete. |
 | RichHeader, PID 612, maximum one process | One header fingerprint with layer/base/offset; 1.54 seconds. |
-| CobaltStrike, PID 384, maximum one process, 64 MiB / 100 rows | Missing swap page: explicit failure, incomplete; 1.79 seconds. |
+| CobaltStrike, PID 384, maximum one process, 67.108864 MB / 100 rows | Missing swap page: explicit failure, incomplete; 1.79 seconds. |
 | ZoneID3, kernel base `0xf8043601f000`, length 4096, maximum 100 rows | Successful empty result for that range only; 1.53 seconds. |
 | PteResolve, supplied raw PTE value 0 | One demand-zero decode using this kernel's metadata; 1.80 seconds. |
 
@@ -511,3 +511,33 @@ This is a single-build compatibility sample, not detection accuracy or a full
 image sweep. The raw PTE value is synthetic; no actual mapping was corroborated.
 CobaltStrike completeness remains unvalidated. No PasswordManager/SSHKeys
 extraction ran against the public image. Existing private cases remain excluded.
+
+
+## Decimal KB/MB metadata cleanup — 2026-10-18
+
+The single addon inventory now displays decimal KB/MB values exactly: 4,096 bytes
+is 4.096 KB; 65,536 bytes is 65.536 KB; 16,777,216 bytes is 16.777216 MB;
+67,108,864 bytes is 67.108864 MB. All 26 inventory changes were compared against
+the previous revision using decimal arithmetic. No other inventory values changed:
+compatibility revision 4, upstream/adapted hashes, dependency pins, 15 expected
+community commands, offline policy and manual-only policy are unchanged. No adapter
+source, binary page calculation or byte bound changed. Pinned upstream snapshots
+and installed plugin source were audited read-only and contain no binary unit
+labels; the tracked source/docs audit found no remaining binary unit labels.
+
+Focused checks passed: seven installer tests; 20 first-batch and seven sensitive
+synthetic fixtures; prior-addon runtime smoke checks. A synthetic temporary
+configuration discovered all 214 configured commands with zero import failures
+and returned the converted PteResolve limitation text through the catalog. This
+does not change the portable public baseline of 200 commands. Synthetic evaluation
+passed 20 contracts with four explicitly unsupported scenarios, zero failures and
+zero analysis subprocesses. No private cases, live scans, plugin installation,
+configuration changes or client restart were used.
+
+The final isolated installed-wheel check completed 105 tests (104 passed, one
+expected optional-addon skip), dependency health, both real stdio MCP protocol
+modes with ten tools, and synthetic report/provenance validation without
+Workbench installed. The initial build-dependency download failed on PyPI DNS;
+the successful run used the existing local pinned wheelhouse with indexes
+disabled and the already installed build backend. Runtime source was unchanged
+between the focused and final installed-package checks.
