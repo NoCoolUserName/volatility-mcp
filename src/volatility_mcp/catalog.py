@@ -145,6 +145,10 @@ def build_catalog() -> dict[str, Any]:
             for option in options:
                 if option['flag'] == '--pattern' and option['type'] == 'str' and not option['is_path']:
                     option['value_kind'] = 'bytes_regex'
+        if name == 'windows.dumpfiles.DumpFiles':
+            for option in options:
+                if option['flag'] == '--filter' and option['type'] == 'str' and not option['is_path']:
+                    option['value_kind'] = 'text_regex'
         source_path = Path(inspect.getfile(plugin)).resolve()
         available[name] = {
             "description": inspect.getdoc(plugin) or "",
