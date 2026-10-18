@@ -25,6 +25,12 @@ KNOWN_ADDONS = {
     'vol_pypykatz.pypykatz': ('skelsec/pypykatz-volatility3',
                              'https://github.com/skelsec/pypykatz-volatility3'),
 }
+ADDON_PROFILE = json.loads((Path(__file__).parent / 'resources' / 'addons.json').read_text())
+ADDON_NOTES = {}
+for addon in ADDON_PROFILE['sources']:
+    for plugin_name in addon['plugins']:
+        KNOWN_ADDONS[plugin_name] = (addon['repository'], 'https://github.com/' + addon['repository'])
+        ADDON_NOTES[plugin_name] = addon['limitations']
 
 
 def native_records() -> dict:
@@ -148,6 +154,7 @@ def build_catalog() -> dict[str, Any]:
             "plugin_version": list(plugin.version),
             "source_file": str(source_path),
             "source": plugin_source(name, source_path, records, local_plugins),
+            "compatibility_note": ADDON_NOTES.get(name),
             "target_os": ('windows' if name in {'xpnet.XpNetScan', 'vol_pypykatz.pypykatz'}
                           else name.split('.')[0] if name.split('.')[0] in {'windows', 'linux', 'mac'} else 'other'),
         }
