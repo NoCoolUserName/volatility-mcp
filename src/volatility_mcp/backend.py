@@ -209,6 +209,7 @@ class VolatilityBackend:
                     "origin": value.get("origin", "installed_volatility"),
                     "plugin_version": value.get("plugin_version"),
                     "compatibility_note": value.get("compatibility_note"),
+                    "manual_only": value.get("manual_only", False),
                     "source": value.get("source", {"kind": "unknown", "label": "Source unknown", "url": None,
                         "basis": "Source metadata unavailable; installation origin does not establish authorship."}),
                     "target_os": value.get("target_os", "other")} for name, value in matched]
