@@ -17,10 +17,12 @@ class AddonTests(unittest.TestCase):
     def test_profile_is_pinned_and_has_all_requested_commands(self):
         data = addons.profile()
         names = {name for source in data['sources'] for name in source['plugins']}
-        self.assertEqual(len(names), 9)
+        self.assertEqual(len(names), 13)
         self.assertIn('windows.simple_pteenum.SimplePteEnumerator', names)
         self.assertIn('windows.browserhistoryextractor.BrowserHistoryExtractor', names)
         self.assertTrue(all(source['license'] for source in data['sources']))
+        self.assertTrue({'windows.cobaltstrike.CobaltStrike', 'windows.richheader.RichHeader',
+                         'windows.zoneid3.ZoneID3', 'windows.pte_resolve.PteResolve'} <= names)
 
     def test_download_and_adaptation_must_match_both_hashes(self):
         raw = b'# synthetic plugin\n'
@@ -80,5 +82,22 @@ class AddonTests(unittest.TestCase):
             backend.list_plugins.return_value['plugins'] = []
             with self.assertRaisesRegex(ValueError, 'discovery failed'): addons.install(config)
             self.assertFalse(target.exists())
+            backend.list_plugins.side_effect = [
+                {'plugins':[{'name':'existing.MustRemain'}], 'import_failures':[], 'total':1},
+                {'plugins':[{'name':'windows.sample.Example'}], 'import_failures':[], 'total':1}]
+            with self.assertRaisesRegex(ValueError, 'existing.MustRemain'): addons.install(config)
+            self.assertFalse(target.exists())
+            backend.list_plugins.side_effect = None
             environment['native'] = [str(target.resolve())]
             with self.assertRaisesRegex(ValueError, 'official Volatility'): addons.install(config)
+
+    def test_profile_rejects_traversal_duplicate_targets_and_names(self):
+        for invalid in ('../zoneid3.py', '/zoneid3.py', 'a//zoneid3.py'):
+            data = addons.profile()
+            data['sources'][0]['files'][0]['path'] = invalid
+            with patch.object(Path, 'read_text', return_value=json.dumps(data)):
+                with self.assertRaisesRegex(ValueError, 'fixed Windows'): addons.profile()
+        data = addons.profile()
+        data['sources'][0]['files'].append(data['sources'][0]['files'][0])
+        with patch.object(Path, 'read_text', return_value=json.dumps(data)):
+            with self.assertRaisesRegex(ValueError, 'fixed Windows'): addons.profile()

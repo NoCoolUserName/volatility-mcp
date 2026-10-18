@@ -29,12 +29,16 @@ def profile():
         raise ValueError('Unsupported addon profile revision')
     if not re.fullmatch('[a-z0-9-]+', data['profile']) or not all(re.fullmatch(r'[A-Za-z0-9-]+==[0-9.]+', pin) for pin in data['dependencies']):
         raise ValueError('Invalid addon profile/dependency pin')
+    targets, names = set(), set()
     for source in data['sources']:
         if not re.fullmatch(r'[\w.-]+/[\w.-]+', source['repository']) or not re.fullmatch('[0-9a-f]{40}', source['commit']):
             raise ValueError('Invalid pinned addon source')
         for item in source['files']:
-            if not re.fullmatch(r'[a-z_]+\.py', item['path']) or item['target'] != 'windows/' + item['path']:
+            if (not re.fullmatch(r'(?:[a-z0-9_-]+/)*[a-z_][a-z0-9_]*\.py', item['path'])
+                    or item['target'] != 'windows/' + Path(item['path']).name
+                    or item['target'] in targets):
                 raise ValueError('Addon file must have a fixed Windows plugin destination')
+            targets.add(item['target'])
             if not all(re.fullmatch('[0-9a-f]{64}', item[key]) for key in ('sha256', 'installed_sha256')):
                 raise ValueError('Addon hash is missing')
             if 'previous_installed_sha256' in item and not re.fullmatch('[0-9a-f]{64}', item['previous_installed_sha256']):
@@ -42,6 +46,12 @@ def profile():
         for notice in source.get('notices', []):
             if notice['path'] != 'LICENSE' or not re.fullmatch('[0-9a-f]{64}', notice['sha256']):
                 raise ValueError('Invalid upstream license notice')
+        for name in source['plugins']:
+            if not re.fullmatch(r'windows\.[a-z_][a-z0-9_]*\.[A-Za-z_][A-Za-z0-9_]*', name) or name in names:
+                raise ValueError('Invalid or duplicate expected addon command')
+            names.add(name)
+    if not set(data.get('offline_plugins', [])) <= names:
+        raise ValueError('Offline policy references an unknown addon')
     return data
 
 
@@ -60,7 +70,7 @@ def fetch(source, item):
 
 def prepare(source, item):
     raw = fetch(source, item)
-    installed = adapt(item['path'], raw.decode('utf-8').replace('\r\n', '\n')).encode()
+    installed = adapt(Path(item['path']).name, raw.decode('utf-8').replace('\r\n', '\n')).encode()
     if sha(installed) != item['installed_sha256']:
         raise ValueError(f"Adapted addon hash mismatch: {item['path']}")
     return raw, installed
@@ -139,6 +149,17 @@ def install(config):
             fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError as exc:
             raise ValueError('Analysis is active; install addons only while clients are idle') from exc
+        # Recheck under the lock: downloads may have taken time, and another
+        # operator could have edited a plugin since preflight.
+        for _, item, target, _, _ in prepared:
+            safe_target(root, item['target'])
+            if target.exists() and sha(target.read_bytes()) not in {
+                    item['installed_sha256'], item.get('previous_installed_sha256')}:
+                raise ValueError('Addon changed during preflight: ' + item['target'])
+        baseline = VolatilityBackend(config).list_plugins(refresh=True)
+        if baseline['import_failures']:
+            raise ValueError('Existing analyzer import failures; resolve before installation')
+        baseline_names = {p['name'] for p in baseline['plugins']}
         if missing:
             completed = subprocess.run([str(config.vol_python), '-I', '-m', 'pip', 'install', '--no-deps',
                                         '--index-url', 'https://pypi.org/simple', *missing],
@@ -155,8 +176,9 @@ def install(config):
             catalog = VolatilityBackend(config).list_plugins(refresh=True)
             names = {p['name'] for p in catalog['plugins']}
             expected = {name for source in data['sources'] for name in source['plugins']}
-            if expected - names or catalog['import_failures']:
-                raise ValueError('Addon discovery failed: ' + repr(sorted(expected - names)) + '; ' + repr(catalog['import_failures']))
+            missing_names = (expected | baseline_names) - names
+            if missing_names or catalog['import_failures']:
+                raise ValueError('Addon discovery failed: ' + repr(sorted(missing_names)) + '; ' + repr(catalog['import_failures']))
         except BaseException:
             for target, original in previous.items():
                 if original is None:
@@ -169,12 +191,13 @@ def install(config):
             write_atomic(safe_target(archive, 'upstream/' + source['repository'] + '/' + item['path']), raw)
         for source, item, raw in notices:
             write_atomic(safe_target(archive, 'upstream/' + source['repository'] + '/' + item['path']), raw)
-        receipt = {**data, 'installed_plugins': sorted(expected),
+        receipt = {**data, 'installed_plugins': sorted(expected), 'preserved_plugins': sorted(baseline_names),
                    'verification': 'imports and requirements only; real image runtime not established',
                    'analyzer_version': info['volatility_version']}
         write_atomic(safe_target(archive, 'receipt.json'), (json.dumps(receipt, indent=2) + '\n').encode())
         return {'status': 'installed', 'profile': data['profile'], 'plugins': sorted(expected),
                 'plugin_count': catalog['total'], 'import_failures': catalog['import_failures'],
+                'preserved_plugin_count': len(baseline_names),
                 'receipt': str(archive / 'receipt.json'), 'dependencies_added': missing,
                 'limitations': 'Import/help checks do not validate forensic accuracy. No image was analyzed.'}
     finally:
