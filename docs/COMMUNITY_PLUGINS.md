@@ -167,9 +167,9 @@ budgets to validate before any separate integration.
 | Docker | community3 `5ae4e232e14667277a0cc74848b87b634b4d8ad1`, Sheffer_Shaked_Docker. Matching Linux kernel ISF for task, namespaces, mount, net and cgroup structures. Port container logic without replacing native PsList/PsTree or other installed commands. | cgroup v1/v2, rootful/rootless, privileged/unprivileged, shared PID/net namespace, no-Docker and malformed/cyclic lists. Cap tasks/namespaces/mounts and traversal depth independently (initial 10,000 nodes, depth 128, 67.108864 MB reads, 60 seconds). No blanket container-inventory claim. |
 | Alternate EVTX carver | Same community3 pin, Stelte_Evtx/evtx.py. EVTXtract and its dependencies need separate version/license pins; normal carving need not require kernel symbols. Port old namespace, raw-file/layer handling, Provider/Keywords mapping and exception suppression; avoid nested repeated template rescans. | Synthetic valid chunks/records/templates, deleted fragments, bad checksums, truncated XML, duplicate records, missing templates and layered inputs. Preserve physical offsets and validity. Start with 67.108864 MB input, 10,000 records, one template pass, 67.108864 MB output and 60 seconds. Compare recovery with existing EVTXLog; never replace it. |
 
-PasswordManager and SSHKeys are installed as manually selected sensitive
-extraction in revision 4, described below, and remain excluded from routine
-triage. PFNInfo/P2V/RamMap and WinObj are deferred pending justification for their
+PasswordManager is eligible for automatic investigation in revision 7 when
+relevant to the authorized case scope; SSHKeys remains manually selected. Both
+retain their explicit process scope, offline execution and limits. PFNInfo/P2V/RamMap and WinObj are deferred pending justification for their
 larger compatibility and traversal work. CryptoScan requires an offline redesign that removes network
 address/transaction enrichment and separates PDF generation before consideration.
 
@@ -181,13 +181,15 @@ no permission to inspect or run existing private cases as fixtures. No broad
 compatibility sweep or quick-triage mode is implemented or invoked.
 
 
-## Manually selected sensitive commands (compatibility revision 4)
+## Sensitive commands (installation revision 4; selection policy revision 7)
 
 Revision 4 installs PasswordManager and SSHKeys through this same inventory.
-They are available for deliberately requested extraction, excluded from routine
-triage, and identified by `manual_only: true` in catalog metadata. Installation
-is not authorization to run them on a case. Both require an explicit PID; SSHKeys
-also requires one suspected `sshenc` address. No investigation mode is added.
+Revision 7 permits PasswordManager in automatic investigation when relevant to
+the authorized case scope (`manual_only: false`). It still requires an explicit
+browser PID selected from observed processes; it is not an unconditional scan of
+every process. SSHKeys retains `manual_only: true` and requires a direct request,
+an explicit PID and one suspected `sshenc` address. Both remain offline and bounded.
+No investigation mode is added; installation alone does not authorize a new case scan.
 
 - `windows.passwordmanagers.PasswordManager`: kevthehermit/volatility_plugins,
   `0f4f2fbbc93b8b59ead45f82e3287859a5ebc469`, MIT. Historical LastPass fragments

@@ -29,8 +29,10 @@ class AddonTests(unittest.TestCase):
         self.assertEqual(len(names), 38)
         self.assertTrue(runtime_names <= names)
         self.assertEqual(set(data['manual_only_plugins']), runtime_names | {
-            'windows.passwordmanagers.PasswordManager', 'linux.openssh_sessionkeys.SSHKeys'})
+            'linux.openssh_sessionkeys.SSHKeys'})
         self.assertTrue(set(data['manual_only_plugins']) <= set(data['offline_plugins']))
+        self.assertNotIn('windows.passwordmanagers.PasswordManager', data['manual_only_plugins'])
+        self.assertIn('windows.passwordmanagers.PasswordManager', data['offline_plugins'])
         self.assertEqual(sum(f.get('kind') == 'symbol' for source in data['sources'] for f in source['files']), 2)
         self.assertIn('windows.simple_pteenum.SimplePteEnumerator', names)
         self.assertIn('windows.browserhistoryextractor.BrowserHistoryExtractor', names)

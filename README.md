@@ -2,7 +2,7 @@
 
 Licensing scope is under review: see [LICENSING.md](LICENSING.md). The existing MIT notice does not establish MIT-only licensing for the Volatility integration.
 
-*9,250 lines of code*
+*9,252 lines of code*
 
 A local, client-neutral MCP server for evidence-backed queries with **official
 Volatility 3**. It runs your separately installed Volatility executable, saves
@@ -241,7 +241,7 @@ reject XP. Discover actual compatibility and retain the exact failure.
 
 For the optional PteMalfind/Ptenum, ImgMalfind, Prefetch, AnyDesk, EVTXLog,
 Browser History Extractor, KeePass, CobaltStrike, RichHeader, ZoneID3 and
-PteResolve set, plus manually selected PasswordManager/SSHKeys and
+PteResolve set, plus automatic-investigation-eligible PasswordManager, manually selected SSHKeys and
 [BitLocker, Go and Python runtime analysis](docs/RUNTIME_ADDONS.md), use the pinned operator installer in
 [COMMUNITY_PLUGINS.md](docs/COMMUNITY_PLUGINS.md). It records upstream and adapted
 hashes, dependencies, source licenses and compatibility limitations; ordinary
