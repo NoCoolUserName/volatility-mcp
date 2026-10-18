@@ -91,7 +91,7 @@ def resolve_source(backend, image, run_id, artifact):
                                            for c in record.get('commands', [])) else 'raw'
         require(path.stat().st_size == registered['size_bytes'], 'Saved artifact size changed')
     # Large binary artifacts can still be read through the existing raw reader.
-    require(path.stat().st_size <= MAX_BYTES, 'Saved artifact exceeds 64 MiB structured-access limit; use read_output')
+    require(path.stat().st_size <= MAX_BYTES, 'Saved artifact exceeds 67.11 MB structured-access limit; use read_output')
     fp = file_fingerprint(path)
     require(fp['sha256'] == expected, 'Saved artifact hash changed; refusing stale evidence')
     source = source_identity(backend.outputs, case, str(image_path.relative_to(backend.cases)), run_id, artifact, expected)
@@ -118,7 +118,7 @@ def _pairs(items):
 
 
 def load_tree(path):
-    require(path.stat().st_size <= MAX_BYTES, 'Structured source exceeds 64 MiB')
+    require(path.stat().st_size <= MAX_BYTES, 'Structured source exceeds 67.11 MB')
     try:
         data = json.loads(path.read_text(encoding='utf-8'), object_pairs_hook=_pairs,
                           parse_constant=lambda v: require(False, 'Nonfinite JSON number is unsupported'))

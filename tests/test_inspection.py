@@ -148,7 +148,7 @@ class InspectionTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(manifest['integrity_verified'])
         self.assertIn('timed out',manifest['error'])
         with self.source.open('r+b') as f:f.truncate(64*1024*1024+1)
-        with self.assertRaisesRegex(ValueError,'64 MiB'):self.inspect()
+        with self.assertRaisesRegex(ValueError,'67.11 MB'):self.inspect()
 
     async def test_real_scoped_mcp_discovery_call_and_other_image_rejection(self):
         cfg = self.fixture.root/'scope.json'

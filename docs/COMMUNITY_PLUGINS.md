@@ -35,8 +35,8 @@ It preserves separately installed addons such as pypykatz.
 
 Compatibility revision 1 updates old FileScan/PsList contracts, removes the extra
 legacy Ptenum symbol requirement, and declares PTE-family analysis Intel64-only.
-Cached-file reconstruction respects file offsets and a 512 MiB per-file bound.
-Prefetch decompression is bounded at 64 MiB. Browser SQLite is read-only/immutable,
+Cached-file reconstruction respects file offsets and a 536.87 MB per-file bound.
+Prefetch decompression is bounded at 67.11 MB. Browser SQLite is read-only/immutable,
 timestamps are UTC, parsing errors remain failures, output paths must come from
 the current framework extraction, and summaries no longer corrupt JSON stdout.
 Use `--full-urls` for untruncated browser URLs. EVTX does not recover the claimed

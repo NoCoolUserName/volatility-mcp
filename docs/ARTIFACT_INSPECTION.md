@@ -31,8 +31,8 @@ U+007E; arbitrary Unicode is not covered. UTF-16LE matches either byte alignment
 Short strings crossing scan windows are carried forward; longer strings can be
 returned as flagged fragments. Counts are observations, not malicious indicators.
 
-Limits: regular files up to 64 MiB, at most 96 PE sections, minimum string length
-2..128, page size 1..200 records, scan budget 256 bytes..4 MiB, and preview length
+Limits: regular files up to 67.11 MB, at most 96 PE sections, minimum string length
+2..128, page size 1..200 records, scan budget 256 bytes..4.19 MB, and preview length
 16..512 characters. A worker deadline is the lesser of 30 seconds and the configured
 command timeout. The existing cross-process execution lock and cancellation event
 apply. Timeouts/failures preserve diagnostics and cannot become complete results.
