@@ -1,5 +1,7 @@
 # volatility-mcp
 
+Licensing scope is under review: see [LICENSING.md](LICENSING.md). The existing MIT notice does not establish MIT-only licensing for the Volatility integration.
+
 *6,911 lines of code*
 
 A local, client-neutral MCP server for evidence-backed queries with **official

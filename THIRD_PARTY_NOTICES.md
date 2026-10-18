@@ -1,6 +1,7 @@
 # Third-party notices
 
-The MIT license in this repository covers original project material. It does not
+The existing MIT license applies to original project material, subject to the
+unresolved integration scope described in [LICENSING.md](LICENSING.md). It does not
 relicense separately installed dependencies, upstream Volatility material,
 symbols, acquired evidence, reference publications, or other third-party works.
 
@@ -36,3 +37,5 @@ mixed MIT/BSD/GPL-derived code, and unresolved redistribution licensing for two
 upstream repositories. Original notices and available license files are retained
 locally with the installation receipt. This project's MIT license does not grant
 rights to redistribute those upstream sources.
+
+Optional installation is not evidence of upstream reuse or redistribution permission. See LICENSING.md before shipping integrated software or plugin bundles.
