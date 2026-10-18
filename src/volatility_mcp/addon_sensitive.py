@@ -173,7 +173,7 @@ def adapt_sensitive(filename, source, replace_method):
         replacements = {'get_requirements': PASSWORD_REQUIREMENTS, 'parse_result': PASSWORD_PARSE,
                         '_generator': PASSWORD_GENERATOR, 'run': PASSWORD_RUN}
         source = source.replace('Scan all processs for browsers and then scan the process memory for any password manager fragments',
-                                'Manual sensitive extraction of historical LastPass browser fragments; requires an explicit PID')
+                                'Extract historical LastPass browser fragments from an explicit PID; bounded and offline')
     elif filename == 'openssh_sessionkeys.py':
         replacements = {'get_requirements': SSH_REQUIREMENTS, 'probe_address': SSH_PROBE,
                         'construct_scraped_key': SSH_CONSTRUCT, '_generator': SSH_GENERATOR, 'run': SSH_RUN,
