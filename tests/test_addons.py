@@ -41,6 +41,24 @@ class AddonTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'Adapted addon hash'):
                 addons.prepare(source, item)
 
+    def test_reconstruction_uses_saved_file_offsets_and_bounds(self):
+        from volatility_mcp.addon_compat import adapt
+        source = """def reconstruct(memory_object, layer):
+    prefetch_raw = b''
+    bytes_read = 0
+    for mem_offset, _, datasize in memory_object.get_available_pages():
+        prefetch_raw += layer.read(mem_offset, datasize, pad=True)
+        bytes_read += len(prefetch_raw)
+    return prefetch_raw, bytes_read
+"""
+        namespace={'vollog':SimpleNamespace(warning=lambda *a:None)}
+        exec(adapt('prefetch.py',source),namespace)
+        memory=SimpleNamespace(get_available_pages=lambda:iter([(10,4,2),(20,0,2)]))
+        layer=SimpleNamespace(read=lambda offset,size,pad: {10:b'CD',20:b'AB'}[offset])
+        self.assertEqual(namespace['reconstruct'](memory,layer),(b'AB\0\0CD',4))
+        memory.get_available_pages=lambda:iter([(10,512*1024*1024,2)])
+        with self.assertRaisesRegex(ValueError,'bound'):namespace['reconstruct'](memory,layer)
+
     def test_target_rejects_traversal_and_symlink(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp) / 'venv'; root.mkdir()
