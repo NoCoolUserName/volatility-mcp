@@ -155,6 +155,7 @@ def build_catalog() -> dict[str, Any]:
             "source_file": str(source_path),
             "source": plugin_source(name, source_path, records, local_plugins),
             "compatibility_note": ADDON_NOTES.get(name),
+            "manual_only": name in ADDON_PROFILE.get("manual_only_plugins", []),
             "target_os": ('windows' if name in {'xpnet.XpNetScan', 'vol_pypykatz.pypykatz'}
                           else name.split('.')[0] if name.split('.')[0] in {'windows', 'linux', 'mac'} else 'other'),
         }

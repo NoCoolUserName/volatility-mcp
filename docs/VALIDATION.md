@@ -480,3 +480,34 @@ commands retain their previous invocation policy. No memory-image analysis,
 private case access, live endpoint access or OS/build accuracy evaluation was
 performed. Separate candidate and authorized fixture gates are recorded in
 [COMMUNITY_PLUGINS.md](COMMUNITY_PLUGINS.md).
+
+
+## Revision 4 synthetic extraction and bounded public-image compatibility
+
+Seven synthetic extraction tests passed on the isolated analyzer. They cover
+current requirements/APIs, required PID/address, actual YARA matching, escaped
+JSON strings, malformed records, read bounds, saved JSON provenance, no debug
+secrets, no arbitrary output path, and both 32/64-bit OpenSSH ISFs/layouts.
+Network and subprocess creation are denied before plugin imports; trusted
+interpreter architecture metadata is frozen first, and the ISF fixture permits
+only its pinned local schema read. No real secrets or private cases are used.
+
+Public corpus: volatilityfoundation/volatility3-test-data release v0.0.1, manifest
+commit `1cd2df00a1a286c0948e09b220dc8c550f057d27`, Windows 10 build 19041 x64.
+Downloaded image and symbol archive SHA-256 values match the published release.
+The image expands to 2,094,154,496 bytes. Each command has a 90-second timeout,
+16 MiB output-file cap, `--offline`, isolated symbol/cache paths, and denied
+socket connections/DNS. Symbols were provisioned before analysis.
+
+| Bounded command | Outcome |
+| --- | --- |
+| RichHeader, PID 384 | Missing process image page: explicit failure, incomplete. |
+| RichHeader, PID 612, maximum one process | One header fingerprint with layer/base/offset; 1.54 seconds. |
+| CobaltStrike, PID 384, maximum one process, 64 MiB / 100 rows | Missing swap page: explicit failure, incomplete; 1.79 seconds. |
+| ZoneID3, kernel base `0xf8043601f000`, length 4096, maximum 100 rows | Successful empty result for that range only; 1.53 seconds. |
+| PteResolve, supplied raw PTE value 0 | One demand-zero decode using this kernel's metadata; 1.80 seconds. |
+
+This is a single-build compatibility sample, not detection accuracy or a full
+image sweep. The raw PTE value is synthetic; no actual mapping was corroborated.
+CobaltStrike completeness remains unvalidated. No PasswordManager/SSHKeys
+extraction ran against the public image. Existing private cases remain excluded.
