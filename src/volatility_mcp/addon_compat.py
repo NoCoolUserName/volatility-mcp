@@ -3,7 +3,7 @@ import ast
 import textwrap
 
 
-REVISION = 3
+REVISION = 4
 
 
 def replace_method(source, name, replacement):
@@ -107,5 +107,7 @@ def adapt(filename, source):
         ''')
     from .addon_batch import adapt_batch
     source = adapt_batch(filename, source, replace_method)
+    from .addon_sensitive import adapt_sensitive
+    source = adapt_sensitive(filename, source, replace_method)
     ast.parse(source)
     return source

@@ -173,3 +173,32 @@ positive/negative controls and per-run byte/time/output budgets. Obtain explicit
 authorization for the actual fixture set and executions. This integration grants
 no permission to inspect or run existing private cases as fixtures. No broad
 compatibility sweep or quick-triage mode is implemented or invoked.
+
+
+## Manually selected sensitive commands (compatibility revision 4)
+
+Revision 4 installs PasswordManager and SSHKeys through this same inventory.
+They are available for deliberately requested extraction, excluded from routine
+triage, and identified by `manual_only: true` in catalog metadata. Installation
+is not authorization to run them on a case. Both require an explicit PID; SSHKeys
+also requires one suspected `sshenc` address. No investigation mode is added.
+
+- `windows.passwordmanagers.PasswordManager`: kevthehermit/volatility_plugins,
+  `0f4f2fbbc93b8b59ead45f82e3287859a5ebc469`, MIT. Historical LastPass fragments
+  from chrome/firefox/iexplore only. Strict JSON string decoding, no recovered
+  values in debug logs, layer/offset provenance; default 16 MiB scan / 100 rows,
+  hard limits 64 MiB / 1000 rows and 4096 bytes per matched fragment.
+- `linux.openssh_sessionkeys.SSHKeys`: fox-it/OpenSSH-Session-Key-Recovery,
+  `78f7955b1e1fccb4b1a7e2382e0ed5a7c8becea3`, Apache-2.0. Installs both pinned
+  `openssh32.json` and `openssh64.json` ISFs; matching Linux kernel symbols still
+  must be supplied separately. Uses the current Linux PsList API. Targets one
+  virtual structure address, with historical 6.1p1/6.1p2 layouts only. Unbounded
+  heap scanning and arbitrary `--out` writes are disabled. Key <=64 bytes,
+  IV <=32 bytes, cipher name <=64 bytes; nested reads <=16 MiB / 65536 calls.
+  Missing pages, malformed recognized records and missing PIDs are errors.
+
+Both are forced offline by core; direct CLI callers must pass `--offline`.
+Results may contain secrets and are saved through the existing output system.
+No endpoint is contacted. Seven synthetic tests exercise parser/JSON/error
+contracts and both real 32/64-bit ISFs with known synthetic key/IV bytes.
+These checks do not establish real-world credential recovery accuracy.

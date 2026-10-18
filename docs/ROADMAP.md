@@ -58,3 +58,9 @@ provenance and separate evaluation gates. SwapEnumerator, parent-spoof checks,
 Docker and alternate EVTX carving remain separate proposed changes; sensitive
 extraction stays opt-in. Real OS/build validation requires a separately authorized
 fixture set and bounded runs. Existing private cases are not authorized fixtures.
+
+
+PasswordManager and SSHKeys are now installable manual-extraction commands in
+inventory revision 4, with explicit PID/address scope and offline execution.
+Exclude them from any future routine-triage profile; installation alone does not
+authorize extraction. Broader Linux/Windows accuracy remains unvalidated.
