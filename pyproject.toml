@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=77"]
+requires = ["setuptools>=77.0.3"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -9,6 +9,7 @@ description = "A local MCP server for controlled, evidence-preserving Volatility
 readme = "README.md"
 requires-python = ">=3.12"
 license = "MIT"
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md", "LICENSING.md"]
 dependencies = ["mcp==2.3.0", "pefile==2024.8.26"]
 classifiers = [
   "Development Status :: 3 - Alpha",
