@@ -52,7 +52,7 @@ def inspect_saved(backend, image, run_id, artifact, operation, min_length, encod
         if recorded is None:
             raise EvidenceError('Artifact is not registered in this run manifest')
         if source.stat().st_size > 64*1024*1024:
-            raise EvidenceError('Inspection limit is 64 MiB; no partial PE verdict produced')
+            raise EvidenceError('Inspection limit is 67.11 MB; no partial PE verdict produced')
         before = file_fingerprint(source)
         if any(before[k] != recorded[k] for k in ('sha256', 'size_bytes')):
             raise EvidenceError('Saved artifact differs from its extraction manifest; inspection refused')
