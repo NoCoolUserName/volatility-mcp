@@ -371,6 +371,8 @@ def parser() -> argparse.ArgumentParser:
     diagnostic.add_argument("--mcp", action="store_true", help="Start fresh stdio servers in auto and legacy protocol modes")
     serving = commands.add_parser("serve", help="Run the client-neutral stdio MCP server")
     serving.add_argument("--config")
+    addons = commands.add_parser("plugins-install", help="Explicitly install the pinned optional community plugin profile into the configured analyzer; use only while idle")
+    addons.add_argument("--config")
     registration = commands.add_parser("register-codex", help="Back up and update this user's volatility Codex registration")
     registration.add_argument("--config")
     registration.add_argument("--backup-dir")
@@ -391,7 +393,10 @@ def main(argv: list[str] | None = None) -> int:
             from .server import create_server
             create_server(load_config(args.config)).run(transport="stdio")
             return 0
-        if args.command in ('coverage', 'coverage-plan'):
+        if args.command == 'plugins-install':
+            from .addons import install
+            result = install(load_config(args.config))
+        elif args.command in ('coverage', 'coverage-plan'):
             from .backend import VolatilityBackend
             from .coverage import set_plan
             backend = VolatilityBackend(load_config(args.config))
