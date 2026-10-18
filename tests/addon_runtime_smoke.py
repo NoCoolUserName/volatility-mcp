@@ -37,6 +37,7 @@ with patch('subprocess.Popen', side_effect=AssertionError('Subprocess forbidden'
      patch('socket.socket.connect', side_effect=AssertionError('Network forbidden')):
     from volatility3.framework.interfaces.configuration import HierarchicalDict
     from volatility3.plugins.windows import filescan, pslist
+    from volatility3.plugins.linux import pslist as linux_pslist
     # Exercise public run wrappers with current dependency signatures and no process/file rows.
     for name in expected:
         cls = available[name]
@@ -44,11 +45,14 @@ with patch('subprocess.Popen', side_effect=AssertionError('Subprocess forbidden'
         context = SimpleNamespace(config=HierarchicalDict(), modules={'kernel': SimpleNamespace(layer_name='layer', symbol_table_name='symbols')})
         context.config['synthetic.kernel'] = 'kernel'
         context.config['synthetic.pid'] = [123] if any(r.name == 'pid' and type(r).__name__ == 'ListRequirement' for r in cls.get_requirements()) else 123
+        if name == 'linux.openssh_sessionkeys.SSHKeys':
+            context.config['synthetic.address'] = 4096
         if name == 'windows.pte_resolve.PteResolve':
             context.config['synthetic.vaddr'] = 4096
         obj._context = context; obj._config_path = 'synthetic'
         with patch.object(filescan.FileScan, 'scan_files', autospec=True, return_value=iter(())), \
              patch.object(pslist.PsList, 'list_processes', autospec=True, return_value=iter(())), \
+             patch.object(linux_pslist.PsList, 'list_tasks', autospec=True, return_value=iter(())), \
              patch.object(cls, '_generator', return_value=iter(())):
             obj.run()  # This verifies argument contracts, not the plugin's forensic algorithm.
 
