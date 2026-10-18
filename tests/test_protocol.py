@@ -21,6 +21,14 @@ class ProtocolTests(unittest.IsolatedAsyncioTestCase):
         self.transport = StdioServerParameters(command=sys.executable,
             args=['-m','volatility_mcp','serve','--config',str(self.config)])
 
+    async def test_catalog_refresh_over_mcp_without_analysis(self):
+        async with Client(self.transport, mode='auto', read_timeout_seconds=15) as client:
+            result = decode_result(await client.call_tool('list_plugins', {'refresh': True}))
+            self.assertEqual(result['count'], len(result['plugins']))
+            self.assertTrue(result['discovered_at'])
+            self.assertIn('source', result['plugins'][0])
+        self.assertFalse((self.fixture.root / 'analysis-count.jsonl').exists())
+
     async def test_stdio_tools_both_protocol_modes_without_reporting(self):
         original_run = None
         for mode in ('auto','legacy'):

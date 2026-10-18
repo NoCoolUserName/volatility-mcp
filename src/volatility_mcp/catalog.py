@@ -9,16 +9,58 @@ Only JSON is written to stdout so the caller can validate the catalog.
 from __future__ import annotations
 
 import inspect
+import base64
+import hashlib
 import json
 import platform
 import sys
 from pathlib import Path
-from importlib.metadata import distributions, version
+from importlib.metadata import distribution, distributions, version, PackageNotFoundError
 from typing import Any
 
-from volatility3 import framework, plugins, symbols
-from volatility3.framework import interfaces, constants
-from volatility3.framework.configuration import requirements
+OFFICIAL_URL = 'https://github.com/volatilityfoundation/volatility3'
+# Attribution for recognized addons, not a claim that their local bytes were
+# verified against upstream. Never infer an author from a module prefix.
+KNOWN_ADDONS = {
+    'vol_pypykatz.pypykatz': ('skelsec/pypykatz-volatility3',
+                             'https://github.com/skelsec/pypykatz-volatility3'),
+}
+
+
+def native_records() -> dict:
+    """Installed distribution RECORD, excluding unrecorded files copied alongside it."""
+    try:
+        dist = distribution('volatility3')
+        return {Path(dist.locate_file(entry)).resolve(): entry.hash
+                for entry in dist.files or [] if str(entry).endswith('.py')}
+    except PackageNotFoundError:
+        return {}
+
+
+def plugin_source(name: str, path: Path, records: dict, local_root: Path) -> dict:
+    """Describe attribution conservatively; installation location is not authorship."""
+    path = path.resolve()
+    source = {'kind': 'unknown', 'label': 'Source unknown', 'url': None,
+              'basis': 'No registered attribution or matching Volatility distribution record.'}
+    if path.is_relative_to(local_root.resolve()) and name == 'xpnet.XpNetScan':
+        return {'kind': 'local', 'label': 'Local addon · volatility-mcp',
+                'url': 'https://github.com/NoCoolUserName/volatility-mcp',
+                'basis': 'Bundled local compatibility addon; independent of official Volatility.'}
+    if name in KNOWN_ADDONS:
+        label, url = KNOWN_ADDONS[name]
+        return {'kind': 'third_party', 'label': label, 'url': url,
+                'basis': 'Registered addon attribution; local bytes are not verified against upstream.'}
+    record = records.get(path)
+    if record and record.mode == 'sha256':
+        try:
+            digest = base64.urlsafe_b64encode(hashlib.sha256(path.read_bytes()).digest()).decode().rstrip('=')
+        except OSError:
+            return source
+        if digest == record.value:
+            return {'kind': 'native', 'label': 'Native · Volatility 3', 'url': OFFICIAL_URL,
+                    'basis': 'Matches the installed volatility3 distribution RECORD; not independent supply-chain verification.'}
+        source['basis'] = 'Plugin bytes differ from the installed Volatility distribution record.'
+    return source
 
 
 def option_spec(requirement: Any) -> dict[str, Any] | None:
@@ -29,6 +71,9 @@ def option_spec(requirement: Any) -> dict[str, Any] | None:
     Integer arguments accept decimal and Python's base-prefixed notation; the
     server applies int(value, 0) while validating this type.
     """
+    from volatility3.framework import interfaces
+    from volatility3.framework.configuration import requirements
+
     spec: dict[str, Any] = {
         "flag": "--" + requirement.name.replace("_", "-"),
         "dest": requirement.name,
@@ -71,12 +116,16 @@ def option_spec(requirement: Any) -> dict[str, Any] | None:
 
 
 def build_catalog() -> dict[str, Any]:
+    from volatility3 import framework, plugins, symbols
+    from volatility3.framework import constants
+
     local_plugins = Path(__file__).resolve().parent / "plugins"
     if "--xpnet" in sys.argv and local_plugins.exists():
         if local_plugins.is_symlink() or any(path.is_symlink() for path in local_plugins.rglob("*")):
             raise ValueError("Local plugin directory/files must not be symlinks")
         plugins.__path__ = [str(local_plugins)] + constants.PLUGINS_PATH
     import_failures = framework.import_files(plugins, True)
+    records = native_records()
     available: dict[str, Any] = {}
     for name, plugin in sorted(framework.list_plugins().items()):
         options = [
@@ -90,13 +139,17 @@ def build_catalog() -> dict[str, Any]:
             for option in options:
                 if option['flag'] == '--pattern' and option['type'] == 'str' and not option['is_path']:
                     option['value_kind'] = 'bytes_regex'
+        source_path = Path(inspect.getfile(plugin)).resolve()
         available[name] = {
             "description": inspect.getdoc(plugin) or "",
             "options": options,
             "origin": ("local_compatibility" if Path(inspect.getfile(plugin)).resolve().is_relative_to(local_plugins)
                        else "installed_volatility"),
             "plugin_version": list(plugin.version),
-            "source_file": str(Path(inspect.getfile(plugin)).resolve()),
+            "source_file": str(source_path),
+            "source": plugin_source(name, source_path, records, local_plugins),
+            "target_os": ('windows' if name in {'xpnet.XpNetScan', 'vol_pypykatz.pypykatz'}
+                          else name.split('.')[0] if name.split('.')[0] in {'windows', 'linux', 'mac'} else 'other'),
         }
     # Inventory installed analyzer dependencies in this interpreter, not the MCP
     # environment. The backend hashes these bytes for persistent reuse identity.

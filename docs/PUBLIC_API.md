@@ -31,3 +31,27 @@ model orchestration, artwork, and presentation belong to
 A distribution release is identified by its Git release tag and immutable commit.
 The extraction retains core version 0.1.0 and all execution identity bytes; future
 execution changes retain the normal conservative cache invalidation rules.
+
+## Plugin catalog
+
+`VolatilityBackend.list_plugins(query='', refresh=False)` and the MCP tool of the
+same name return the configured analyzer's discovered inventory. `refresh=True`
+repeats import/discovery only; it never reads or hashes memory images, runs an
+analysis plugin, or starts a model. Successful discovery includes `discovered_at`.
+The process-local cache is retained if refreshing fails, but the refresh request
+returns an error; callers must label any retained display as stale.
+
+Each plugin adds `target_os` (`windows`, `linux`, `mac`, `other`) and `source`:
+`{kind, label, url, basis}`. Kinds are `native`, `third_party`, `local`, `unknown`.
+Official attribution requires matching SHA-256 bytes in the installed volatility3
+distribution RECORD, not merely a module prefix or installation directory. Missing
+records (including some editable installs), unrecorded files, and modified files
+remain unknown. This is not independent supply-chain verification. Registered addon
+identities provide project attribution (currently pypykatz); their local bytes are
+not claimed to match upstream. The bundled xpnet addon is identified separately.
+Unknown sources have no invented author or repository URL. Extend the registry in
+`catalog.py` when adding a verified project attribution. No network lookup occurs.
+
+Legacy `origin` and count fields retain their original location semantics:
+`installed_volatility` can include third-party addons. Descriptions and metadata are
+untrusted text. Discovery/import success does not establish runtime image support.
