@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "profile": "community-2026-10",
-  "compatibility_revision": 4,
+  "compatibility_revision": 5,
   "volatility_version": "2.28.2",
   "offline_plugins": [
     "windows.cobaltstrike.CobaltStrike",
@@ -96,8 +96,8 @@
           "path": "prefetch.py",
           "target": "windows/prefetch.py",
           "sha256": "68639654600d2cbbf5ed4e2e91e529f4e1049926a88320ba1e2ad289b2293c83",
-          "installed_sha256": "a2e115521240d55db93a4694a07fbefeac8a7daf142dd39419ef5a90b0458563",
-          "previous_installed_sha256": "ab2182010a89c569bd929f67363298e028b655547e70e3e0d8ab9ddcc74857a5"
+          "installed_sha256": "8bf072503a026c6ea1f23962f8fffaa01e3f1898b31754c4b2a8c04174ce1705",
+          "previous_installed_sha256": "a2e115521240d55db93a4694a07fbefeac8a7daf142dd39419ef5a90b0458563"
         },
         {
           "path": "anydesk.py",

@@ -208,3 +208,18 @@ Results may contain secrets and are saved through the existing output system.
 No endpoint is contacted. Seven synthetic tests exercise parser/JSON/error
 contracts and both real 32/64-bit ISFs with known synthetic key/IV bytes.
 These checks do not establish real-world credential recovery accuracy.
+
+## Regex and cached-file reconstruction repairs
+
+The pinned compatibility revision 5 binds the cache page's file offset before
+reconstructing Prefetch data. Out-of-order pages are placed at their recorded
+file offsets, gaps remain explicit, and the 536.87 MB reconstruction bound remains.
+An earlier adapter could raise `NameError` before parsing; historical failures
+remain failures until a separate, explicitly requested run succeeds.
+
+`windows.dumpfiles.DumpFiles --filter` is a text regular expression, while
+`windows.vadregexscan.VadRegExScan --pattern` is a byte regular expression. Their
+installed schemas grant these exact fields bounded regex syntax, compiled before
+execution. This is not a general string/path bypass: global options, duplicate
+options, control bytes and other plugins' strings retain their existing guards.
+Arguments go directly to a subprocess argv with no shell.

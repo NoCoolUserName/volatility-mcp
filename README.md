@@ -1,5 +1,7 @@
 # volatility-mcp
 
+*6,911 lines of code*
+
 A local, client-neutral MCP server for evidence-backed queries with **official
 Volatility 3**. It runs your separately installed Volatility executable, saves
 complete outputs and execution records, and exposes small, controlled tools over
