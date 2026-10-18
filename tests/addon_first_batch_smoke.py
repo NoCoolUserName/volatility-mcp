@@ -7,14 +7,20 @@ import contextlib
 import hashlib
 import io
 import json
+import platform
 import struct
 import sys
 import unittest
 from types import SimpleNamespace as NS
 from unittest.mock import patch
 
+# Resolve trusted interpreter metadata before the execution boundary. PyCryptodome
+# asks platform.architecture() during native plugin imports; on Linux that invokes
+# the local file utility. Freeze that metadata without permitting subprocesses.
+HOST_ARCHITECTURE = platform.architecture()
 # Deny network and subprocess creation before importing the plugins, too.
 DENY = contextlib.ExitStack()
+DENY.enter_context(patch("platform.architecture", return_value=HOST_ARCHITECTURE))
 for target in ('socket.socket.connect', 'socket.create_connection', 'socket.getaddrinfo',
                'urllib.request.urlopen', 'subprocess.Popen'):
     DENY.enter_context(patch(target, side_effect=AssertionError('Offline fixture boundary: ' + target)))
