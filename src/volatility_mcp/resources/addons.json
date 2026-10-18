@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "profile": "community-2026-10",
-  "compatibility_revision": 1,
+  "compatibility_revision": 2,
   "volatility_version": "2.28.2",
   "dependencies": [
     "capstone==5.0.9",
@@ -70,13 +70,15 @@
           "path": "prefetch.py",
           "target": "windows/prefetch.py",
           "sha256": "68639654600d2cbbf5ed4e2e91e529f4e1049926a88320ba1e2ad289b2293c83",
-          "installed_sha256": "ab2182010a89c569bd929f67363298e028b655547e70e3e0d8ab9ddcc74857a5"
+          "installed_sha256": "a2e115521240d55db93a4694a07fbefeac8a7daf142dd39419ef5a90b0458563",
+          "previous_installed_sha256": "ab2182010a89c569bd929f67363298e028b655547e70e3e0d8ab9ddcc74857a5"
         },
         {
           "path": "anydesk.py",
           "target": "windows/anydesk.py",
           "sha256": "3752059f253fccfc54d4a4523cfb0cc487ad210df7c78cd42a7b9447a8fd6d17",
-          "installed_sha256": "37d1e8a463c366517f9364960f4c20674293feb74a8e605263cf58f87633e213"
+          "installed_sha256": "46d07dcccf0068ee6b7a0566c30bb97927f6fc39e3d82f5ba15b07774b93c23b",
+          "previous_installed_sha256": "37d1e8a463c366517f9364960f4c20674293feb74a8e605263cf58f87633e213"
         },
         {
           "path": "keepass.py",
@@ -101,7 +103,8 @@
           "path": "evtxlog.py",
           "target": "windows/evtxlog.py",
           "sha256": "8b811f2a63ad014d4f979a9b5352900c48794d62175a1f7aeec6392c08c96b91",
-          "installed_sha256": "63073c9913d6538a4998e03f30411c1105dc8113db0fb63c7340323fc14516ed"
+          "installed_sha256": "75eeed94886afde66c9b8c28a93af736b76d3be01ee0a55a32ee9075ea235315",
+          "previous_installed_sha256": "63073c9913d6538a4998e03f30411c1105dc8113db0fb63c7340323fc14516ed"
         }
       ],
       "plugins": [

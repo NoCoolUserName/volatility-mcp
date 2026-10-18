@@ -44,7 +44,7 @@ def iter_rows(path: Path, max_record_bytes: int = 16 * 1024 * 1024):
                     if eof:
                         raise ValueError("incomplete JSON record") from None
                     if len(buffer.encode("utf-8")) > max_record_bytes:
-                        raise ValueError("individual record exceeds 16 MiB conversion limit; inspect raw output")
+                        raise ValueError("individual record exceeds 16.78 MB conversion limit; inspect raw output")
                     more()
             if not isinstance(row, dict):
                 raise ValueError("expected object rows")

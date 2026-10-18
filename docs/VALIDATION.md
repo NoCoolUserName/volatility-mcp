@@ -307,7 +307,7 @@ inline citation link ownership, and refusing altered registered output during
 packaging. Relevant saved-evidence/report/browser checks passed after repair.
 This is a self-review, not an independent review.
 
-Limitations: 64 MiB structured sources, bounded nodes/depth/output, lazy parsing
+Limitations: 67.11 MB structured sources, bounded nodes/depth/output, lazy parsing
 and full saved-artifact hashing per call (no query-speed claim). Oversized or
 unsupported results retain raw-reader access. New collection remains an explicit
 separate tool; saved-first investigator behavior is guidance, not an agent efficacy

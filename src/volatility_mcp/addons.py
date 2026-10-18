@@ -37,6 +37,8 @@ def profile():
                 raise ValueError('Addon file must have a fixed Windows plugin destination')
             if not all(re.fullmatch('[0-9a-f]{64}', item[key]) for key in ('sha256', 'installed_sha256')):
                 raise ValueError('Addon hash is missing')
+            if 'previous_installed_sha256' in item and not re.fullmatch('[0-9a-f]{64}', item['previous_installed_sha256']):
+                raise ValueError('Previous addon hash is invalid')
         for notice in source.get('notices', []):
             if notice['path'] != 'LICENSE' or not re.fullmatch('[0-9a-f]{64}', notice['sha256']):
                 raise ValueError('Invalid upstream license notice')
@@ -118,7 +120,8 @@ def install(config):
             target = safe_target(root, item['target'])
             if str(target.resolve()) in environment['native']:
                 raise ValueError('Refusing to replace an official Volatility distribution file: ' + item['target'])
-            if target.exists() and sha(target.read_bytes()) != item['installed_sha256']:
+            known_hashes = {item['installed_sha256'], item.get('previous_installed_sha256')}
+            if target.exists() and sha(target.read_bytes()) not in known_hashes:
                 raise ValueError('Unrecognized existing addon bytes; preserve and resolve manually: ' + item['target'])
             raw, installed = prepare(source, item)
             prepared.append((source, item, target, raw, installed))

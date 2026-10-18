@@ -136,7 +136,7 @@ def create_server(config: Config, *, backend: VolatilityBackend | None = None) -
         Get run_id from case_history and exact run-relative artifact path from its manifest
         (e.g. json/files/reconstructed.dmp). PE mode validates readable headers/sections with pefile.
         Strings mode returns bounded printable ASCII or UTF-16LE records, byte offsets and next_offset.
-        File limit 64 MiB; strings: min_length 2..128, limit 1..200, scan_bytes 256..4194304,
+        File limit 67.11 MB; strings: min_length 2..128, limit 1..200, scan_bytes 256..4194304,
         max_string_length 16..512. Save derived result/provenance; reuse verified identical inspections.
         Header flags, names and strings do not establish maliciousness or complete reconstruction.
         """
@@ -155,7 +155,7 @@ def create_server(config: Config, *, backend: VolatilityBackend | None = None) -
         Integer comparison deliberately accepts decimal/hex. Text is case-sensitive, no regex.
         Sort: {field,type,direction:asc|desc}. group_by returns counts, not fabricated source rows.
         Returns matching/returned counts, source status, stable row/field references, pagination.
-        Limits: 64 MiB source, 200k JSON nodes, 200 returned rows, 60 KB response.
+        Limits: 67.11 MB source, 200k JSON nodes, 200 returned rows, 60 KB response.
         Inspection results use run_id='inspection-'+inspection_id and artifact='result.json'.
         Large integers use {$integer: decimal_string}; original artifact bytes are unchanged.
         Failed/incomplete collections and unsupported formats are never clean negative results.

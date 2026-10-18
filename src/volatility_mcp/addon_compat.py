@@ -3,7 +3,7 @@ import ast
 import textwrap
 
 
-REVISION = 1
+REVISION = 2
 
 
 def replace_method(source, name, replacement):
@@ -31,7 +31,7 @@ def adapt(filename, source):
                 indent = line[:len(line) - len(line.lstrip())]
                 code = [
                     'if file_offset < 0 or file_offset + datasize > 512 * 1024 * 1024:',
-                    '    raise ValueError("Reconstruction exceeds 512 MiB bound")',
+                    '    raise ValueError("Reconstruction exceeds 536.87 MB bound")',
                     'segment = layer.read(mem_offset, datasize, pad=True)',
                     f'if file_offset > len({variable}):',
                     '    vollog.warning("Sparse cached-file reconstruction; completeness unknown")',
@@ -55,7 +55,7 @@ def adapt(filename, source):
         source = source.replace('decompressed_size = int.from_bytes(stream.read(4), "little")',
                                 'decompressed_size = int.from_bytes(stream.read(4), "little")\n'
                                 '            if not 0 < decompressed_size <= 64 * 1024 * 1024:\n'
-                                '                raise ValueError("Prefetch decompression exceeds 64 MiB bound")')
+                                '                raise ValueError("Prefetch decompression exceeds 67.11 MB bound")')
         source = source.replace('vollog.info("Wrong signature, should be SCCA")\n            return',
                                 'raise ValueError("Invalid Prefetch signature; not an empty result")')
         source = source.replace('if file_version == WinXpOrWin2K3:',

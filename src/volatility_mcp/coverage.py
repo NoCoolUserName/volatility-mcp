@@ -23,7 +23,7 @@ def key(plugin, arguments):
 
 def read_record(backend, path):
     backend._check_components(path)
-    require(path.is_file() and path.stat().st_size <= 4*1024*1024, 'Coverage manifest exceeds 4 MiB or is missing')
+    require(path.is_file() and path.stat().st_size <= 4*1024*1024, 'Coverage manifest exceeds 4.19 MB or is missing')
     value = json.loads(path.read_text())
     require(isinstance(value, dict), 'Coverage record must be an object')
     return value
