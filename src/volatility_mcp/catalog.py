@@ -30,7 +30,7 @@ ADDON_NOTES = {}
 for addon in ADDON_PROFILE['sources']:
     for plugin_name in addon['plugins']:
         KNOWN_ADDONS[plugin_name] = (addon['repository'], 'https://github.com/' + addon['repository'])
-        ADDON_NOTES[plugin_name] = addon['limitations']
+        ADDON_NOTES[plugin_name] = addon.get('plugin_limitations', {}).get(plugin_name, addon['limitations'])
 
 
 def native_records() -> dict:

@@ -27,6 +27,7 @@ import uuid
 
 
 PROJECT = Path(__file__).resolve().parent
+OFFLINE_ADDONS = frozenset(json.loads((PROJECT / 'resources/addons.json').read_text()).get('offline_plugins', []))
 SUPPORTED_EXTENSIONS = frozenset({".raw", ".mem", ".vmem", ".dmp", ".lime", ".dd"})
 COMMAND_TIMEOUT = 300
 METACHARACTERS = re.compile(r"[;&|<>`$\\\"'(){}\[\]*?!]")
@@ -347,6 +348,7 @@ class VolatilityBackend:
         files = self._safe_directory(directory / "files")
         stdout, stderr = directory / "stdout.json", directory / "stderr.txt"
         argv = [str(self.vol_python), "-I", str(self.vol), "-q", *self._plugin_arguments(), *self._symbol_arguments(),
+                *(["--offline"] if plugin in OFFLINE_ADDONS else []),
                 "-f", str(image), "-o", str(files), "-r", "json", plugin, *arguments]
         entry = {"renderer": "json", "argv": argv, "shell": False, "started_at": utc_now(),
                  "timeout_seconds": self.command_timeout, "stdout_path": str(stdout),

@@ -46,6 +46,19 @@ class BackendTests(unittest.TestCase):
                 self.backend.resolve_input(value)
         self.assertEqual(self.backend.list_memory_images()['count'], 1)
 
+    def test_first_batch_forces_offline_without_changing_existing_commands(self):
+        from unittest.mock import patch
+        from volatility_mcp.backend import OFFLINE_ADDONS
+        catalog = self.backend.catalog()
+        for name in OFFLINE_ADDONS:
+            catalog['plugins'][name] = dict(catalog['plugins']['windows.pslist.PsList'])
+            with patch.object(self.backend, 'catalog', return_value=catalog):
+                result = self.backend.run_plugin('example.raw', name, [])
+            manifest = json.loads(Path(result['manifest_path']).read_text())
+            self.assertEqual(manifest['commands'][0]['argv'].count('--offline'), 1)
+        ordinary = self.run_fixture()
+        self.assertNotIn('--offline', json.loads(Path(ordinary['manifest_path']).read_text())['commands'][0]['argv'])
+
     def test_pypykatz_failure_is_actionable_not_empty_or_missing_installation(self):
         self.image.write_text('lsa-error')
         result = self.backend.run_plugin('example.raw', 'vol_pypykatz.pypykatz', [])
