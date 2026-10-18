@@ -2090,6 +2090,72 @@
       "status": "mixed-and-unresolved",
       "license_files": [],
       "note": "Workbench bundles only its allowlisted sources and already copies their notices. Missing-license/GPL-derived optional sources remain separate; no permission inferred."
+    },
+    {
+      "ecosystem": "git-optional-addon",
+      "name": "lorelyai/volatility3-bitlocker",
+      "version": "d2afab51fea4878db8a79cef835176360d19b901",
+      "license_declared": "GPL-3.0; retains upstream Marcin Ulikowski/lorelyai attribution",
+      "source": "https://github.com/lorelyai/volatility3-bitlocker/tree/d2afab51fea4878db8a79cef835176360d19b901",
+      "status": "pinned-operator-download-not-public-app-bundle",
+      "files_manifest": "src/volatility_mcp/resources/addons.json",
+      "license_files": [
+        {
+          "path": "LICENSE",
+          "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+          "notice_bundle": "DEPENDENCY_LICENSES.txt"
+        }
+      ],
+      "uses": [
+        {
+          "source": "src/volatility_mcp/resources/addons.json",
+          "version_basis": "full Git commit and original/adapted per-file SHA-256"
+        }
+      ]
+    },
+    {
+      "ecosystem": "git-optional-addon",
+      "name": "HalaAli198/Go-Memory-Forensics",
+      "version": "68c4d93edcdea9f584ad855cf963eb803b4ca328",
+      "license_declared": "Apache-2.0; retain source attribution and repository LICENSE",
+      "source": "https://github.com/HalaAli198/Go-Memory-Forensics/tree/68c4d93edcdea9f584ad855cf963eb803b4ca328",
+      "status": "pinned-operator-download-not-public-app-bundle",
+      "files_manifest": "src/volatility_mcp/resources/addons.json",
+      "license_files": [
+        {
+          "path": "LICENSE",
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+          "notice_bundle": "DEPENDENCY_LICENSES.txt"
+        }
+      ],
+      "uses": [
+        {
+          "source": "src/volatility_mcp/resources/addons.json",
+          "version_basis": "full Git commit and original/adapted per-file SHA-256"
+        }
+      ]
+    },
+    {
+      "ecosystem": "git-optional-addon",
+      "name": "HalaAli198/Volatility-3-Plugins-for-Python-Runtime-Analysis",
+      "version": "d78a705e91a8f5146581e71062ae3e448f91b5de",
+      "license_declared": "AGPL-3.0; retain source attribution and repository LICENSE; redistribution obligations remain applicable",
+      "source": "https://github.com/HalaAli198/Volatility-3-Plugins-for-Python-Runtime-Analysis/tree/d78a705e91a8f5146581e71062ae3e448f91b5de",
+      "status": "pinned-operator-download-not-public-app-bundle",
+      "files_manifest": "src/volatility_mcp/resources/addons.json",
+      "license_files": [
+        {
+          "path": "LICENSE",
+          "sha256": "8486a10c4393cee1c25392769ddd3b2d6c242d6ec7928e1414efff7dfb2f07ef",
+          "notice_bundle": "DEPENDENCY_LICENSES.txt"
+        }
+      ],
+      "uses": [
+        {
+          "source": "src/volatility_mcp/resources/addons.json",
+          "version_basis": "full Git commit and original/adapted per-file SHA-256"
+        }
+      ]
     }
   ],
   "gaps": [],
@@ -2102,7 +2168,8 @@
   "manifest_sha256": {
     "requirements.txt": "1fe2bdd127ebfd506952885966905ecd4401a93701e9e8cbbe4d77b82fcb213b",
     "pyproject.toml": "628f865e772e4026ecba34c3868affa799768182fa95fa040f54775ea28f02e0",
-    "requirements.lock.txt": "fb67eb54e70e7a67d65ffbd37e5613a1d6e4a25f363f396fa1cf0c3a7ed9b549"
+    "requirements.lock.txt": "fb67eb54e70e7a67d65ffbd37e5613a1d6e4a25f363f396fa1cf0c3a7ed9b549",
+    "src/volatility_mcp/resources/addons.json": "d19d3deaac17bdc12d75919313fc5cd5d6754315c80d3fca2ac5636f9d099c88"
   },
   "review_items": [
     {
@@ -2111,5 +2178,11 @@
       "status": "mixed-and-unresolved",
       "detail": "Workbench bundles only its allowlisted sources and already copies their notices. Missing-license/GPL-derived optional sources remain separate; no permission inferred."
     }
-  ]
+  ],
+  "runtime_addon_supplement": {
+    "date": "2026-10-18",
+    "compatibility_revision": 6,
+    "source_review": "docs/RUNTIME_ADDONS.md",
+    "scope": "Three pinned runtime addon source repositories; no additional PyPI dependencies. Original LICENSE bytes checked against addon inventory. Existing license/source obligations remain applicable."
+  }
 }
