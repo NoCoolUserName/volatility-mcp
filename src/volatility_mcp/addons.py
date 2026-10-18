@@ -35,12 +35,12 @@ def profile():
             raise ValueError('Invalid pinned addon source')
         for item in source['files']:
             kind = item.get('kind', 'plugin')
-            suffix = 'json' if kind == 'symbol' else 'py'
+            suffix = 'json' if kind in {'symbol', 'data'} else 'py'
             allowed = {'linux'} if kind == 'symbol' else {'windows', 'linux'}
             destination = Path(item['target'])
             identity = (kind, item['target'])
-            if (kind not in {'plugin', 'symbol'}
-                    or not re.fullmatch(r'(?:[a-z0-9_-]+/)*[a-z_][a-z0-9_]*\.' + suffix, item['path'])
+            if (kind not in {'plugin', 'symbol', 'data'}
+                    or not re.fullmatch(r'(?:[A-Za-z0-9_-]+/)*[a-z_][a-z0-9_]*\.' + suffix, item['path'])
                     or len(destination.parts) != 2 or destination.parts[0] not in allowed
                     or destination.name != Path(item['path']).name or identity in targets):
                 raise ValueError('Addon file must have a fixed plugin or symbol destination')
@@ -78,8 +78,10 @@ def fetch(source, item):
 
 def prepare(source, item):
     raw = fetch(source, item)
-    installed = raw if item.get('kind') == 'symbol' else adapt(Path(item['path']).name, raw.decode('utf-8').replace('\r\n', '\n')).encode()
-    if item.get('kind') == 'symbol':
+    installed = raw if item.get('kind') in {'symbol', 'data'} else adapt(
+        Path(item['path']).name, raw.decode('utf-8').replace('\r\n', '\n'),
+        repository=source.get('repository'), target=item.get('target')).encode()
+    if item.get('kind') in {'symbol', 'data'}:
         json.loads(installed)
     if sha(installed) != item['installed_sha256']:
         raise ValueError(f"Adapted addon hash mismatch: {item['path']}")

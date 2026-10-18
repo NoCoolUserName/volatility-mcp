@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "profile": "community-2026-10",
-  "compatibility_revision": 5,
+  "compatibility_revision": 6,
   "volatility_version": "2.28.2",
   "offline_plugins": [
     "windows.cobaltstrike.CobaltStrike",
@@ -9,7 +9,30 @@
     "windows.zoneid3.ZoneID3",
     "windows.pte_resolve.PteResolve",
     "windows.passwordmanagers.PasswordManager",
-    "linux.openssh_sessionkeys.SSHKeys"
+    "linux.openssh_sessionkeys.SSHKeys",
+    "windows.bitlocker.BitlockerFVEKScan",
+    "linux.go_strings.Go_Strings",
+    "linux.go_strings_obfuscated.Go_Strings",
+    "linux.go_functions.Go_Functions",
+    "linux.go_goroutines.Go_Goroutines",
+    "linux.go_entire_heap.Go_Entire_Heap",
+    "windows.go_strings.Go_Strings",
+    "windows.go_strings_obfuscated.Go_Strings",
+    "windows.go_functions.Go_Functions",
+    "windows.go_goroutines.Go_Goroutines",
+    "windows.go_entire_heap.Go_Entire_Heap",
+    "linux.py_class.Py_Class",
+    "linux.py_module.Py_Module",
+    "linux.py_function.Py_Function",
+    "linux.py_code.Py_Code",
+    "linux.py_stack_call.Py_Stack_Call",
+    "linux.py_stack_var.Py_Stack_Var",
+    "windows.py_class.Py_Class",
+    "windows.py_module.Py_Module",
+    "windows.py_function.Py_Function",
+    "windows.py_code.Py_Code",
+    "windows.py_stack_call.Py_Stack_Call",
+    "windows.py_stack_var.Py_Stack_Var"
   ],
   "dependencies": [
     "capstone==5.0.9",
@@ -286,10 +309,322 @@
           "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
         }
       ]
+    },
+    {
+      "repository": "lorelyai/volatility3-bitlocker",
+      "commit": "d2afab51fea4878db8a79cef835176360d19b901",
+      "license": "GPL-3.0; retains upstream Marcin Ulikowski/lorelyai attribution",
+      "files": [
+        {
+          "path": "bitlocker.py",
+          "target": "windows/bitlocker.py",
+          "sha256": "1cda3c680e665898051dba1f9a638c42a4a711b65da74c8539995ad543a7ffb7",
+          "installed_sha256": "c944eac258b2e9537d5fe523bac5a5bfa5f5e750d1f563c62961a5e822af5cb0",
+          "dependencies": [],
+          "limitations": "Manual Windows x64 AES encryption-schedule candidates, not confirmed BitLocker FVEKs or cipher modes. Requires kernel symbols, explicit start/length in one contiguous kernel virtual range (maximum 16.777216 MB), x64 pool header size 16/tag offset 4. Strict reads, at most 4096 pools/1000 rows; actual defaults 1024/100. Layer/pool/schedule offsets retained. No raw/decryption-key coverage or automatic Dislocker export. Synthetic AES/pool validation only; real-image accuracy unvalidated."
+        }
+      ],
+      "plugins": [
+        "windows.bitlocker.BitlockerFVEKScan"
+      ],
+      "limitations": "Manual Windows x64 AES encryption-schedule candidates, not confirmed BitLocker FVEKs or cipher modes. Requires kernel symbols, explicit start/length in one contiguous kernel virtual range (maximum 16.777216 MB), x64 pool header size 16/tag offset 4. Strict reads, at most 4096 pools/1000 rows; actual defaults 1024/100. Layer/pool/schedule offsets retained. No raw/decryption-key coverage or automatic Dislocker export. Synthetic AES/pool validation only; real-image accuracy unvalidated.",
+      "notices": [
+        {
+          "path": "LICENSE",
+          "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+        }
+      ]
+    },
+    {
+      "repository": "HalaAli198/Go-Memory-Forensics",
+      "commit": "68c4d93edcdea9f584ad855cf963eb803b4ca328",
+      "license": "Apache-2.0; retain source attribution and repository LICENSE",
+      "files": [
+        {
+          "path": "Linux_Plugins/go_strings.py",
+          "target": "linux/go_strings.py",
+          "sha256": "8086287cfa4b65d3ef22882b4c384f59f73723203fe8f99a174b023e3515408f",
+          "installed_sha256": "933bdca366633f2fba5cc8aec1a428df8c351d8193d695c6387df65dc7884130",
+          "dependencies": [],
+          "limitations": "Manual single-PID Linux/Windows AMD64 runtime parsing. Go 1.16\u20131.25 layout candidates only, not a validated version support matrix; unknown/older/future versions fail. Requires local kernel symbols, process executable/runtime pages and detected or explicit Go version. Structured strings/functions/goroutine/frame/heap records include process layer and virtual offsets. No runtime downloads, OpenAI calls, external signature/heap files or speculative call-argument reconstruction. Bounded reads/traversal/recursion/rows/output; incomplete reads/parser errors fail. Synthetic contracts only; real-image accuracy unvalidated."
+        },
+        {
+          "path": "Linux_Plugins/go_strings_obfuscated.py",
+          "target": "linux/go_strings_obfuscated.py",
+          "sha256": "17b3de2a5cead0be08db091dfccfb05f3a9534c16909c5a5403b7f3c494c45db",
+          "installed_sha256": "40b89072090a9482cae7b0ffd0347f43ef6b4cde2b02d8030e0fd9bccd863e3b",
+          "dependencies": [],
+          "limitations": "Manual single-PID Linux/Windows AMD64 runtime parsing. Go 1.16\u20131.25 layout candidates only, not a validated version support matrix; unknown/older/future versions fail. Requires local kernel symbols, process executable/runtime pages and detected or explicit Go version. Structured strings/functions/goroutine/frame/heap records include process layer and virtual offsets. No runtime downloads, OpenAI calls, external signature/heap files or speculative call-argument reconstruction. Bounded reads/traversal/recursion/rows/output; incomplete reads/parser errors fail. Synthetic contracts only; real-image accuracy unvalidated."
+        },
+        {
+          "path": "Linux_Plugins/go_functions.py",
+          "target": "linux/go_functions.py",
+          "sha256": "5de3b8f478a78a70f29b82a9944e8971c38475361423718f5747949be5dbef3e",
+          "installed_sha256": "2f243b4c283d9ff25cb235103cc8cb522f0a612e2a2f37c36a3e0a3c96037db9",
+          "dependencies": [],
+          "limitations": "Manual single-PID Linux/Windows AMD64 runtime parsing. Go 1.16\u20131.25 layout candidates only, not a validated version support matrix; unknown/older/future versions fail. Requires local kernel symbols, process executable/runtime pages and detected or explicit Go version. Structured strings/functions/goroutine/frame/heap records include process layer and virtual offsets. No runtime downloads, OpenAI calls, external signature/heap files or speculative call-argument reconstruction. Bounded reads/traversal/recursion/rows/output; incomplete reads/parser errors fail. Synthetic contracts only; real-image accuracy unvalidated."
+        },
+        {
+          "path": "Linux_Plugins/go_goroutines.py",
+          "target": "linux/go_goroutines.py",
+          "sha256": "2fa6047bf01b820cd92ea7325f158a8485daea43f5337af55b79520f2e828cb9",
+          "installed_sha256": "ede0017546dcacbc493ce95ef7e7687930b3ac2db42415662d02504222419e30",
+          "dependencies": [],
+          "limitations": "Manual single-PID Linux/Windows AMD64 runtime parsing. Go 1.16\u20131.25 layout candidates only, not a validated version support matrix; unknown/older/future versions fail. Requires local kernel symbols, process executable/runtime pages and detected or explicit Go version. Structured strings/functions/goroutine/frame/heap records include process layer and virtual offsets. No runtime downloads, OpenAI calls, external signature/heap files or speculative call-argument reconstruction. Bounded reads/traversal/recursion/rows/output; incomplete reads/parser errors fail. Synthetic contracts only; real-image accuracy unvalidated."
+        },
+        {
+          "path": "Linux_Plugins/go_entire_heap.py",
+          "target": "linux/go_entire_heap.py",
+          "sha256": "ba713cf42bf33f16682f7eeda7ff2ac49ce43f115bb2c7b36c9e52dffe2e2e68",
+          "installed_sha256": "fba904a640a79ad6ddd4df1532b036ff3191ce954c3714c32457a3993231ecbe",
+          "dependencies": [],
+          "limitations": "Manual single-PID Linux/Windows AMD64 runtime parsing. Go 1.16\u20131.25 layout candidates only, not a validated version support matrix; unknown/older/future versions fail. Requires local kernel symbols, process executable/runtime pages and detected or explicit Go version. Structured strings/functions/goroutine/frame/heap records include process layer and virtual offsets. No runtime downloads, OpenAI calls, external signature/heap files or speculative call-argument reconstruction. Bounded reads/traversal/recursion/rows/output; incomplete reads/parser errors fail. Synthetic contracts only; real-image accuracy unvalidated."
+        },
+        {
+          "path": "Windows_Plugins/go_strings.py",
+          "target": "windows/go_strings.py",
+          "sha256": "2dd09ba2367104fd04cca374cd907b980f177d9449b66694f18f0a031acfb9a0",
+          "installed_sha256": "0b980c8a1d21e0c7e7353e5c3846af73638924758b54e3c2b8022104b8bc1fa8",
+          "dependencies": [],
+          "limitations": "Manual single-PID Linux/Windows AMD64 runtime parsing. Go 1.16\u20131.25 layout candidates only, not a validated version support matrix; unknown/older/future versions fail. Requires local kernel symbols, process executable/runtime pages and detected or explicit Go version. Structured strings/functions/goroutine/frame/heap records include process layer and virtual offsets. No runtime downloads, OpenAI calls, external signature/heap files or speculative call-argument reconstruction. Bounded reads/traversal/recursion/rows/output; incomplete reads/parser errors fail. Synthetic contracts only; real-image accuracy unvalidated."
+        },
+        {
+          "path": "Windows_Plugins/go_strings_obfuscated.py",
+          "target": "windows/go_strings_obfuscated.py",
+          "sha256": "c827e47ba82133320e7e8b854bd9c3aa2bbc1d044c156ef651ef31f9d48c985e",
+          "installed_sha256": "097c257c63b8b2643e7a4614005a9cc74d1bd97427f8484329a7f5baa9da9376",
+          "dependencies": [],
+          "limitations": "Manual single-PID Linux/Windows AMD64 runtime parsing. Go 1.16\u20131.25 layout candidates only, not a validated version support matrix; unknown/older/future versions fail. Requires local kernel symbols, process executable/runtime pages and detected or explicit Go version. Structured strings/functions/goroutine/frame/heap records include process layer and virtual offsets. No runtime downloads, OpenAI calls, external signature/heap files or speculative call-argument reconstruction. Bounded reads/traversal/recursion/rows/output; incomplete reads/parser errors fail. Synthetic contracts only; real-image accuracy unvalidated."
+        },
+        {
+          "path": "Windows_Plugins/go_functions.py",
+          "target": "windows/go_functions.py",
+          "sha256": "5cae53dc147447a9fd834e5124f7e6431c58948e1a3ac9a4a6f70b096294d3f8",
+          "installed_sha256": "8357421c86cf95b3307327a475f6accb18ee97bddb4c7f2ca0833aafacc432f0",
+          "dependencies": [],
+          "limitations": "Manual single-PID Linux/Windows AMD64 runtime parsing. Go 1.16\u20131.25 layout candidates only, not a validated version support matrix; unknown/older/future versions fail. Requires local kernel symbols, process executable/runtime pages and detected or explicit Go version. Structured strings/functions/goroutine/frame/heap records include process layer and virtual offsets. No runtime downloads, OpenAI calls, external signature/heap files or speculative call-argument reconstruction. Bounded reads/traversal/recursion/rows/output; incomplete reads/parser errors fail. Synthetic contracts only; real-image accuracy unvalidated."
+        },
+        {
+          "path": "Windows_Plugins/go_goroutines.py",
+          "target": "windows/go_goroutines.py",
+          "sha256": "fce3592f9e25316d74f97a44938b1a16ab893e11aa096e8b11ec73ed11a98acb",
+          "installed_sha256": "1befd7f7c63d03afe159ba11e62207dde73ba564f77abd3553f8ab90351c2c63",
+          "dependencies": [],
+          "limitations": "Manual single-PID Linux/Windows AMD64 runtime parsing. Go 1.16\u20131.25 layout candidates only, not a validated version support matrix; unknown/older/future versions fail. Requires local kernel symbols, process executable/runtime pages and detected or explicit Go version. Structured strings/functions/goroutine/frame/heap records include process layer and virtual offsets. No runtime downloads, OpenAI calls, external signature/heap files or speculative call-argument reconstruction. Bounded reads/traversal/recursion/rows/output; incomplete reads/parser errors fail. Synthetic contracts only; real-image accuracy unvalidated."
+        },
+        {
+          "path": "Windows_Plugins/go_entire_heap.py",
+          "target": "windows/go_entire_heap.py",
+          "sha256": "dd70c8db1e4c1fc187071bececdd679ed81fef028caa7767df90125a5a57e1a1",
+          "installed_sha256": "71e5fd2da5b5e90275e3609c84dc9cc75f226f77f1760477c06a0658db9be08c",
+          "dependencies": [],
+          "limitations": "Manual single-PID Linux/Windows AMD64 runtime parsing. Go 1.16\u20131.25 layout candidates only, not a validated version support matrix; unknown/older/future versions fail. Requires local kernel symbols, process executable/runtime pages and detected or explicit Go version. Structured strings/functions/goroutine/frame/heap records include process layer and virtual offsets. No runtime downloads, OpenAI calls, external signature/heap files or speculative call-argument reconstruction. Bounded reads/traversal/recursion/rows/output; incomplete reads/parser errors fail. Synthetic contracts only; real-image accuracy unvalidated."
+        }
+      ],
+      "plugins": [
+        "linux.go_strings.Go_Strings",
+        "linux.go_strings_obfuscated.Go_Strings",
+        "linux.go_functions.Go_Functions",
+        "linux.go_goroutines.Go_Goroutines",
+        "linux.go_entire_heap.Go_Entire_Heap",
+        "windows.go_strings.Go_Strings",
+        "windows.go_strings_obfuscated.Go_Strings",
+        "windows.go_functions.Go_Functions",
+        "windows.go_goroutines.Go_Goroutines",
+        "windows.go_entire_heap.Go_Entire_Heap"
+      ],
+      "limitations": "Manual single-PID Linux/Windows AMD64 runtime parsing. Go 1.16\u20131.25 layout candidates only, not a validated version support matrix; unknown/older/future versions fail. Requires local kernel symbols, process executable/runtime pages and detected or explicit Go version. Structured strings/functions/goroutine/frame/heap records include process layer and virtual offsets. No runtime downloads, OpenAI calls, external signature/heap files or speculative call-argument reconstruction. Bounded reads/traversal/recursion/rows/output; incomplete reads/parser errors fail. Synthetic contracts only; real-image accuracy unvalidated.",
+      "notices": [
+        {
+          "path": "LICENSE",
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+        }
+      ]
+    },
+    {
+      "repository": "HalaAli198/Volatility-3-Plugins-for-Python-Runtime-Analysis",
+      "commit": "d78a705e91a8f5146581e71062ae3e448f91b5de",
+      "license": "AGPL-3.0; retain source attribution and repository LICENSE; redistribution obligations remain applicable",
+      "files": [
+        {
+          "path": "Linux_Plugins/py_class.py",
+          "target": "linux/py_class.py",
+          "sha256": "2489f7e578458f3655b80915f75cdecb05790e991f9bb9a67b72aaefbef84ddc",
+          "installed_sha256": "d8c20e5756dcdb623f124e25cb4601e219caae70246a48af30c7686476bd7cad",
+          "dependencies": [],
+          "limitations": "Manual single-PID Linux/Windows x64 CPython 3.8 only. Requires local kernel symbols, explicit _PyRuntime virtual address, matching Python version and examiner-verified target layout. Fixed upstream layout is retained as attributed data; adapter uses only checked fields. Bounded read/traversal/output and explicit malformed/incomplete failures. Bytecode is data only: no host CodeType construction, execution or host-version disassembly. Six structured commands per OS with source offsets; automatic cross-process symbol guessing excluded. Synthetic contracts only; real-image accuracy unvalidated."
+        },
+        {
+          "path": "Linux_Plugins/py_module.py",
+          "target": "linux/py_module.py",
+          "sha256": "789fd639e3c20001f5e1b6123e4e7e5f41c43868c6b0066edf81ae6d80533b8b",
+          "installed_sha256": "c7d4c01beb48db5c8777978ffa5d5de9b00636c85a7ee05148516d668642dafd",
+          "dependencies": [],
+          "limitations": "Manual single-PID Linux/Windows x64 CPython 3.8 only. Requires local kernel symbols, explicit _PyRuntime virtual address, matching Python version and examiner-verified target layout. Fixed upstream layout is retained as attributed data; adapter uses only checked fields. Bounded read/traversal/output and explicit malformed/incomplete failures. Bytecode is data only: no host CodeType construction, execution or host-version disassembly. Six structured commands per OS with source offsets; automatic cross-process symbol guessing excluded. Synthetic contracts only; real-image accuracy unvalidated."
+        },
+        {
+          "path": "Linux_Plugins/py_function.py",
+          "target": "linux/py_function.py",
+          "sha256": "b59f27e02defbf88318dc74d1c4cd0f543781637dfbc5c46a73cd1418091a220",
+          "installed_sha256": "109814604485492dee41d77bfe81a65d119a492dd34d7462d69ce83b6fbaee55",
+          "dependencies": [],
+          "limitations": "Manual single-PID Linux/Windows x64 CPython 3.8 only. Requires local kernel symbols, explicit _PyRuntime virtual address, matching Python version and examiner-verified target layout. Fixed upstream layout is retained as attributed data; adapter uses only checked fields. Bounded read/traversal/output and explicit malformed/incomplete failures. Bytecode is data only: no host CodeType construction, execution or host-version disassembly. Six structured commands per OS with source offsets; automatic cross-process symbol guessing excluded. Synthetic contracts only; real-image accuracy unvalidated."
+        },
+        {
+          "path": "Linux_Plugins/py_code.py",
+          "target": "linux/py_code.py",
+          "sha256": "0724ea2a1bc3c96f09241adeb72660cecab233c96a771c6d49e0d4e92cc90ba1",
+          "installed_sha256": "46a5dcee2d36a7732335d3a531f9532800487de2aa931e21eebe1207c16a6a21",
+          "dependencies": [],
+          "limitations": "Manual single-PID Linux/Windows x64 CPython 3.8 only. Requires local kernel symbols, explicit _PyRuntime virtual address, matching Python version and examiner-verified target layout. Fixed upstream layout is retained as attributed data; adapter uses only checked fields. Bounded read/traversal/output and explicit malformed/incomplete failures. Bytecode is data only: no host CodeType construction, execution or host-version disassembly. Six structured commands per OS with source offsets; automatic cross-process symbol guessing excluded. Synthetic contracts only; real-image accuracy unvalidated."
+        },
+        {
+          "path": "Linux_Plugins/py_stack_call.py",
+          "target": "linux/py_stack_call.py",
+          "sha256": "787859c8743364273badba479490ac1082ff2be18adf08c61958e403481ad1e5",
+          "installed_sha256": "901b1ba8414086e26690169184284dec28fefb21d63db9135756d331c5ed09fd",
+          "dependencies": [],
+          "limitations": "Manual single-PID Linux/Windows x64 CPython 3.8 only. Requires local kernel symbols, explicit _PyRuntime virtual address, matching Python version and examiner-verified target layout. Fixed upstream layout is retained as attributed data; adapter uses only checked fields. Bounded read/traversal/output and explicit malformed/incomplete failures. Bytecode is data only: no host CodeType construction, execution or host-version disassembly. Six structured commands per OS with source offsets; automatic cross-process symbol guessing excluded. Synthetic contracts only; real-image accuracy unvalidated."
+        },
+        {
+          "path": "Linux_Plugins/py_stack_var.py",
+          "target": "linux/py_stack_var.py",
+          "sha256": "5a382321cea3362b30600b0aa99de1e34ca19aec94df7180578da414c3f985d3",
+          "installed_sha256": "9a0976c5fabfc60b54836883841f3d9b495171eabbcbb33673bd295931544898",
+          "dependencies": [],
+          "limitations": "Manual single-PID Linux/Windows x64 CPython 3.8 only. Requires local kernel symbols, explicit _PyRuntime virtual address, matching Python version and examiner-verified target layout. Fixed upstream layout is retained as attributed data; adapter uses only checked fields. Bounded read/traversal/output and explicit malformed/incomplete failures. Bytecode is data only: no host CodeType construction, execution or host-version disassembly. Six structured commands per OS with source offsets; automatic cross-process symbol guessing excluded. Synthetic contracts only; real-image accuracy unvalidated."
+        },
+        {
+          "path": "Windows_Plugins/py_class.py",
+          "target": "windows/py_class.py",
+          "sha256": "c6f9aa32153c484d37bbf7075453412663fea99a9fac3a7b4f76c6ca6860980c",
+          "installed_sha256": "306f9df92aa5e18a60e1dbb8f167e15a1a7ffd55e253e8fd3f9c4a465f0a7515",
+          "dependencies": [],
+          "limitations": "Manual single-PID Linux/Windows x64 CPython 3.8 only. Requires local kernel symbols, explicit _PyRuntime virtual address, matching Python version and examiner-verified target layout. Fixed upstream layout is retained as attributed data; adapter uses only checked fields. Bounded read/traversal/output and explicit malformed/incomplete failures. Bytecode is data only: no host CodeType construction, execution or host-version disassembly. Six structured commands per OS with source offsets; automatic cross-process symbol guessing excluded. Synthetic contracts only; real-image accuracy unvalidated."
+        },
+        {
+          "path": "Windows_Plugins/py_module.py",
+          "target": "windows/py_module.py",
+          "sha256": "49faacb06a94cbeb01a264745d2d9c9f9dc821a143c2a0cf6bd8f16da10166de",
+          "installed_sha256": "f605d33e54d498a2115cdb24d715da8045dfdffd5b526bf6bd5643ff5e672545",
+          "dependencies": [],
+          "limitations": "Manual single-PID Linux/Windows x64 CPython 3.8 only. Requires local kernel symbols, explicit _PyRuntime virtual address, matching Python version and examiner-verified target layout. Fixed upstream layout is retained as attributed data; adapter uses only checked fields. Bounded read/traversal/output and explicit malformed/incomplete failures. Bytecode is data only: no host CodeType construction, execution or host-version disassembly. Six structured commands per OS with source offsets; automatic cross-process symbol guessing excluded. Synthetic contracts only; real-image accuracy unvalidated."
+        },
+        {
+          "path": "Windows_Plugins/py_function.py",
+          "target": "windows/py_function.py",
+          "sha256": "3b32fb1381767b6c5c9f53712c8a721f6eec769d13671386a4fc414272de2331",
+          "installed_sha256": "13a98093a748ce1f9dabed369738d1abb7fd0c843c325c18880596a018d5f88a",
+          "dependencies": [],
+          "limitations": "Manual single-PID Linux/Windows x64 CPython 3.8 only. Requires local kernel symbols, explicit _PyRuntime virtual address, matching Python version and examiner-verified target layout. Fixed upstream layout is retained as attributed data; adapter uses only checked fields. Bounded read/traversal/output and explicit malformed/incomplete failures. Bytecode is data only: no host CodeType construction, execution or host-version disassembly. Six structured commands per OS with source offsets; automatic cross-process symbol guessing excluded. Synthetic contracts only; real-image accuracy unvalidated."
+        },
+        {
+          "path": "Windows_Plugins/py_code.py",
+          "target": "windows/py_code.py",
+          "sha256": "67bfb60a0e9a9803418000fd3205a29399e580c8e50d7ff651deb86710d19fb4",
+          "installed_sha256": "815b697bdbb32dcdf73b66058e4ea8eeae33edfc528c667b2ac6bafb26ed139e",
+          "dependencies": [],
+          "limitations": "Manual single-PID Linux/Windows x64 CPython 3.8 only. Requires local kernel symbols, explicit _PyRuntime virtual address, matching Python version and examiner-verified target layout. Fixed upstream layout is retained as attributed data; adapter uses only checked fields. Bounded read/traversal/output and explicit malformed/incomplete failures. Bytecode is data only: no host CodeType construction, execution or host-version disassembly. Six structured commands per OS with source offsets; automatic cross-process symbol guessing excluded. Synthetic contracts only; real-image accuracy unvalidated."
+        },
+        {
+          "path": "Windows_Plugins/py_stack_call.py",
+          "target": "windows/py_stack_call.py",
+          "sha256": "15b41a0519077a5dc165f61deafada8700b24f8aafa6ae41d143bd60050206a1",
+          "installed_sha256": "5b5d83cf5e43ff309ad2fddaeaae2a3334312e0552ae77d3082e96ac7ed7a6d7",
+          "dependencies": [],
+          "limitations": "Manual single-PID Linux/Windows x64 CPython 3.8 only. Requires local kernel symbols, explicit _PyRuntime virtual address, matching Python version and examiner-verified target layout. Fixed upstream layout is retained as attributed data; adapter uses only checked fields. Bounded read/traversal/output and explicit malformed/incomplete failures. Bytecode is data only: no host CodeType construction, execution or host-version disassembly. Six structured commands per OS with source offsets; automatic cross-process symbol guessing excluded. Synthetic contracts only; real-image accuracy unvalidated."
+        },
+        {
+          "path": "Windows_Plugins/py_stack_var.py",
+          "target": "windows/py_stack_var.py",
+          "sha256": "9bf089be26c3dc8914b648068a5a7f9325ca403dca7e5d861f8196ae3193810b",
+          "installed_sha256": "ac5a6008baa4eeb67fd1b9f63187d43dd50bf234ce820ae65009ea82b964ee4e",
+          "dependencies": [],
+          "limitations": "Manual single-PID Linux/Windows x64 CPython 3.8 only. Requires local kernel symbols, explicit _PyRuntime virtual address, matching Python version and examiner-verified target layout. Fixed upstream layout is retained as attributed data; adapter uses only checked fields. Bounded read/traversal/output and explicit malformed/incomplete failures. Bytecode is data only: no host CodeType construction, execution or host-version disassembly. Six structured commands per OS with source offsets; automatic cross-process symbol guessing excluded. Synthetic contracts only; real-image accuracy unvalidated."
+        },
+        {
+          "path": "python_symbol_table.py",
+          "target": "linux/python_symbol_table.py",
+          "sha256": "7ee0bd4f5ccc23e5d59653d4584749778200d7e7b7e989c3dc4235100f32df9c",
+          "installed_sha256": "b0f6c0fa6ea0e6077f17d212b4035c61d91b9f9a7673312f279aa2e33344890d",
+          "dependencies": [],
+          "limitations": "Manual single-PID Linux/Windows x64 CPython 3.8 only. Requires local kernel symbols, explicit _PyRuntime virtual address, matching Python version and examiner-verified target layout. Fixed upstream layout is retained as attributed data; adapter uses only checked fields. Bounded read/traversal/output and explicit malformed/incomplete failures. Bytecode is data only: no host CodeType construction, execution or host-version disassembly. Six structured commands per OS with source offsets; automatic cross-process symbol guessing excluded. Synthetic contracts only; real-image accuracy unvalidated."
+        },
+        {
+          "path": "python_data_structures.json",
+          "target": "linux/python_data_structures.json",
+          "sha256": "459ba9b5beb8e426073c4c515c26d39e55bc8f6f25ac7e20da5a77f3e6abb13e",
+          "installed_sha256": "459ba9b5beb8e426073c4c515c26d39e55bc8f6f25ac7e20da5a77f3e6abb13e",
+          "dependencies": [],
+          "limitations": "Manual single-PID Linux/Windows x64 CPython 3.8 only. Requires local kernel symbols, explicit _PyRuntime virtual address, matching Python version and examiner-verified target layout. Fixed upstream layout is retained as attributed data; adapter uses only checked fields. Bounded read/traversal/output and explicit malformed/incomplete failures. Bytecode is data only: no host CodeType construction, execution or host-version disassembly. Six structured commands per OS with source offsets; automatic cross-process symbol guessing excluded. Synthetic contracts only; real-image accuracy unvalidated.",
+          "kind": "data"
+        },
+        {
+          "path": "python_symbol_table.py",
+          "target": "windows/python_symbol_table.py",
+          "sha256": "7ee0bd4f5ccc23e5d59653d4584749778200d7e7b7e989c3dc4235100f32df9c",
+          "installed_sha256": "b0f6c0fa6ea0e6077f17d212b4035c61d91b9f9a7673312f279aa2e33344890d",
+          "dependencies": [],
+          "limitations": "Manual single-PID Linux/Windows x64 CPython 3.8 only. Requires local kernel symbols, explicit _PyRuntime virtual address, matching Python version and examiner-verified target layout. Fixed upstream layout is retained as attributed data; adapter uses only checked fields. Bounded read/traversal/output and explicit malformed/incomplete failures. Bytecode is data only: no host CodeType construction, execution or host-version disassembly. Six structured commands per OS with source offsets; automatic cross-process symbol guessing excluded. Synthetic contracts only; real-image accuracy unvalidated."
+        },
+        {
+          "path": "python_data_structures.json",
+          "target": "windows/python_data_structures.json",
+          "sha256": "459ba9b5beb8e426073c4c515c26d39e55bc8f6f25ac7e20da5a77f3e6abb13e",
+          "installed_sha256": "459ba9b5beb8e426073c4c515c26d39e55bc8f6f25ac7e20da5a77f3e6abb13e",
+          "dependencies": [],
+          "limitations": "Manual single-PID Linux/Windows x64 CPython 3.8 only. Requires local kernel symbols, explicit _PyRuntime virtual address, matching Python version and examiner-verified target layout. Fixed upstream layout is retained as attributed data; adapter uses only checked fields. Bounded read/traversal/output and explicit malformed/incomplete failures. Bytecode is data only: no host CodeType construction, execution or host-version disassembly. Six structured commands per OS with source offsets; automatic cross-process symbol guessing excluded. Synthetic contracts only; real-image accuracy unvalidated.",
+          "kind": "data"
+        }
+      ],
+      "plugins": [
+        "linux.py_class.Py_Class",
+        "linux.py_module.Py_Module",
+        "linux.py_function.Py_Function",
+        "linux.py_code.Py_Code",
+        "linux.py_stack_call.Py_Stack_Call",
+        "linux.py_stack_var.Py_Stack_Var",
+        "windows.py_class.Py_Class",
+        "windows.py_module.Py_Module",
+        "windows.py_function.Py_Function",
+        "windows.py_code.Py_Code",
+        "windows.py_stack_call.Py_Stack_Call",
+        "windows.py_stack_var.Py_Stack_Var"
+      ],
+      "limitations": "Manual single-PID Linux/Windows x64 CPython 3.8 only. Requires local kernel symbols, explicit _PyRuntime virtual address, matching Python version and examiner-verified target layout. Fixed upstream layout is retained as attributed data; adapter uses only checked fields. Bounded read/traversal/output and explicit malformed/incomplete failures. Bytecode is data only: no host CodeType construction, execution or host-version disassembly. Six structured commands per OS with source offsets; automatic cross-process symbol guessing excluded. Synthetic contracts only; real-image accuracy unvalidated.",
+      "notices": [
+        {
+          "path": "LICENSE",
+          "sha256": "8486a10c4393cee1c25392769ddd3b2d6c242d6ec7928e1414efff7dfb2f07ef"
+        }
+      ]
     }
   ],
   "manual_only_plugins": [
     "windows.passwordmanagers.PasswordManager",
-    "linux.openssh_sessionkeys.SSHKeys"
+    "linux.openssh_sessionkeys.SSHKeys",
+    "windows.bitlocker.BitlockerFVEKScan",
+    "linux.go_strings.Go_Strings",
+    "linux.go_strings_obfuscated.Go_Strings",
+    "linux.go_functions.Go_Functions",
+    "linux.go_goroutines.Go_Goroutines",
+    "linux.go_entire_heap.Go_Entire_Heap",
+    "windows.go_strings.Go_Strings",
+    "windows.go_strings_obfuscated.Go_Strings",
+    "windows.go_functions.Go_Functions",
+    "windows.go_goroutines.Go_Goroutines",
+    "windows.go_entire_heap.Go_Entire_Heap",
+    "linux.py_class.Py_Class",
+    "linux.py_module.Py_Module",
+    "linux.py_function.Py_Function",
+    "linux.py_code.Py_Code",
+    "linux.py_stack_call.Py_Stack_Call",
+    "linux.py_stack_var.Py_Stack_Var",
+    "windows.py_class.Py_Class",
+    "windows.py_module.Py_Module",
+    "windows.py_function.Py_Function",
+    "windows.py_code.Py_Code",
+    "windows.py_stack_call.Py_Stack_Call",
+    "windows.py_stack_var.Py_Stack_Var"
   ]
 }
