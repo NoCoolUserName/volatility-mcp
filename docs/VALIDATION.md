@@ -413,3 +413,37 @@ report validation passed; 13 historical report/manifest/checksum markers were un
 The guard observed zero subprocess launches. No source images were rehashed or
 analyzed, and no old report bundle was regenerated. See the Workbench validation
 record for application, browser, launcher and dependency-update checks.
+## Optional community plugin profile — 2026-10-17
+
+The opt-in pinned installer and catalog attribution add PteMalfind/Ptenum,
+ImgMalfind, Prefetch, AnyDesk, EVTXLog, Browser History Extractor and KeePass.
+ApiSearch is also exposed by their helper dependency chain. No existing memory
+image, report generation or credential extraction was used for these checks.
+
+- Automated core tests: 101 ran successfully; one expected skip requires the
+  separate Volatility environment for the XP addon. Installed core wheel smoke
+  also passed, including its packaged JSON profile and protocol negotiation.
+- Offline installer fixtures: source/adapted hash mismatch, native-file refusal,
+  path/symlink escapes, repeated installation and discovery-failure rollback.
+- Real Apple-silicon analyzer: 208 plugins, zero import failures, exact CLI help
+  for nine new commands, dependency checks, and an actual fresh registered stdio
+  MCP connection querying each new plugin's argument schema and source label.
+  Zero analysis-tool calls were submitted.
+- Synthetic installed-analyzer checks: current run-wrapper signatures, component
+  version requirements, Prefetch fields/malformed headers, AnyDesk trace fields,
+  KeePass candidate formatting, malformed EVTX, read-only SQLite rows/malformed
+  database failures, and no Browser summary stdout/host-path fallback. Subprocess
+  and network guards were active during fixture replay. PTE/ImageMalfind
+  algorithms and real-image forensic accuracy were not evaluated.
+- Concrete repairs: legacy FileScan/PsList calls/requirements, Ptenum's redundant
+  symbol requirement and 64-bit scope, file-offset-aware cached reconstruction,
+  malformed-data failure handling and decompression bounds, Browser read-only
+  output access/UTC/renderer compatibility, and EVTX's fabricated timestamp and
+  unsupported completeness label. A source-PYTHONPATH leak initially caused a
+  false package-health failure; analyzer pip calls now use isolated Python.
+
+Upstream legacy PluginRequirement deprecation warnings remain with pinned
+Volatility 2.28.2. No explicit source redistribution license was found for two
+upstreams; public container/app bundling remains subject to permission review.
+See COMMUNITY_PLUGINS.md for exact pins and scope. Synthetic passing checks do
+not establish malware-detection accuracy or compatibility with all Windows builds.

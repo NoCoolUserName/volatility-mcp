@@ -28,4 +28,4 @@ ui = [] # Legacy extra; Workbench is a separate distribution. See its repository
 where = ["src"]
 
 [tool.setuptools.package-data]
-volatility_mcp = ["plugins/*.py", "resources/*.md"]
+volatility_mcp = ["plugins/*.py", "resources/*.md", "resources/*.json"]

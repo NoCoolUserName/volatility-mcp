@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "profile": "community-2026-10",
+  "compatibility_revision": 1,
+  "volatility_version": "2.28.2",
+  "dependencies": [
+    "capstone==5.0.9",
+    "pefile==2024.8.26",
+    "future==1.0.0",
+    "python-evtx==0.8.1",
+    "hexdump==3.3"
+  ],
+  "sources": [
+    {
+      "repository": "f-block/volatility-plugins",
+      "commit": "c4b6ad45ce34f0b7eae9aef80dd6e9594e8c5b84",
+      "license": "Per-file MIT, BSD-3-Clause and GPL-2.0-or-later notices; retain all",
+      "files": [
+        {
+          "path": "ptenum.py",
+          "target": "windows/ptenum.py",
+          "sha256": "2f5c3fc60b1c8ca7dbb159e625474f92b4116f63aac0b0fff3399e2b7634f820",
+          "installed_sha256": "2f5c3fc60b1c8ca7dbb159e625474f92b4116f63aac0b0fff3399e2b7634f820"
+        },
+        {
+          "path": "ptemalfind.py",
+          "target": "windows/ptemalfind.py",
+          "sha256": "9c08d34705e0e0ceab4a1874f23fd32db554b362a8a29b7c688b917856bd2d10",
+          "installed_sha256": "ae93a22d3e650cde4929728b0b0ba404c3246e9f0023b1dbd7d3a443e867f872"
+        },
+        {
+          "path": "simple_pteenum.py",
+          "target": "windows/simple_pteenum.py",
+          "sha256": "da70881f84e1e6c443a9e04a09b5ee7aa8bd8239e705eff0bb084f228b0f4f91",
+          "installed_sha256": "9e761cf9ecf9b7a79b86d1bab4ac9ebe7b24735f872d4e63a774c0239e8cc9fd"
+        },
+        {
+          "path": "imgmalfind.py",
+          "target": "windows/imgmalfind.py",
+          "sha256": "aa6e0da4accd685c4c0fab3bb2e28ebde2dbeec77a38d63170b3e02dc30dc219",
+          "installed_sha256": "6a778ff91a9e43c263e4653da4261a18d1506c99a7fa187ffa78e36798bbd630"
+        },
+        {
+          "path": "pe_parser.py",
+          "target": "windows/pe_parser.py",
+          "sha256": "dcc4d7c8a1d197043efad816f74679872fb8f6411cf6f869d7336d87c152c15b",
+          "installed_sha256": "b85fe5344be535f8069cf3c2303a14d05cf0caba0c24f4462386805aacb8599a"
+        },
+        {
+          "path": "apisearch.py",
+          "target": "windows/apisearch.py",
+          "sha256": "c8ce10e3229c219d9aeb42f43f06d852bd91b973a3b925713815f07efa105796",
+          "installed_sha256": "13e488813e52ce80c1d1a4a2d29e108d022d6c48a6b5428915cd1014620e89d1"
+        }
+      ],
+      "plugins": [
+        "windows.ptemalfind.PteMalfind",
+        "windows.simple_pteenum.SimplePteEnumerator",
+        "windows.imgmalfind.ImageMalfind",
+        "windows.apisearch.ApiSearch"
+      ],
+      "limitations": "Windows Intel64 only; matching PTE/kernel symbols required. Modified/executable memory is a lead, not proof of maliciousness. Import/help and synthetic contract checks only; real-image accuracy unvalidated."
+    },
+    {
+      "repository": "forensicxlab/volatility3_plugins",
+      "commit": "5d6c67eff47e065aa734eb7090d9ff92846d80ba",
+      "license": "NOASSERTION: no repository license; local opt-in download, redistribution permission unresolved",
+      "files": [
+        {
+          "path": "prefetch.py",
+          "target": "windows/prefetch.py",
+          "sha256": "68639654600d2cbbf5ed4e2e91e529f4e1049926a88320ba1e2ad289b2293c83",
+          "installed_sha256": "ab2182010a89c569bd929f67363298e028b655547e70e3e0d8ab9ddcc74857a5"
+        },
+        {
+          "path": "anydesk.py",
+          "target": "windows/anydesk.py",
+          "sha256": "3752059f253fccfc54d4a4523cfb0cc487ad210df7c78cd42a7b9447a8fd6d17",
+          "installed_sha256": "37d1e8a463c366517f9364960f4c20674293feb74a8e605263cf58f87633e213"
+        },
+        {
+          "path": "keepass.py",
+          "target": "windows/keepass.py",
+          "sha256": "fe6462355e59991f5d07ca4bc9ba55f139f976f851f4ca6441fc252c56db55aa",
+          "installed_sha256": "ea6ca4b4137b41d72b093474e914515da0a865ebbb55024cf6dd9b7fa3ed0de9"
+        }
+      ],
+      "plugins": [
+        "windows.prefetch.Prefetch",
+        "windows.anydesk.AnyDesk",
+        "windows.keepass.KeePass"
+      ],
+      "limitations": "Local compatibility adaptation for Volatility 2.28.2. Cached files may be sparse; password/trace candidates need corroboration. No upstream redistribution license found; do not bundle source in a public app/container without resolving permission. Synthetic checks do not validate all Windows versions."
+    },
+    {
+      "repository": "spitfirerxf/vol3-plugins",
+      "commit": "0d3968a05113096e35e4484febbb142221031acb",
+      "license": "MIT",
+      "files": [
+        {
+          "path": "evtxlog.py",
+          "target": "windows/evtxlog.py",
+          "sha256": "8b811f2a63ad014d4f979a9b5352900c48794d62175a1f7aeec6392c08c96b91",
+          "installed_sha256": "63073c9913d6538a4998e03f30411c1105dc8113db0fb63c7340323fc14516ed"
+        }
+      ],
+      "plugins": [
+        "windows.evtxlog.evtxlog"
+      ],
+      "limitations": "EVTX only, not XP EVT. Reconstructed cached pages may be incomplete. Last Modified is not recovered by this plugin. XML records require validation/corroboration; import success is not forensic validation.",
+      "notices": [
+        {
+          "path": "LICENSE",
+          "sha256": "4ca6889fcc329fd82055df43ed3c2318e58dc88de5ed0b9c158f1625f2e388fe"
+        }
+      ]
+    },
+    {
+      "repository": "aynaitlamine/volatility3-browser-history",
+      "commit": "ce2197ac778e3651789cbbac9dc90208e798a83e",
+      "license": "NOASSERTION: no repository license; local opt-in download, redistribution permission unresolved",
+      "files": [
+        {
+          "path": "browserhistoryextractor.py",
+          "target": "windows/browserhistoryextractor.py",
+          "sha256": "bd712509437518e4d8b54505c85c7179f97f9e9678964d2d3093bbac1e69fc75",
+          "installed_sha256": "6c8e99caf649c53f7e2d823031dd6dbf01abb6ca76c14560f9d618fb2947faf3"
+        }
+      ],
+      "plugins": [
+        "windows.browserhistoryextractor.BrowserHistoryExtractor"
+      ],
+      "limitations": "Read-only immutable SQLite reconstruction with no WAL replay; missing/corrupt cached pages may prevent parsing. UTC timestamps. No upstream redistribution license found; resolve permission before public bundling. Browser records do not establish user intent."
+    }
+  ]
+}

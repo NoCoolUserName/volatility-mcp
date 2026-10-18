@@ -7,7 +7,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from volatility_mcp.catalog import plugin_source
+from volatility_mcp.catalog import plugin_source, ADDON_PROFILE
 import test_backend as support
 
 
@@ -36,6 +36,14 @@ class SourceTests(unittest.TestCase):
         self.assertEqual(xp['kind'], 'local')
         for name in ['xpnet.XpNetScan', 'windows.thirdparty.Plugin', 'invented.Author']:
             self.assertEqual(plugin_source(name, root / 'other.py', {}, root / 'local')['kind'], 'unknown')
+
+    def test_community_sources_have_explicit_attribution(self):
+        root = Path('/synthetic/plugins')
+        for source in ADDON_PROFILE['sources']:
+            for name in source['plugins']:
+                result = plugin_source(name, root / 'addon.py', {}, root / 'local')
+                self.assertEqual(result['kind'], 'third_party')
+                self.assertEqual(result['label'], source['repository'])
 
 
 class DiscoveryTests(unittest.TestCase):

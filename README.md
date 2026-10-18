@@ -233,6 +233,14 @@ stale or damaged allocations are possible. It cannot prove active connection
 state, traffic, or malicious communication. Official Windows NetScan/NetStat may
 reject XP. Discover actual compatibility and retain the exact failure.
 
+### Optional community plugin profile
+
+For the optional PteMalfind/Ptenum, ImgMalfind, Prefetch, AnyDesk, EVTXLog,
+Browser History Extractor and KeePass set, use the pinned operator installer in
+[COMMUNITY_PLUGINS.md](docs/COMMUNITY_PLUGINS.md). It records upstream and adapted
+hashes, dependencies, source licenses and compatibility limitations; ordinary
+MCP queries never install plugins.
+
 ### Optional pypykatz plugin
 
 [pypykatz-volatility3](https://github.com/skelsec/pypykatz-volatility3) is a
