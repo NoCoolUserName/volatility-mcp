@@ -3,7 +3,7 @@ import ast
 import textwrap
 
 
-REVISION = 5
+REVISION = 6
 
 
 def replace_method(source, name, replacement):
@@ -16,8 +16,17 @@ def replace_method(source, name, replacement):
     return ''.join(lines)
 
 
-def adapt(filename, source):
+def adapt(filename, source, *, repository=None, target=None):
     """Only known pinned files enter here; installed hashes are checked separately."""
+    if repository == 'lorelyai/volatility3-bitlocker':
+        from .addon_bitlocker import adapt_bitlocker
+        return adapt_bitlocker(filename, source, replace_method)
+    if repository == 'HalaAli198/Go-Memory-Forensics':
+        from .addon_go import adapt_go
+        return adapt_go(filename, source, target)
+    if repository == 'HalaAli198/Volatility-3-Plugins-for-Python-Runtime-Analysis':
+        from .addon_python_runtime import adapt_python_runtime
+        return adapt_python_runtime(filename, source, target)
     if filename in {'prefetch.py', 'anydesk.py', 'evtxlog.py'}:
         source = source.replace('filescan.FileScan.scan_files(self.context, kernel.layer_name, kernel.symbol_table_name)',
                                 'filescan.FileScan.scan_files(self.context, self.config["kernel"])')

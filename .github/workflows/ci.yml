@@ -35,6 +35,9 @@ jobs:
       - run: '"$RUNNER_TEMP/analyzer/bin/python" tests/addon_runtime_smoke.py'
       - run: '"$RUNNER_TEMP/analyzer/bin/python" tests/addon_first_batch_smoke.py -v'
       - run: '"$RUNNER_TEMP/analyzer/bin/python" tests/addon_sensitive_smoke.py -v'
+      - run: '"$RUNNER_TEMP/analyzer/bin/python" tests/addon_bitlocker_smoke.py -v'
+      - run: '"$RUNNER_TEMP/analyzer/bin/python" tests/addon_go_smoke.py -v'
+      - run: '"$RUNNER_TEMP/analyzer/bin/python" tests/addon_python_runtime_smoke.py -v'
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 10

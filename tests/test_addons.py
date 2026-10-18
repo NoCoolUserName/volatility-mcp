@@ -17,8 +17,19 @@ class AddonTests(unittest.TestCase):
     def test_profile_is_pinned_and_has_all_requested_commands(self):
         data = addons.profile()
         names = {name for source in data['sources'] for name in source['plugins']}
-        self.assertEqual(len(names), 15)
-        self.assertEqual(set(data['manual_only_plugins']), {'windows.passwordmanagers.PasswordManager', 'linux.openssh_sessionkeys.SSHKeys'})
+        runtime_names = {'windows.bitlocker.BitlockerFVEKScan'}
+        for os_name in ('linux', 'windows'):
+            runtime_names.update(os_name + '.' + module + '.' + cls for module, cls in (
+                ('go_strings', 'Go_Strings'), ('go_strings_obfuscated', 'Go_Strings'),
+                ('go_functions', 'Go_Functions'), ('go_goroutines', 'Go_Goroutines'),
+                ('go_entire_heap', 'Go_Entire_Heap'), ('py_class', 'Py_Class'),
+                ('py_module', 'Py_Module'), ('py_function', 'Py_Function'),
+                ('py_code', 'Py_Code'), ('py_stack_call', 'Py_Stack_Call'),
+                ('py_stack_var', 'Py_Stack_Var')))
+        self.assertEqual(len(names), 38)
+        self.assertTrue(runtime_names <= names)
+        self.assertEqual(set(data['manual_only_plugins']), runtime_names | {
+            'windows.passwordmanagers.PasswordManager', 'linux.openssh_sessionkeys.SSHKeys'})
         self.assertTrue(set(data['manual_only_plugins']) <= set(data['offline_plugins']))
         self.assertEqual(sum(f.get('kind') == 'symbol' for source in data['sources'] for f in source['files']), 2)
         self.assertIn('windows.simple_pteenum.SimplePteEnumerator', names)
@@ -129,6 +140,34 @@ class AddonTests(unittest.TestCase):
                 'sha256':addons.sha(raw), 'installed_sha256':addons.sha(raw)}
         with patch.object(addons, 'fetch', return_value=raw):
             self.assertEqual(addons.prepare({}, item), (raw, raw))
+
+    def test_fixed_runtime_data_preserves_hash_and_requires_valid_json(self):
+        raw = b'{"format": 1}\n'
+        item = {'path': 'Linux_Plugins/runtime_layout.json', 'kind': 'data',
+                'target': 'linux/runtime_layout.json', 'sha256': addons.sha(raw),
+                'installed_sha256': addons.sha(raw)}
+        data = addons.profile()
+        data['sources'][0]['files'].append(item)
+        with patch.object(Path, 'read_text', return_value=json.dumps(data)):
+            self.assertEqual(addons.profile()['sources'][0]['files'][-1], item)
+        with patch.object(addons, 'fetch', return_value=raw):
+            self.assertEqual(addons.prepare({}, item), (raw, raw))
+        malformed = b'{'
+        item.update(sha256=addons.sha(malformed), installed_sha256=addons.sha(malformed))
+        with patch.object(addons, 'fetch', return_value=malformed):
+            with self.assertRaises(json.JSONDecodeError):
+                addons.prepare({}, item)
+
+    def test_runtime_data_cannot_select_arbitrary_destination(self):
+        for target in ('linux/../config.json', 'linux/subdir/config.json',
+                       'linux/other.json', 'windows/../../config.json'):
+            data = addons.profile()
+            data['sources'][0]['files'].append({
+                'path': 'Linux_Plugins/runtime_layout.json', 'kind': 'data',
+                'target': target, 'sha256': 'a' * 64, 'installed_sha256': 'b' * 64})
+            with patch.object(Path, 'read_text', return_value=json.dumps(data)):
+                with self.assertRaisesRegex(ValueError, 'fixed plugin or symbol'):
+                    addons.profile()
 
     def test_invalid_symbol_destination_and_manual_policy_rejected(self):
         for target in ('../openssh64.json','windows/openssh64.json','linux/wrong.json'):

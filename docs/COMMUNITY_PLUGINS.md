@@ -8,9 +8,10 @@ Official Volatility 3 remains at 2.28.2. Core runtime requirements stay minimal.
 Displayed KB and MB use decimal units (1,000 and 1,000,000 bytes). This includes
 binary page sizes: a 4,096-byte page is 4.096 KB. Display conversions do not
 change page arithmetic, scan/read/output byte limits, adapter sources or hashes.
-The unit-label cleanup retains compatibility revision 4 and every command in
-the configured analyzer; the portable public baseline remains 200 commands,
-while the separately configured community analyzer has 214.
+The unit-label cleanup retains every command in the configured analyzer.
+Compatibility revision 6 adds the [BitLocker, Go and Python runtime batch](RUNTIME_ADDONS.md),
+bringing the configured analyzer to 237 commands while preserving the prior 214.
+The portable public baseline remains 200 commands.
 
 With all clients idle, run from an installed core environment:
 
@@ -223,3 +224,12 @@ installed schemas grant these exact fields bounded regex syntax, compiled before
 execution. This is not a general string/path bypass: global options, duplicate
 options, control bytes and other plugins' strings retain their existing guards.
 Arguments go directly to a subprocess argv with no shell.
+
+## Runtime analysis additions (compatibility revision 6)
+
+The same inventory now installs one BitLocker candidate scanner, ten Go runtime
+commands and twelve Python runtime commands. They are manually selected, forced
+offline by core, and expose their narrow argument/layout requirements through the
+catalog. Existing command names, including PasswordManager and SSHKeys, remain.
+See [RUNTIME_ADDONS.md](RUNTIME_ADDONS.md) for exact pins, bounds, license notices,
+validated fixture scope and remaining real-image accuracy work.
