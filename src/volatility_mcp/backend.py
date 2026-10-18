@@ -291,13 +291,13 @@ class VolatilityBackend:
         return normalized, values
 
     def _argument_value(self, value: str, option: dict[str, Any], *, registry_key: bool = False) -> str:
-        if option.get('value_kind') == 'bytes_regex' and option['type'] == 'str' and not option['is_path']:
+        if option.get('value_kind') in ('bytes_regex','text_regex') and option['type'] == 'str' and not option['is_path']:
             if not value or len(value.encode('utf-8')) > 4096 or any(ord(c) < 32 or ord(c) == 127 for c in value):
                 raise EvidenceError('Regex must be 1..4096 UTF-8 bytes without literal control characters.')
             try:
-                re.compile(value.encode('utf-8'))
+                re.compile(value.encode('utf-8') if option['value_kind']=='bytes_regex' else value)
             except (re.error, OverflowError, RecursionError) as exc:
-                raise EvidenceError(f'Invalid byte regex: {exc}') from exc
+                raise EvidenceError(f'Invalid plugin regex: {exc}') from exc
             return value
         # A PrintKey key is a captured-hive name, not a host path or shell program.
         # Validate separators as path components, then retain the original bytes

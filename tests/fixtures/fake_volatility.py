@@ -21,6 +21,8 @@ plugins['windows.vadregexscan.VadRegExScan'] = {'description':'SYNTHETIC regex c
     'plugin_version':[1,0,0], 'origin':'installed_volatility',
     'options':[option('--pid','int','*'), dict(option('--pattern'),required=True,value_kind='bytes_regex'),
                option('--maxsize','int')]}
+plugins['windows.dumpfiles.DumpFiles']={'description':'SYNTHETIC text regex contract', 'plugin_version':[1,0,0], 'origin':'installed_volatility',
+    'options':[dict(option('--filter'),value_kind='text_regex')]}
 if any(arg.endswith('catalog.py') for arg in sys.argv):
     print(json.dumps({'version': 'SYNTHETIC', 'architecture': 'arm64',
                       'import_failures': [], 'plugins': plugins}))

@@ -3,7 +3,7 @@ import ast
 import textwrap
 
 
-REVISION = 4
+REVISION = 5
 
 
 def replace_method(source, name, replacement):
@@ -23,6 +23,8 @@ def adapt(filename, source):
                                 'filescan.FileScan.scan_files(self.context, self.config["kernel"])')
         source = source.replace('kernel.layer_name,\n                                                kernel.symbol_table_name)', 'self.config["kernel"])')
         source = source.replace('version=(0, 0, 0)', 'version=filescan.FileScan.version')
+        source = source.replace('for mem_offset, _, datasize in memory_object.get_available_pages():',
+                                'for mem_offset, file_offset, datasize in memory_object.get_available_pages():')
         variable = 'prefetch_raw' if filename == 'prefetch.py' else 'file_raw'
         old = f'{variable} += layer.read(mem_offset, datasize, pad=True)\n'
         lines = source.splitlines(keepends=True)

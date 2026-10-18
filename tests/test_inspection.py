@@ -175,6 +175,16 @@ class InspectionTests(unittest.IsolatedAsyncioTestCase):
         for invalid in ('[', 'x\x00', 'a'*4097):
             with self.assertRaises(ValueError):self.backend.validate_arguments(plugin,['--pattern',invalid])
         with self.assertRaises(ValueError):self.backend.validate_arguments('windows.pslist.PsList',['--text',regex])
+        text_regex=r'(?i)(driverA\.sys|driverB\.PNF)$'
+        args=['--filter',text_regex]
+        self.assertEqual(self.backend.validate_arguments('windows.dumpfiles.DumpFiles',args),args)
+        result=self.backend.run_plugin('example.raw','windows.dumpfiles.DumpFiles',args)
+        manifest=json.loads(Path(result['manifest_path']).read_text())
+        self.assertIn(text_regex,manifest['commands'][0]['argv'])
+        for invalid in ('[','a\x00','a'*4097):
+            with self.assertRaises(ValueError):self.backend.validate_arguments('windows.dumpfiles.DumpFiles',['--filter',invalid])
+        with self.assertRaises(ValueError):self.backend.validate_arguments('windows.dumpfiles.DumpFiles',args+['--output-dir','/tmp'])
+
 
 
 
