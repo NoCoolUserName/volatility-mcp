@@ -49,7 +49,9 @@ class AddonTests(unittest.TestCase):
             target_root.mkdir(parents=True)
             config = Config(root / 'cases', root / 'outputs', prefix / 'bin/python', prefix / 'bin/vol')
             content = b'# synthetic addon\n'
-            item = {'path': 'sample.py', 'target': 'windows/sample.py', 'installed_sha256': addons.sha(content)}
+            previous = b'# previous synthetic addon\n'
+            item = {'path': 'sample.py', 'target': 'windows/sample.py',
+                    'installed_sha256': addons.sha(content), 'previous_installed_sha256': addons.sha(previous)}
             data = {'profile': 'synthetic', 'volatility_version': '2.28.2', 'dependencies': [],
                     'sources': [{'repository': 'synthetic/plugins', 'files': [item], 'plugins': ['windows.sample.Example']}]}
             environment = {'prefix': str(prefix), 'plugins': str(target_root), 'packages': {}, 'native': []}
@@ -60,11 +62,16 @@ class AddonTests(unittest.TestCase):
             backend = stack.enter_context(patch('volatility_mcp.backend.VolatilityBackend')).return_value
             backend.list_plugins.return_value = {'plugins':[{'name':'windows.sample.Example'}], 'import_failures':[], 'total':1}
             pip = stack.enter_context(patch('subprocess.run', side_effect=AssertionError('No dependency installation expected')))
-            first = addons.install(config); second = addons.install(config)
             target = target_root / item['target']
+            target.parent.mkdir(parents=True)
+            target.write_bytes(previous)
+            first = addons.install(config); second = addons.install(config)
             self.assertEqual(first['plugins'], second['plugins'])
             self.assertEqual(target.read_bytes(), content)
             self.assertFalse(pip.called)
+            target.write_bytes(b'# unknown addon\n')
+            with self.assertRaisesRegex(ValueError, 'Unrecognized existing addon bytes'): addons.install(config)
+            target.write_bytes(content)
             with (config.output_root / '.execution.lock').open('rb') as lock:
                 fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
                 with self.assertRaisesRegex(ValueError, 'Analysis is active'): addons.install(config)

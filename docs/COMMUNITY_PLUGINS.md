@@ -33,8 +33,11 @@ plugin. ApiSearch and PE helpers support ImgMalfind. The profile requires
 Capstone 5.0.9, pefile 2024.8.26, future 1.0.0, python-evtx 0.8.1 and hexdump 3.3.
 It preserves separately installed addons such as pypykatz.
 
-Compatibility revision 1 updates old FileScan/PsList contracts, removes the extra
+Compatibility revision 2 retains the revision 1 FileScan/PsList updates, removes the extra
 legacy Ptenum symbol requirement, and declares PTE-family analysis Intel64-only.
+Three adapted files change only their size-limit wording to decimal MB. Their
+previous installed hashes are explicitly pinned so an idle repeat install can
+upgrade those known bytes; any other local modification remains blocked.
 Cached-file reconstruction respects file offsets and a 536.87 MB per-file bound.
 Prefetch decompression is bounded at 67.11 MB. Browser SQLite is read-only/immutable,
 timestamps are UTC, parsing errors remain failures, output paths must come from
