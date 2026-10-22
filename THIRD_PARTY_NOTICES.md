@@ -1,7 +1,7 @@
 # Third-party notices
 
-The existing MIT license applies to original project material, subject to the
-unresolved integration scope described in [LICENSING.md](LICENSING.md). It does not
+Original project software is offered under VSL 1.0 and MIT as described in
+[LICENSING.md](LICENSING.md). The integrated wrapper follows VSL. These grants do not
 relicense separately installed dependencies, upstream Volatility material,
 symbols, acquired evidence, reference publications, or other third-party works.
 
