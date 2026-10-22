@@ -26,6 +26,10 @@ from mcp.client.stdio import StdioServerParameters
 from volatility_mcp.api import Config,report_spec
 assert importlib.util.find_spec('volatility_workbench') is None
 core_dist=distribution('volatility-mcp')
+assert core_dist.metadata['License-Expression']=='MIT OR LicenseRef-Volatility-Software-License-1.0'
+for name, marker in [('MIT.txt','MIT License'),('LicenseRef-Volatility-Software-License-1.0.txt','Volatility Software License')]:
+    assert marker in core_dist.read_text('licenses/licenses/'+name)
+assert 'Distributing a build' in core_dist.read_text('licenses/LICENSING.md')
 notices=[f for f in core_dist.files if str(f).endswith('/licenses/DEPENDENCY_LICENSES.txt')]
 assert len(notices)==1
 notice_text=core_dist.locate_file(notices[0]).read_text()
