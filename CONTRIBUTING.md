@@ -1,5 +1,9 @@
 # Contributing
 
+Original project contributions are accepted under both VSL 1.0 and MIT, as mapped
+in [LICENSING.md](LICENSING.md). Preserve upstream notices on third-party material;
+do not submit material you cannot license on the applicable terms.
+
 Keep the core small: stdio MCP, controlled Volatility execution, evidence
 preservation, saved outputs, and case history. Investigation methodology and
 report composition belong to the optional companion workflow.

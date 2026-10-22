@@ -1,3 +1,18 @@
+Project license grants
+
+The original project software and associated documentation listed in LICENSING.md
+are offered under both the Volatility Software License 1.0 and the MIT License.
+The integrated Volatility application is distributed in compliance with VSL 1.0.
+The additional MIT grant does not waive upstream VSL obligations for covered
+Additions. Existing copyright notices and MIT permissions remain intact.
+
+Full texts: licenses/LicenseRef-Volatility-Software-License-1.0.txt and
+licenses/MIT.txt. See LICENSING.md for component scope and public-source steps.
+Third-party software, artwork and other separately attributed material retain
+their own terms and are not relicensed by this grant.
+
+Original MIT notice (preserved):
+
 MIT License
 
 Copyright (c) 2026 volatility-mcp contributors

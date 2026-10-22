@@ -32,7 +32,7 @@ implementation. Go declares Apache-2.0; Python declares AGPL-3.0. These grants a
 source/notice obligations are not replaced by this project's license. The public
 app's existing bundle allowlist is unchanged; the configured local installation
 obtains these sources through the pinned installer. See [LICENSING.md](../LICENSING.md)
-for the separate unresolved integration/redistribution review.
+for the VSL/MIT integration license map and separate upstream redistribution terms.
 
 ## BitLocker candidate scanner
 

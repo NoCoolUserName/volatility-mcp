@@ -8,8 +8,8 @@ version = "0.1.0"
 description = "A local MCP server for controlled, evidence-preserving Volatility 3 queries"
 readme = "README.md"
 requires-python = ">=3.12"
-license = "MIT"
-license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md", "LICENSING.md", "licenses/DEPENDENCY_LICENSES.txt"]
+license = "MIT OR LicenseRef-Volatility-Software-License-1.0"
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md", "LICENSING.md", "licenses/MIT.txt", "licenses/LicenseRef-Volatility-Software-License-1.0.txt", "licenses/DEPENDENCY_LICENSES.txt"]
 dependencies = ["mcp==2.3.0", "pefile==2024.8.26"]
 classifiers = [
   "Development Status :: 3 - Alpha",

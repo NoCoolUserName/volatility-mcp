@@ -1,8 +1,8 @@
 # volatility-mcp
 
-Licensing scope is under review: see [LICENSING.md](LICENSING.md). The existing MIT notice does not establish MIT-only licensing for the Volatility integration.
+Original project code is available under MIT and the Volatility Software License 1.0. Integrated Volatility distributions follow VSL's source and notice requirements; see [LICENSING.md](LICENSING.md) for the component map and release steps.
 
-*9,252 lines of code*
+*9,256 lines of code*
 
 A local, client-neutral MCP server for evidence-backed queries with **official
 Volatility 3**. It runs your separately installed Volatility executable, saves
@@ -17,7 +17,7 @@ An experimental [local Workbench](docs/LOCAL_UI.md) optionally adds a browser
 interface for case selection, readiness, reports, evidence and follow-up questions.
 
 This is an independent project, not endorsed by the Volatility Foundation,
-OpenAI, or Dragos. Original project material is MIT licensed; see
+OpenAI, or Dragos. Original project material retains its MIT grant and is also offered under VSL; see
 [third-party notices](THIRD_PARTY_NOTICES.md).
 
 ## Quick start 1: use the MCP server
