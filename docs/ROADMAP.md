@@ -80,11 +80,10 @@ through its current catalog; these ports do not require new investigation modes.
 
 ## Distribution and host support
 
-- Resolve the integration and third-party rights questions in
-  [LICENSING.md](../LICENSING.md), including covered VSL additions, GPL/AGPL source
-  obligations and upstreams without explicit reuse grants. Record covered paths and
-  required terms before expanding distributed bundles; existing notices/inventories
-  are inputs to that review, not clearance.
+- Follow the VSL/MIT component map and source-publication steps in
+  [LICENSING.md](../LICENSING.md). The VSL grant for original integration code is
+  in place. Before expanding distributed bundles, check each added third-party
+  source's own terms, including GPL/AGPL obligations and missing reuse grants.
 - Add operational acceptance on selected Linux distributions and additional MCP
   clients. Windows host support needs process-management/cancellation work and its
   own tests; cross-platform CI alone does not establish host or guest-image support.
