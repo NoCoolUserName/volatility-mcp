@@ -1,8 +1,8 @@
 # volatility-mcp
 
-*9,256 lines of code*
+*9,714 lines of code*
 
-*Last measured package: `volatility_mcp-0.1.0-py3-none-any.whl`, 215,835 bytes (0.206 MiB); built on 2026-10-23 from source revision `a950b04b447365ddc760cf21309fdb8811b1d23a`. Wheel only; dependencies and the separate Workbench app are excluded.*
+*Last measured package: `volatility_mcp-0.1.0-py3-none-any.whl`, 216,880 bytes (0.207 MiB); built on 2026-10-23 from source revision `e1a3f47110a6d6fe13da17370e92de8c0f5bdbae`. Wheel only; dependencies and the separate Workbench app are excluded.*
 
 Original project code is available under MIT and the Volatility Software License 1.0. Integrated Volatility distributions follow VSL's source and notice requirements; see [LICENSING.md](LICENSING.md) for the component map and release steps.
 
@@ -249,7 +249,9 @@ PteResolve set, plus automatic-investigation-eligible PasswordManager, manually 
 hashes, dependencies, source licenses and compatibility limitations; ordinary
 MCP queries never install plugins.
 
-The configured profile discovers 237 commands, retaining the earlier 214.
+The profile now includes [CryptoMem](docs/CRYPTOMEM.md), an independently maintained
+cryptocurrency artifact scanner. It adds one command while retaining existing
+plugins; the exact count depends on installed optional dependencies and addons.
 Runtime addons have explicit process/address/version requirements and synthetic
 fixture coverage; discovery does not establish support across OS/runtime builds.
 

@@ -239,3 +239,12 @@ on them. This is not a general symlink permission or an automatic migration tool
 See [PUBLIC_API.md](PUBLIC_API.md) and [SEPARATION.md](SEPARATION.md). The report
 contract is a core package resource; Workbench orchestration and presentation are
 owned by its separate distribution. Core imports no application modules.
+
+## Independent cryptocurrency plugin
+
+[CryptoMem](CRYPTOMEM.md) is installed unchanged in the analyzer through the
+optional community profile. Existing discovery, execution, case isolation,
+artifact conventions and reuse apply; `enable_xpnet` only controls the existing
+bundled XP path and does not disable this independently installed plugin. Core
+forces CryptoMem offline and marks it for explicit manual selection. Detector
+implementation and releases belong to the separate plugin repository.
