@@ -33,3 +33,21 @@ deferred.
 
 Shared public integration APIs live in `volatility_mcp.api`; keep dependencies one way.
 Do not add Workbench, model providers, or app assets to core. See docs/SEPARATION.md.
+
+## README build metrics
+
+- Keep the italic lines-of-code stamp first immediately below the README title.
+  Run `python3 scripts/update_readme_loc.py` before every push and after every
+  merge; include any changed count in the next commit. The existing counter
+  counts nonblank source/test lines with its configured extensions.
+- After every build, refresh the following italic size stamp when a local
+  artifact is available. Record the exact artifact filename, actual bytes and
+  MiB (1 MiB = 1,048,576 bytes), measurement date, and source revision. Identify
+  whether the measurement covers a wheel, source archive, or installed tree and
+  state exclusions such as dependencies. A docs-only stamp may identify the
+  previously built source revision; it need not trigger recursive rebuilds.
+- After merges without a new local build, retain the last measured size with its
+  original date and revision. Never invent a fresh measurement or a native app
+  size: core is a standalone Python package; the Workbench app is separate.
+- Measure only build artifacts or an isolated installation. Never include
+  private evidence, case outputs, credentials, caches, or user configuration.
