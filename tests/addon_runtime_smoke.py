@@ -26,7 +26,7 @@ failures = framework.import_files(plugins, True)
 assert not failures, failures
 profile = json.loads((Path(__file__).resolve().parents[1] / 'src/volatility_mcp/resources/addons.json').read_text())
 expected = {name for source in profile['sources'] for name in source['plugins']}
-runtime_sources = {'lorelyai/volatility3-bitlocker', 'HalaAli198/Go-Memory-Forensics',
+runtime_sources = {'NoCoolUserName/volatility3-cryptomem', 'lorelyai/volatility3-bitlocker', 'HalaAli198/Go-Memory-Forensics',
                    'HalaAli198/Volatility-3-Plugins-for-Python-Runtime-Analysis'}
 legacy = {name for source in profile['sources'] if source['repository'] not in runtime_sources
           for name in source['plugins']}
