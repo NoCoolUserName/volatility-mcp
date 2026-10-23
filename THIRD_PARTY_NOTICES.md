@@ -52,3 +52,12 @@ relicenses those upstream works.
 ## Dependency evidence — 2026-10-18
 
 [Dependency inventory](licenses/DEPENDENCIES.json) records exact versions, source commits, archive URLs/hashes, dependency context and review items. [Collected license texts](licenses/DEPENDENCY_LICENSES.txt) preserve upstream notices, including recovered omissions. This snapshot includes build/test and optional packages; it is not a claim that all listed components ship together or that a finished release has been cleared. Unlocked requirements are labeled audit-time resolutions, not new project pins. Refresh the inventory and verify actual release contents when dependencies change.
+
+## Optional CryptoMem plugin
+
+[NoCoolUserName/volatility3-cryptomem](https://github.com/NoCoolUserName/volatility3-cryptomem)
+is an independent VSL-1.0 plugin inspired by CryptoScan detection ideas. Its
+implementation is not bundled in core; the opt-in inventory pins source and
+LICENSE hashes and archives the license with the local installation receipt.
+CryptoScan and protocol-specification attribution remain in that repository.
+See [docs/CRYPTOMEM.md](docs/CRYPTOMEM.md) for the deliberately limited capabilities.
