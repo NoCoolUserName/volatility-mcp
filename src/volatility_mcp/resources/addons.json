@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "profile": "community-2026-10",
-  "compatibility_revision": 7,
+  "compatibility_revision": 8,
   "volatility_version": "2.28.2",
   "offline_plugins": [
     "windows.cobaltstrike.CobaltStrike",
@@ -32,7 +32,8 @@
     "windows.py_function.Py_Function",
     "windows.py_code.Py_Code",
     "windows.py_stack_call.Py_Stack_Call",
-    "windows.py_stack_var.Py_Stack_Var"
+    "windows.py_stack_var.Py_Stack_Var",
+    "windows.cryptomem.CryptoMem"
   ],
   "dependencies": [
     "capstone==5.0.9",
@@ -40,7 +41,8 @@
     "future==1.0.0",
     "python-evtx==0.8.1",
     "hexdump==3.3",
-    "yara-python==4.5.4"
+    "yara-python==4.5.4",
+    "pycryptodome==3.23.0"
   ],
   "sources": [
     {
@@ -599,6 +601,43 @@
           "sha256": "8486a10c4393cee1c25392769ddd3b2d6c242d6ec7928e1414efff7dfb2f07ef"
         }
       ]
+    },
+    {
+      "repository": "NoCoolUserName/volatility3-cryptomem",
+      "commit": "d64aab3fe1a595336f51023a9a3d5d3da4678511",
+      "license": "VSL-1.0; preserve CryptoMem, CryptoScan reference and standards notices; LICENSE is archived by installer",
+      "files": [
+        {
+          "path": "plugins/windows/cryptomem.py",
+          "target": "windows/cryptomem.py",
+          "sha256": "3f5211f7b65440384f1d379c49aaf331aba6975430e8bb0a948db655e2a3886b",
+          "installed_sha256": "3f5211f7b65440384f1d379c49aaf331aba6975430e8bb0a948db655e2a3886b",
+          "dependencies": [
+            "pycryptodome==3.23.0"
+          ],
+          "limitations": "Explicit single-PID Windows process scan; BTC Base58Check/Bech32/Bech32m, Ethereum-style and XRP classic address candidates, plus bounded direct-address payment requests. ASCII and UTF-16LE; format/checksum validation is not ownership, control, balance, transaction activity, or wallet identification. Requires local matching kernel symbols and pycryptodome 3.23.0 for ERC-55. Offline bounded reads/results; incomplete scans fail and retain artifacts. Synthetic validation only; real-memory recovery accuracy unvalidated."
+        },
+        {
+          "path": "plugins/windows/cryptomem_formats.py",
+          "target": "windows/cryptomem_formats.py",
+          "sha256": "83136f15510fb898df114d0bada95f1e32d73c198fb0054c082085eedfb9893d",
+          "installed_sha256": "83136f15510fb898df114d0bada95f1e32d73c198fb0054c082085eedfb9893d",
+          "dependencies": [
+            "pycryptodome==3.23.0"
+          ],
+          "limitations": "Explicit single-PID Windows process scan; BTC Base58Check/Bech32/Bech32m, Ethereum-style and XRP classic address candidates, plus bounded direct-address payment requests. ASCII and UTF-16LE; format/checksum validation is not ownership, control, balance, transaction activity, or wallet identification. Requires local matching kernel symbols and pycryptodome 3.23.0 for ERC-55. Offline bounded reads/results; incomplete scans fail and retain artifacts. Synthetic validation only; real-memory recovery accuracy unvalidated."
+        }
+      ],
+      "plugins": [
+        "windows.cryptomem.CryptoMem"
+      ],
+      "limitations": "Explicit single-PID Windows process scan; BTC Base58Check/Bech32/Bech32m, Ethereum-style and XRP classic address candidates, plus bounded direct-address payment requests. ASCII and UTF-16LE; format/checksum validation is not ownership, control, balance, transaction activity, or wallet identification. Requires local matching kernel symbols and pycryptodome 3.23.0 for ERC-55. Offline bounded reads/results; incomplete scans fail and retain artifacts. Synthetic validation only; real-memory recovery accuracy unvalidated.",
+      "notices": [
+        {
+          "path": "LICENSE",
+          "sha256": "8deb3acf038d355b4909e471af1289b20c88528f8754aca69a6501f4a7c4f8f5"
+        }
+      ]
     }
   ],
   "manual_only_plugins": [
@@ -625,6 +664,7 @@
     "windows.py_function.Py_Function",
     "windows.py_code.Py_Code",
     "windows.py_stack_call.Py_Stack_Call",
-    "windows.py_stack_var.Py_Stack_Var"
+    "windows.py_stack_var.Py_Stack_Var",
+    "windows.cryptomem.CryptoMem"
   ]
 }

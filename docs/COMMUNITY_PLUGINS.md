@@ -170,8 +170,9 @@ budgets to validate before any separate integration.
 PasswordManager is eligible for automatic investigation in revision 7 when
 relevant to the authorized case scope; SSHKeys remains manually selected. Both
 retain their explicit process scope, offline execution and limits. PFNInfo/P2V/RamMap and WinObj are deferred pending justification for their
-larger compatibility and traversal work. CryptoScan requires an offline redesign that removes network
-address/transaction enrichment and separates PDF generation before consideration.
+larger compatibility and traversal work. CryptoScan detection ideas now inform the independent [CryptoMem](CRYPTOMEM.md)
+scanner added in revision 8. Its implementation is maintained separately and
+installed unchanged through this profile. No legacy CryptoScan code is executed.
 
 Any later compatibility/accuracy campaign must name each selected OS/build,
 architecture, acquisition format, matching symbol hashes, artifact ground truth,
@@ -235,3 +236,13 @@ offline by core, and expose their narrow argument/layout requirements through th
 catalog. Existing command names, including PasswordManager and SSHKeys, remain.
 See [RUNTIME_ADDONS.md](RUNTIME_ADDONS.md) for exact pins, bounds, license notices,
 validated fixture scope and remaining real-image accuracy work.
+
+## CryptoMem (compatibility revision 8)
+
+One independently maintained command, `windows.cryptomem.CryptoMem`, adds bounded
+offline cryptocurrency address and direct payment-request detection. It requires
+one PID, is manual-only, and preserves installed native and community commands.
+The detector needs `pycryptodome==3.23.0`; no new core runtime dependency or MCP tool
+is introduced. Source and license hashes pin the independent release without an
+adapter. See [CRYPTOMEM.md](CRYPTOMEM.md) for installation, examples, limitations,
+synthetic validation and Workbench adoption.
