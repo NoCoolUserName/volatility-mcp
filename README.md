@@ -1,8 +1,10 @@
 # volatility-mcp
 
-Original project code is available under MIT and the Volatility Software License 1.0. Integrated Volatility distributions follow VSL's source and notice requirements; see [LICENSING.md](LICENSING.md) for the component map and release steps.
-
 *9,256 lines of code*
+
+*Last measured package: `volatility_mcp-0.1.0-py3-none-any.whl`, 215,835 bytes (0.206 MiB); built on 2026-10-23 from source revision `a950b04b447365ddc760cf21309fdb8811b1d23a`. Wheel only; dependencies and the separate Workbench app are excluded.*
+
+Original project code is available under MIT and the Volatility Software License 1.0. Integrated Volatility distributions follow VSL's source and notice requirements; see [LICENSING.md](LICENSING.md) for the component map and release steps.
 
 A local, client-neutral MCP server for evidence-backed queries with **official
 Volatility 3**. It runs your separately installed Volatility executable, saves
