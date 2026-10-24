@@ -2,7 +2,7 @@
 
 *10,308 lines of code*
 
-*Last measured package: `volatility_mcp-0.1.0-py3-none-any.whl`, 216,880 bytes (0.207 MiB); built on 2026-10-23 from source revision `e1a3f47110a6d6fe13da17370e92de8c0f5bdbae`. Wheel only; dependencies and the separate Workbench app are excluded.*
+*Last measured package: `volatility_mcp-0.1.1-py3-none-any.whl`, 928,541,130 bytes (885.53 MiB); built on 2026-10-23 from source revision `393b49b6bc7534a3ac5363c5b9c3748030ef7d26`. Full wheel including four official symbol packs; dependencies and the separate Workbench app are excluded.*
 
 Original project code is available under MIT and the Volatility Software License 1.0. Integrated Volatility distributions follow VSL's source and notice requirements; see [LICENSING.md](LICENSING.md) for the component map and release steps.
 
