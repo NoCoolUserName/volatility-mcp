@@ -38,3 +38,14 @@ Keep core independently installable. Shared interface changes must preserve or
 explicitly version `volatility_mcp.api.API_VERSION`. Tag tested core releases as
 `v<package-version>`; Workbench adopts eligible releases through tested dependency
 PRs. Never float a production dependency on main.
+
+The manual **Publish bundled symbols** workflow requires the latest main-push
+runs of Core tests, Code quality, and Security to have succeeded for its exact
+source commit. Wait for those runs before dispatching; missing, pending, skipped,
+or failed runs block publication. A rerun must also finish successfully.
+The gate checks package/runtime/manifest versions and source provenance, resolves
+lightweight or annotated release tags, and refuses an existing tag pointing at a
+different commit. A missing `v<package-version>` tag is created at the checked
+commit and verified again before uploads and publication. Published releases are
+never overwritten; bump the version for a new release. These checks reuse CI;
+they do not publish on tag pushes or change normal MCP execution.
