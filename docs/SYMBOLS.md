@@ -53,8 +53,38 @@ are representative snapshots, not all historical or future Windows/macOS/Linux
 kernels. The base Windows pack is older; the separate supplement adds one Windows
 10 build. Windows symbols require matching PDB identifiers; Linux/macOS require
 matching kernel banners. Unmatched images can still need individually acquired
-symbols. CryptoMem remains Windows x86/x64 only; these packs do not extend its OS
-support or establish real-memory recovery accuracy.
+symbols. CryptoMem 0.3.0 supports Windows x86/x64 and Linux x86-64 process memory. Its
+Linux support is synthetic-tested; these packs do not establish real-memory
+recovery accuracy or compatibility with an unmatched kernel.
+
+## Additional Linux kernel symbols
+
+The Linux starter ZIP contains four older CentOS/Debian x86-64 tables. For newer
+kernels, Volatility's [Linux tutorial](https://volatility3.readthedocs.io/en/latest/getting-started-linux-tutorial.html)
+points to [Abyss-W4tcher/volatility3-symbols](https://github.com/Abyss-W4tcher/volatility3-symbols),
+which provides Ubuntu, Debian, Kali, AlmaLinux and Rocky Linux ISFs. As checked on
+2026-10-24, its files are served as individual GitHub release assets. Its
+[banner index](https://github.com/Abyss-W4tcher/volatility3-symbols/blob/master/banners/banners_plain.json)
+and [release mapping](https://github.com/Abyss-W4tcher/volatility3-symbols/blob/master/banners/releases.json)
+identify the relevant files. Historical raw-file URLs may no longer work.
+
+Obtain the full banner locally with the existing `banners.Banners` tool, then
+compare it exactly against a locally downloaded index. Do not send the image,
+recovered content or banner to an external search service. Check the selected
+asset's published SHA-256 digest and inspect its embedded Linux banner before
+installing the compressed `.json.xz` under the configured symbol store's `linux/`
+subdirectory. Reindex offline with the configured analyzer. Keep a local receipt
+with source URL/revision, digest and the banner; never change the ISF banner to
+force a mismatch. A matching banner is necessary, not proof that every plugin
+or kernel structure has been validated.
+
+This community collection is an additional source, not a promise of universal
+coverage and not newly redistributed in the four-pack release bundle. If there
+is no exact match, generate an ISF with official
+[dwarf2json](https://github.com/volatilityfoundation/dwarf2json) from that captured
+kernel's matching distro debug package (and System.map where available). Do not
+substitute a nearby version, another distro's build or another architecture.
+
 
 Workbench uses the same configured symbol directory and cache. Existing
 Workbench installs can use the command above from an updated core environment
