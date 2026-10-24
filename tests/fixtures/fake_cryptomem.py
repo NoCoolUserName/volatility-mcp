@@ -23,14 +23,14 @@ plugins = {
         'description': 'SYNTHETIC PsList baseline', 'plugin_version': [0, 0, 0],
         'origin': 'installed_volatility', 'options': [option('--pid', 'int', nargs='*')]},
     plugin: {
-        'description': 'SYNTHETIC CryptoMem backend contract', 'plugin_version': [0, 1, 0],
+        'description': 'SYNTHETIC CryptoMem backend contract', 'plugin_version': [0, 2, 0],
         'origin': 'installed_volatility', 'source_file': str(source), 'target_os': 'windows',
         'manual_only': True,
         'source': {'kind': 'third_party', 'label': 'NoCoolUserName/volatility3-cryptomem',
                    'url': 'https://github.com/NoCoolUserName/volatility3-cryptomem',
                    'basis': 'SYNTHETIC fixture metadata, not verified installation'},
         'options': [option('--pid', 'int', required=True),
-                    option('--currency', choices=['all', 'btc', 'eth', 'xrp']),
+                    option('--currency', choices=['all', 'btc', 'eth', 'xrp', 'xmr']),
                     option('--max-scan-bytes', 'int'), option('--max-results', 'int')]},
 }
 if any(arg.endswith('catalog.py') for arg in sys.argv):

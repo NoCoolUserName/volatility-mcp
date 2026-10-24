@@ -3,8 +3,8 @@
 CryptoMem is maintained in
 [NoCoolUserName/volatility3-cryptomem](https://github.com/NoCoolUserName/volatility3-cryptomem).
 That repository owns the detector, tests, and releases. The profile pins
-revision `d64aab3fe1a595336f51023a9a3d5d3da4678511` (CryptoMem 0.1.0). Core's compatibility
-revision 8 adds it to the existing opt-in community inventory without copying
+revision `c6ecd3999b8735588962590f0310f1785edf4d8b` (CryptoMem 0.2.0). Core's compatibility
+revision 9 adds Monero to the existing opt-in community inventory without copying
 the implementation into MCP or Workbench, adding MCP tools, or changing the XP
 addon setting. Installed CryptoMem discovery is independent of `enable_xpnet`.
 
@@ -21,6 +21,10 @@ CryptoMem uses those detection ideas as references, with a new scanner and
 standards-based format checks. It is not a compatibility port or feature-parity
 claim. It returns BTC legacy/Bech32/Bech32m, Ethereum-style, and XRP classic
 address candidates, plus a bounded subset of direct-address payment requests.
+Version 0.2.0 adds Monero standard addresses, subaddresses and integrated
+addresses, validating block Base58, type/length, mainnet/testnet/stagenet prefixes
+and Keccak checksums. Curve validity, wallet presence and activity are unverified.
+Monero URI parameters, wallet files, keys/seeds and transaction hashes are not parsed.
 ASCII and UTF-16LE matches have PID, process, layer, exact virtual offset and byte
 length. Format/checksum status is separate from interpretation. Nearby context
 or repeated occurrences do not prove wallet use, ownership, control or activity.
@@ -33,7 +37,7 @@ Unknown or unsupported formats are not evidence of absence.
 ## Install and invoke
 
 Use the configured isolated **Volatility 3 2.28.2** analyzer and Python 3.12+.
-CryptoMem needs `pycryptodome==3.23.0` for ERC-55; core's own dependencies remain
+CryptoMem needs `pycryptodome==3.23.0` for ERC-55 and Monero checksums; core's own dependencies remain
 unchanged. With clients idle:
 
 ```sh
@@ -56,7 +60,11 @@ Select a PID from actual process evidence, then call the existing tool:
 {"name":"run_plugin","arguments":{"image":"windows.raw","plugin":"windows.cryptomem.CryptoMem","arguments":["--pid","1234","--currency","all","--max-scan-bytes","67108864","--max-results","1000"]}}
 ```
 
-Currency choices are `all`, `btc`, `eth`, `xrp`. PID is required and scalar.
+Currency choices are `all`, `btc`, `eth`, `xrp`, `xmr`. PID is required and scalar.
+Use `--currency xmr` for Monero alone; `all` includes it automatically. CryptoMem
+still exposes one command, `windows.cryptomem.CryptoMem`; the command count does
+not increase. Updating the pinned profile accepts the known 0.1.0 source hashes
+while continuing to reject unrecognized local changes.
 Defaults are 67,108,864 scan bytes and 1,000 findings; hard maxima are 268,435,456
 bytes and 10,000 findings. Semantic bounds are validated by the plugin before
 scanning; existing MCP schemas validate required arguments, types and choices.
@@ -132,6 +140,13 @@ overlay or an external analyzer. Do not edit a signed bundle. No Workbench sourc
 dependency pin, bundle or installed application is changed by this MCP PR.
 
 ## Validation and licensing
+
+The 0.2.0 Monero update passed 65 standalone synthetic/format tests, six installed
+CryptoMem checks and the 119-test installed-core suite (one optional analyzer
+skip). Upgrading an isolated 0.1.0 installation retained all 237 discovered
+commands, with zero import failures and no new dependencies. This environment's
+count is distinct from the user's separately configured analyzer. No real-memory
+Monero recovery was tested.
 
 The standalone repository tests actual detectors with public vectors and
 synthetic buffers, using real Volatility layers/renderers and fake process/VAD

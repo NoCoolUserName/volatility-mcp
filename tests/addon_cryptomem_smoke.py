@@ -39,6 +39,8 @@ from volatility_mcp.json_rows import iter_rows
 
 
 BTC = b'1BoatSLRHtKNngkdXEeobR76b53LETtpyT'
+# Generated from an arbitrary bytes(range(64)) payload, not a real wallet.
+XMR = '41d7ke5VQnR2BDNSgrTE9j3X8QQ5Bnbbs4s3SMTX7y416CxUJqrTLW97YsWGEBnhxH8tnYDcX85QRAEhaAzrTSrZ89rbBUS'
 
 
 class CapturedFile(interfaces.plugins.FileHandlerInterface):
@@ -112,7 +114,7 @@ class InstalledCryptoMemTests(unittest.TestCase):
         self.assertTrue(pid['required'])
         self.assertEqual(pid['type'], 'int')
         self.assertIsNone(pid['nargs'])
-        self.assertEqual(option_spec(reqs['currency'])['choices'], ['all', 'btc', 'eth', 'xrp'])
+        self.assertEqual(option_spec(reqs['currency'])['choices'], ['all', 'btc', 'eth', 'xrp', 'xmr'])
         self.assertEqual({req.name for req in reqs.values() if option_spec(req) is not None},
                          {'pid', 'currency', 'max_scan_bytes', 'max_results'})
 
@@ -139,6 +141,23 @@ class InstalledCryptoMemTests(unittest.TestCase):
             output = Path(temporary) / 'stdout.json'
             output.write_text(json.dumps(rows))
             self.assertEqual(list(iter_rows(output)), rows)
+
+    def test_monero_filter_renderer_and_artifacts(self):
+        for currency in ('xmr', 'all'):
+            for encoding in ('ascii', 'utf-16le'):
+                with self.subTest(currency=currency, encoding=encoding):
+                    data = b'prefix ' + XMR.encode(encoding) + b' suffix'
+                    with fixture(data, currency=currency) as (plugin, layer):
+                        rows = render(plugin)
+                        self.assertEqual(layer.read(0, len(data)), data)
+                    self.assertEqual(len(rows), 1)
+                    self.assertEqual(rows[0]['Currency'], 'XMR')
+                    self.assertEqual(rows[0]['Offset'], 7)
+                    self.assertEqual(rows[0]['Validation'], 'checksum_valid')
+                    self.assertEqual(rows[0]['Format'], 'Monero-standard')
+                    exported = json.loads(CapturedFile.outputs['cryptomem-findings.jsonl'].splitlines()[0])
+                    self.assertEqual(exported['value'], XMR)
+                    self.assertEqual(summary()['completion_state'], 'complete')
 
     def test_no_match_and_invalid_parameters(self):
         with fixture(b'ordinary synthetic memory without addresses') as (plugin, _):
