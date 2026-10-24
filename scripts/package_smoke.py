@@ -36,6 +36,8 @@ from volatility_mcp.symbol_packs import bundled_source,PACKS
 bundled=bundled_source()
 assert bundled is not None and {p.name for p in bundled.glob('*.zip')}==set(PACKS)
 assert (bundled.parent/'SYMBOL_PACK_NOTICES.md').is_file()
+from volatility_mcp.linux_symbols import describe
+assert describe()['tables']==10255
 assert importlib.util.find_spec('volatility_workbench') is None
 core_dist=distribution('volatility-mcp')
 assert core_dist.metadata['License-Expression']=='MIT OR LicenseRef-Volatility-Software-License-1.0'

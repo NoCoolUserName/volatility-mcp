@@ -1,4 +1,6 @@
 """Real Volatility symbol indexing of synthetic ISFs, without memory images."""
+import base64
+import gzip
 import hashlib
 import importlib.util
 import json
@@ -15,6 +17,34 @@ spec.loader.exec_module(preparation)
 
 
 class IndexSmoke(unittest.TestCase):
+    def test_linux_community_tree_indexes_exact_banner_offline(self):
+        from volatility3 import symbols as symbol_module
+        from volatility3.framework.automagic.symbol_cache import SqliteCache
+        banner = b'Linux version 6.1.0-synthetic (test) #1 SMP test\n\x00'
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            symbols, cache = root/'symbols', root/'cache'
+            table = symbols/'linux/community/Test/amd64/test.json.xz'
+            table.parent.mkdir(parents=True)
+            isf = {'metadata': {'format': '6.2.0', 'linux': {}}, 'base_types': {},
+                   'user_types': {'task_struct': {'kind': 'struct', 'size': 8, 'fields': {}}}, 'enums': {}, 'symbols': {'linux_banner': {
+                       'address': 4096, 'constant_data': base64.b64encode(banner).decode()}}}
+            table.write_bytes(lzma.compress(json.dumps(isf).encode()))
+            catalog = root/'catalog.json.gz'
+            entry = {'path': 'Test/amd64/test.json.xz', 'banner': banner.rstrip(b'\n\x00').decode()}
+            catalog.write_bytes(gzip.compress(json.dumps({'entries': [entry]}).encode()))
+            with patch.object(symbol_module, '__path__', []), \
+                 patch('socket.create_connection', side_effect=AssertionError('No network permitted')):
+                result = preparation.index_all(symbols, cache, catalog)
+                self.assertEqual(result['verified_linux_tables'], 1)
+                entry['banner'] += ' mismatch'
+                catalog.write_bytes(gzip.compress(json.dumps({'entries': [entry]}).encode()))
+                with self.assertRaisesRegex(ValueError, 'not correctly indexed'):
+                    preparation.index_all(symbols, cache, catalog)
+            self.assertEqual(result['unique_identifiers'], {'linux': 1})
+            manager = SqliteCache(str(cache/'identifier.cache'))
+            self.assertEqual(manager.get_identifier(table.as_uri()), banner)
+
     def test_fresh_index_and_verified_duplicate_preference(self):
         from volatility3 import symbols as symbol_module
         from volatility3.framework.automagic.symbol_cache import SqliteCache

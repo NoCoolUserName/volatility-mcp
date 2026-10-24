@@ -75,3 +75,9 @@ private channel. Ordinary documentation and non-sensitive bugs can use issues.
 This small independent project has no guaranteed security-response SLA. The
 maintained scope is the current documented release; dependencies and Volatility
 itself retain their own reporting routes.
+
+Optional community Linux provisioning is an explicit operator command. It uses
+pinned asset URLs, byte counts and SHA-256 digests, validates compressed ISF
+contents and exact banners, and shares the official-pack installation lock.
+Analysis tools never invoke this downloader. The catalog and installer read no
+evidence; the larger collection stays in the configured local symbol store.
