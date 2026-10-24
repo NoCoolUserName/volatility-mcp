@@ -29,7 +29,7 @@ def build(output: Path, source: Path | None = None) -> Path:
     if destination.exists():
         raise ValueError(f'Refusing to replace an existing release wheel: {destination}')
     with tempfile.TemporaryDirectory(prefix='volatility-symbol-bundle-') as temporary:
-        stage = Path(temporary)/'source'
+        stage = Path(temporary).resolve()/'source'
         stage.mkdir()
         # Only tracked source, never this checkout's evidence, config or caches.
         for name in filter(None, files):
