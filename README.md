@@ -1,6 +1,6 @@
 # volatility-mcp
 
-*9,714 lines of code*
+*9,734 lines of code*
 
 *Last measured package: `volatility_mcp-0.1.0-py3-none-any.whl`, 216,880 bytes (0.207 MiB); built on 2026-10-23 from source revision `e1a3f47110a6d6fe13da17370e92de8c0f5bdbae`. Wheel only; dependencies and the separate Workbench app are excluded.*
 
@@ -252,6 +252,9 @@ MCP queries never install plugins.
 The profile now includes [CryptoMem](docs/CRYPTOMEM.md), an independently maintained
 cryptocurrency artifact scanner. It adds one command while retaining existing
 plugins; the exact count depends on installed optional dependencies and addons.
+CryptoMem 0.2.0 supports Monero standard/subaddress/integrated address candidates
+through `--currency xmr` or `all`, including block encoding and Keccak checksum
+checks. This update adds no further command or runtime dependency.
 Runtime addons have explicit process/address/version requirements and synthetic
 fixture coverage; discovery does not establish support across OS/runtime builds.
 
