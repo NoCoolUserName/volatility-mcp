@@ -30,6 +30,8 @@ from volatility3.framework import contexts, exceptions, interfaces
 from volatility3.framework.configuration import requirements
 from volatility3.framework.layers.physical import BufferDataLayer
 from volatility3.plugins.windows import cryptomem, pslist
+from volatility3.plugins.linux import cryptomem as linux_cryptomem
+from volatility3.plugins.linux import pslist as linux_pslist
 
 # Only core row/schema helpers come from this checkout; detector code must be
 # imported normally from the analyzer installation above.
@@ -63,7 +65,7 @@ class CapturedFile(interfaces.plugins.FileHandlerInterface):
 
 
 @contextlib.contextmanager
-def fixture(data, **config):
+def fixture(data, os_name='windows', **config):
     context = contexts.Context()
     layer = BufferDataLayer(context, 'layers.process', 'synthetic-process', data)
     context.layers.add_layer(layer)
@@ -85,8 +87,22 @@ def fixture(data, **config):
         assert kernel_module_name == module.name
         return iter([process])
 
-    with patch.object(pslist.PsList, 'list_processes', side_effect=processes):
-        plugin = cryptomem.CryptoMem(context, 'fixture')
+    with contextlib.ExitStack() as stack:
+        if os_name == 'linux':
+            process.pid = process.tgid = 42
+            process.is_kernel_thread = False
+            process.comm = 'synthetic.exe'
+            process.mm = NS(get_vma_iter=lambda: iter([NS(vm_start=0,vm_end=len(data))]))
+            def tasks(ctx, kernel, *, include_threads):
+                assert include_threads is False
+                return processes(ctx, kernel)
+            stack.enter_context(patch.object(linux_pslist.PsList, 'list_tasks', side_effect=tasks))
+            stack.enter_context(patch.object(linux_cryptomem.utility, 'array_to_string', return_value=process.comm))
+            plugin_type = linux_cryptomem.CryptoMem
+        else:
+            stack.enter_context(patch.object(pslist.PsList, 'list_processes', side_effect=processes))
+            plugin_type = cryptomem.CryptoMem
+        plugin = plugin_type(context, 'fixture')
         plugin.set_open_method(CapturedFile)
         yield plugin, layer
 
@@ -103,13 +119,21 @@ def summary():
 
 
 class InstalledCryptoMemTests(unittest.TestCase):
+    os_name = 'windows'
+    module = cryptomem
+    pslist_module = pslist
+    region = 'VAD'
+
+    def fixture(self, data, **config):
+        return fixture(data, os_name=self.os_name, **config)
+
     def test_registration_native_pslist_and_core_requirement_schema(self):
         registered = framework.list_plugins()
-        self.assertIs(registered['windows.cryptomem.CryptoMem'], cryptomem.CryptoMem)
-        self.assertIs(registered['windows.pslist.PsList'], pslist.PsList)
-        reqs = {req.name: req for req in cryptomem.CryptoMem.get_requirements()}
+        self.assertIs(registered[self.os_name + '.cryptomem.CryptoMem'], self.module.CryptoMem)
+        self.assertIs(registered[self.os_name + '.pslist.PsList'], self.pslist_module.PsList)
+        reqs = {req.name: req for req in self.module.CryptoMem.get_requirements()}
         self.assertIsInstance(reqs['kernel'], requirements.ModuleRequirement)
-        self.assertIs(reqs['pslist']._component, pslist.PsList)
+        self.assertIs(reqs['pslist']._component, self.pslist_module.PsList)
         pid = option_spec(reqs['pid'])
         self.assertTrue(pid['required'])
         self.assertEqual(pid['type'], 'int')
@@ -120,7 +144,7 @@ class InstalledCryptoMemTests(unittest.TestCase):
 
     def test_real_renderer_artifacts_offsets_and_core_row_consumption(self):
         data = b'prefix ' + BTC + b' suffix'
-        with fixture(data) as (plugin, layer):
+        with self.fixture(data) as (plugin, layer):
             original = layer.read(0, len(data))
             rows = render(plugin)
             self.assertEqual(layer.read(0, len(data)), original)
@@ -147,7 +171,7 @@ class InstalledCryptoMemTests(unittest.TestCase):
             for encoding in ('ascii', 'utf-16le'):
                 with self.subTest(currency=currency, encoding=encoding):
                     data = b'prefix ' + XMR.encode(encoding) + b' suffix'
-                    with fixture(data, currency=currency) as (plugin, layer):
+                    with self.fixture(data, currency=currency) as (plugin, layer):
                         rows = render(plugin)
                         self.assertEqual(layer.read(0, len(data)), data)
                     self.assertEqual(len(rows), 1)
@@ -160,25 +184,25 @@ class InstalledCryptoMemTests(unittest.TestCase):
                     self.assertEqual(summary()['completion_state'], 'complete')
 
     def test_no_match_and_invalid_parameters(self):
-        with fixture(b'ordinary synthetic memory without addresses') as (plugin, _):
+        with self.fixture(b'ordinary synthetic memory without addresses') as (plugin, _):
             self.assertEqual(render(plugin), [])
         self.assertEqual(summary()['completion_state'], 'complete')
-        self.assertIn('Selected process VADs only', summary()['scope'])
+        self.assertIn(f'Selected process {self.region}s only', summary()['scope'])
         for config in ({'pid': 0}, {'pid': [42]}, {'currency': 'doge'},
                        {'max_scan_bytes': 0}, {'max_results': 10001}):
             with self.subTest(config=config), self.assertRaises(
                     (ValueError, exceptions.PluginRequirementException)):
-                with fixture(b'synthetic memory', **config):
+                with self.fixture(b'synthetic memory', **config):
                     self.fail('Invalid plugin configuration was accepted')
 
     def test_short_reads_and_limits_leave_incomplete_artifacts(self):
-        with fixture(b' ' + BTC + b' ') as (plugin, layer):
+        with self.fixture(b' ' + BTC + b' ') as (plugin, layer):
             with patch.object(layer, 'read', return_value=b''):
                 with self.assertRaisesRegex(cryptomem.ScanIncomplete, 'Short memory read'):
                     render(plugin)
         self.assertEqual(summary()['completion_state'], 'incomplete')
         self.assertEqual(summary()['bytes_evaluated'], 0)
-        with fixture(b' ' + BTC + b' ' + BTC + b' ', max_results=1) as (plugin, _):
+        with self.fixture(b' ' + BTC + b' ' + BTC + b' ', max_results=1) as (plugin, _):
             with self.assertRaisesRegex(cryptomem.ScanIncomplete, 'Result limit'):
                 render(plugin)
         self.assertEqual(summary()['completion_state'], 'incomplete')
@@ -187,13 +211,20 @@ class InstalledCryptoMemTests(unittest.TestCase):
     def test_missing_keccak_fails_selected_eth_before_empty_success(self):
         missing = {'Crypto': None, 'Crypto.Hash': None, 'Crypto.Hash.keccak': None}
         with patch.dict(sys.modules, missing):
-            with fixture(b'ordinary memory', currency='eth') as (plugin, _):
+            with self.fixture(b'ordinary memory', currency='eth') as (plugin, _):
                 with self.assertRaisesRegex(ImportError, 'pycryptodome'):
                     render(plugin)
             self.assertEqual(summary()['completion_state'], 'incomplete')
-            with fixture(b' ' + BTC + b' ', currency='btc') as (plugin, _):
+            with self.fixture(b' ' + BTC + b' ', currency='btc') as (plugin, _):
                 self.assertEqual(len(render(plugin)), 1)
         self.assertEqual(summary()['completion_state'], 'complete')
+
+
+class InstalledLinuxCryptoMemTests(InstalledCryptoMemTests):
+    os_name = 'linux'
+    module = linux_cryptomem
+    pslist_module = linux_pslist
+    region = 'VMA'
 
 
 if __name__ == '__main__':

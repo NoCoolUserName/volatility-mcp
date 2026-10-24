@@ -24,6 +24,7 @@ ADDRESS = '1BoatSLRHtKNngkdXEeobR76b53LETtpyT'
 
 
 class CryptoMemBackendTests(unittest.TestCase):
+    PLUGIN = PLUGIN
     def setUp(self):
         self.fixture = test_backend.BackendTests()
         self.fixture.setUp()
@@ -38,7 +39,7 @@ class CryptoMemBackendTests(unittest.TestCase):
     def run_crypto(self, mode=None, arguments=None, **kwargs):
         if mode is not None:
             self.image.write_text(mode)
-        return self.backend.run_plugin('example.raw', PLUGIN,
+        return self.backend.run_plugin('example.raw', self.PLUGIN,
             arguments if arguments is not None else ['--pid', '42'], **kwargs)
 
     def count(self):
@@ -49,24 +50,24 @@ class CryptoMemBackendTests(unittest.TestCase):
         without_xp = self.backend.list_plugins()
         with_xp = VolatilityBackend(replace(self.config, enable_xpnet=True)).list_plugins()
         names = lambda catalog: {p['name'] for p in catalog['plugins']}
-        self.assertEqual(names(without_xp), {PLUGIN, 'windows.pslist.PsList'})
+        self.assertEqual(names(without_xp), {'windows.cryptomem.CryptoMem', 'linux.cryptomem.CryptoMem', 'windows.pslist.PsList'})
         self.assertEqual(names(with_xp) - names(without_xp), {'xpnet.XpNetScan'})
-        item = self.backend.list_plugins(PLUGIN)['plugins'][0]
+        item = self.backend.list_plugins(self.PLUGIN)['plugins'][0]
         self.assertTrue(item['manual_only'])
         self.assertEqual(item['origin'], 'installed_volatility')
         self.assertEqual(item['source']['kind'], 'third_party')
-        self.assertIn(PLUGIN, OFFLINE_ADDONS)
+        self.assertIn(self.PLUGIN, OFFLINE_ADDONS)
         self.assertEqual(self.count(), 0)
 
     def test_profile_registers_pinned_independent_source_and_manual_selection(self):
         profile = addons.profile()
-        sources = [source for source in profile['sources'] if PLUGIN in source['plugins']]
+        sources = [source for source in profile['sources'] if self.PLUGIN in source['plugins']]
         self.assertEqual(len(sources), 1)
         self.assertEqual(sources[0]['repository'], 'NoCoolUserName/volatility3-cryptomem')
         self.assertRegex(sources[0]['commit'], r'^[0-9a-f]{40}$')
         self.assertNotEqual(sources[0]['commit'], '0' * 40)
-        self.assertIn(PLUGIN, profile['manual_only_plugins'])
-        self.assertIn(PLUGIN, profile['offline_plugins'])
+        self.assertIn(self.PLUGIN, profile['manual_only_plugins'])
+        self.assertIn(self.PLUGIN, profile['offline_plugins'])
         self.assertIn('windows/cryptomem.py', {item['target'] for item in sources[0]['files']})
         for item in sources[0]['files']:
             self.assertRegex(item['sha256'], r'^[0-9a-f]{64}$')
@@ -79,7 +80,7 @@ class CryptoMemBackendTests(unittest.TestCase):
             self.assertNotEqual(notice['sha256'], '0' * 64)
 
     def test_parameters_are_typed_required_scalar_and_confined(self):
-        validate = lambda args: self.backend.validate_arguments(PLUGIN, args)
+        validate = lambda args: self.backend.validate_arguments(self.PLUGIN, args)
         valid = ['--pid', '0x2a', '--currency', 'btc', '--max-scan-bytes', '65536',
                  '--max-results', '10']
         self.assertEqual(validate(valid), valid)
@@ -151,7 +152,7 @@ class CryptoMemBackendTests(unittest.TestCase):
         query = self.backend.query_output('example.raw', result['run_id'], 'json/stdout.json')
         self.assertEqual(query['result_state'], 'successful_empty')
         self.assertTrue(self.run_crypto()['reused'])
-        for mode, message in [('corrupt', 'layer_name'), ('dependency', 'Crypto.Hash.keccak'),
+        for mode, message in [('corrupt', 'layer_name'), ('symbols', 'symbol_table_name'), ('incomplete', 'Unreadable'), ('dependency', 'Crypto.Hash.keccak'),
                               ('unsupported', 'unsupported memory layer')]:
             with self.subTest(mode=mode):
                 result = self.run_crypto(mode)
@@ -168,7 +169,7 @@ class CryptoMemBackendTests(unittest.TestCase):
     def test_missing_dependency_discovery_remains_actionable_and_pslist_works(self):
         (self.root / 'missing-dependency').write_text('SYNTHETIC missing dependency')
         catalog = self.backend.list_plugins(refresh=True)
-        self.assertNotIn(PLUGIN, {p['name'] for p in catalog['plugins']})
+        self.assertNotIn(self.PLUGIN, {p['name'] for p in catalog['plugins']})
         self.assertIn('volatility3.plugins.windows.cryptomem', catalog['import_failures'])
         with self.assertRaisesRegex(EvidenceError, 'Unknown plugin'):
             self.run_crypto()
@@ -209,14 +210,14 @@ class CryptoMemBackendTests(unittest.TestCase):
         first = self.run_crypto()
         other = self.fixture.evidence / 'other.raw'
         other.write_bytes(self.image.read_bytes())
-        second = self.backend.run_plugin('other.raw', PLUGIN, ['--pid', '42'])
+        second = self.backend.run_plugin('other.raw', self.PLUGIN, ['--pid', '42'])
         self.assertNotEqual(first['case_output_directory'], second['case_output_directory'])
         self.assertFalse(second['reused'])
         with self.assertRaises(EvidenceError):
             self.backend.query_output('other.raw', first['run_id'], 'json/stdout.json')
         scoped = CaseBackend(self.config, [str(other)])
         with self.assertRaisesRegex(EvidenceError, 'not registered'):
-            scoped.run_plugin('example.raw', PLUGIN, ['--pid', '42'])
+            scoped.run_plugin('example.raw', self.PLUGIN, ['--pid', '42'])
         reference = self.backend.query_output('example.raw', first['run_id'],
                                               'json/stdout.json')['rows'][0]['reference']
         with self.assertRaisesRegex(EvidenceError, 'not registered'):
@@ -224,7 +225,7 @@ class CryptoMemBackendTests(unittest.TestCase):
         with self.assertRaises(EvidenceError):
             self.backend.read_output(str(self.image))
         with self.assertRaises(EvidenceError):
-            self.backend.run_plugin('../outside.raw', PLUGIN, ['--pid', '42'])
+            self.backend.run_plugin('../outside.raw', self.PLUGIN, ['--pid', '42'])
         changed = self.run_crypto('mutate')
         self.assertEqual(changed['status'], 'evidence_changed')
         self.assertFalse(changed['integrity_verified'])
@@ -243,6 +244,10 @@ class CryptoMemBackendTests(unittest.TestCase):
         Path(updated['json_artifact']).write_text('[]')
         self.assertFalse(self.run_crypto()['reused'])
         self.assertEqual(self.count(), 4)
+
+
+class LinuxCryptoMemBackendTests(CryptoMemBackendTests):
+    PLUGIN = 'linux.cryptomem.CryptoMem'
 
 
 if __name__ == '__main__':
