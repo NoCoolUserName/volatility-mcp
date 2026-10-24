@@ -29,6 +29,7 @@ distributor wants different terms, such as withholding source for covered Additi
 | Original tests, scripts, examples, prompts, documentation and project configuration | Both VSL 1.0 and MIT, excluding separately attributed third-party material. |
 | Separately installed Volatility 3 and official plugins | Their upstream VSL and notices; not relicensed by this project. |
 | Downloaded community plugins and third-party dependencies | Their respective upstream licenses; project grants do not replace them. |
+| Official symbol packs in the full release wheel | Unmodified Volatility Foundation test-data v0.0.1 ZIPs under its stated VSL 1.0; retain [symbol notices](src/volatility_mcp/resources/SYMBOL_PACK_NOTICES.md), license and editable JSON data. Not covered by the project MIT grant. |
 
 ## Distributing a build
 
