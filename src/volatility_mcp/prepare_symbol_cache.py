@@ -18,6 +18,7 @@ from pathlib import Path
 import platform
 import sqlite3
 import sys
+import zipfile
 
 
 RELATIVE_ISF = Path("windows/ntkrnlpa.pdb/BD8F451F3E754ED8A34B50560CEB08E3-1.json.xz")
@@ -89,7 +90,15 @@ def prepare(symbols_path: Path, cache_path: Path) -> dict:
         )
     selected_uri = manager.find_location(identifier, "windows")
     if selected_uri != preferred_uri:
-        raise ValueError(f"Cache did not select the verified full typed ISF: selected {selected_uri!r}.")
+        # The complete official pack contains the same typed XP table. Permit
+        # only this exact local duplicate, with the same reviewed byte hash.
+        archive = symbols_path / 'windows.zip'
+        duplicate_uri = f'jar:file:{archive}!{RELATIVE_ISF.as_posix()}'
+        if selected_uri != duplicate_uri or archive.is_symlink():
+            raise ValueError(f"Cache did not select the verified full typed ISF: selected {selected_uri!r}.")
+        with zipfile.ZipFile(archive) as packed:
+            if hashlib.sha256(packed.read(RELATIVE_ISF.as_posix())).hexdigest() != EXPECTED_SHA256:
+                raise ValueError('Official-pack XP duplicate differs from the verified typed ISF.')
     # Assert the policy has never changed the supplemental file bytes.
     if hashlib.sha256(isf_path.read_bytes()).hexdigest() != EXPECTED_SHA256:
         raise ValueError("Supplemental ISF changed during cache preparation.")
@@ -127,13 +136,42 @@ def prepare(symbols_path: Path, cache_path: Path) -> dict:
     return result
 
 
+def index_all(symbols_path: Path, cache_path: Path) -> dict:
+    """Explicit setup-time, offline indexing; never opens a memory image."""
+    for path in (symbols_path, cache_path):
+        if not path.is_absolute():
+            raise ValueError('Symbol/cache paths must be absolute.')
+        for current in (path, *path.parents):
+            if current.is_symlink():
+                raise ValueError('Symbol/cache paths must not contain symlinks.')
+    from volatility3 import symbols
+    from volatility3.framework import constants
+    from volatility3.framework.automagic.symbol_cache import SqliteCache
+    constants.OFFLINE = True
+    constants.CACHE_PATH = str(cache_path)
+    symbols.__path__ = [str(symbols_path)] + [p for p in symbols.__path__ if p != str(symbols_path)]
+    cache_path.mkdir(mode=0o700, parents=True, exist_ok=True)
+    database = cache_path / constants.IDENTIFIERS_FILENAME
+    if database.is_symlink():
+        raise ValueError('Symbol database must not be a symlink.')
+    manager = SqliteCache(str(database))
+    manager.update(progress_callback=lambda *args, **kwargs: None)
+    with sqlite3.connect(database) as connection:
+        counts = connection.execute(
+            'SELECT operating_system, COUNT(DISTINCT identifier) FROM cache '
+            'WHERE operating_system IS NOT NULL GROUP BY operating_system'
+        ).fetchall()
+    return {'unique_identifiers': dict(counts), 'preference': prepare(symbols_path, cache_path)}
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("symbols_path", type=Path)
     parser.add_argument("cache_path", type=Path)
+    parser.add_argument('--index-all', action='store_true', help='Index all local tables offline during explicit setup')
     args = parser.parse_args()
     try:
-        result = prepare(args.symbols_path, args.cache_path)
+        result = (index_all if args.index_all else prepare)(args.symbols_path, args.cache_path)
     except Exception as exc:
         print(f"Cannot prepare supplemental symbol cache: {exc}", file=sys.stderr)
         return 1

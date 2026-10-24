@@ -16,6 +16,7 @@ applications must reject unsupported revisions before opening case state.
 | `check_bundle`, `check_citation`, `source_identity`, `report_spec()` | Headless report/citation validation and the installed authoritative contract |
 | `snapshot`, `set_plan`, `job_view`, `request_failures`, `report_summary` | Reusable coverage projection and deterministic summaries |
 | `utc_now`, `timestamped_id` | Existing metadata timestamps and unique identifiers |
+| `symbol_pack_config`, `install_symbol_packs` | Operator-driven official symbol provisioning; see [SYMBOLS.md](SYMBOLS.md) |
 
 Backend public method signatures and MCP contracts remain documented in README,
 SAVED_EVIDENCE, RESULT_REUSE, ARTIFACT_INSPECTION, and COVERAGE_EVALUATION. Private

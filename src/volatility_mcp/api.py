@@ -11,6 +11,7 @@ from .reporting import check_bundle, check_citation
 from .saved_evidence import source_identity
 from .coverage import snapshot, set_plan, job_view, request_failures, report_summary
 from .timestamps import utc_now, timestamped_id
+from .symbol_packs import install as install_symbol_packs, configured as symbol_pack_config
 
 API_VERSION = 1
 

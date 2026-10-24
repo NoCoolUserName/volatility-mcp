@@ -30,7 +30,7 @@ jobs:
           python -c 'import json; print("\n".join(json.load(open("src/volatility_mcp/resources/addons.json"))["dependencies"]))' > "$RUNNER_TEMP/addon-constraints.txt"
           python -m venv "$RUNNER_TEMP/analyzer"
           "$RUNNER_TEMP/analyzer/bin/python" -m pip install -c "$RUNNER_TEMP/addon-constraints.txt" 'volatility3[full]==2.28.2'
-          python -m volatility_mcp setup --config "$RUNNER_TEMP/addons.json" --vol-python "$RUNNER_TEMP/analyzer/bin/python" --vol "$RUNNER_TEMP/analyzer/bin/vol" --evidence-root "$RUNNER_TEMP/evidence" --output-root "$RUNNER_TEMP/outputs" --cache-path "$RUNNER_TEMP/symbol-cache"
+          python -m volatility_mcp setup --symbol-packs none --config "$RUNNER_TEMP/addons.json" --vol-python "$RUNNER_TEMP/analyzer/bin/python" --vol "$RUNNER_TEMP/analyzer/bin/vol" --evidence-root "$RUNNER_TEMP/evidence" --output-root "$RUNNER_TEMP/outputs" --cache-path "$RUNNER_TEMP/symbol-cache"
       - run: python -m volatility_mcp plugins-install --config "$RUNNER_TEMP/addons.json"
       - run: '"$RUNNER_TEMP/analyzer/bin/python" tests/addon_runtime_smoke.py'
       - run: '"$RUNNER_TEMP/analyzer/bin/python" tests/addon_first_batch_smoke.py -v'
@@ -39,6 +39,7 @@ jobs:
       - run: '"$RUNNER_TEMP/analyzer/bin/python" tests/addon_go_smoke.py -v'
       - run: '"$RUNNER_TEMP/analyzer/bin/python" tests/addon_python_runtime_smoke.py -v'
       - run: '"$RUNNER_TEMP/analyzer/bin/python" tests/addon_cryptomem_smoke.py -v'
+      - run: '"$RUNNER_TEMP/analyzer/bin/python" tests/symbol_packs_smoke.py -v'
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 10

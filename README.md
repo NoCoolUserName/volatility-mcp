@@ -1,6 +1,6 @@
 # volatility-mcp
 
-*9,734 lines of code*
+*10,155 lines of code*
 
 *Last measured package: `volatility_mcp-0.1.0-py3-none-any.whl`, 216,880 bytes (0.207 MiB); built on 2026-10-23 from source revision `e1a3f47110a6d6fe13da17370e92de8c0f5bdbae`. Wheel only; dependencies and the separate Workbench app are excluded.*
 
@@ -71,6 +71,16 @@ For a new installation, replace the two `--vol-*` options above with
 PyPI in a separate environment; it does not add Volatility to the MCP environment.
 Use `setup --help` for an alternate Volatility environment location. Setup is
 idempotent: a suitable installation is reused, and existing evidence is retained.
+
+Setup also downloads and verifies the pinned official Windows, macOS, and Linux
+symbol packs (about 885 MiB) and builds their local index. No manual symbol-link
+hunting is needed. Use `--symbol-packs windows` for the Windows packs only, or
+`--symbol-packs none` for offline/custom provisioning. Existing installations can
+run `python -m volatility_mcp symbols-install --config /path/to/config.json`.
+The downloads stay in local data storage, outside Git and the wheel; ordinary MCP
+startup and analysis never trigger this bulk installer. These representative packs
+do not cover every OS build. See [symbol setup](docs/SYMBOLS.md) for offline use,
+exact-match limitations, and recovery after interrupted setup.
 
 Put `.raw`, `.mem`, `.vmem`, `.dmp`, `.lime`, or `.dd` acquisitions in the evidence
 root, optionally in case subfolders. These are accepted filename extensions,
