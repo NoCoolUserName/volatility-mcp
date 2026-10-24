@@ -246,3 +246,13 @@ The detector needs `pycryptodome==3.23.0`; no new core runtime dependency or MCP
 is introduced. Source and license hashes pin the independent release without an
 adapter. See [CRYPTOMEM.md](CRYPTOMEM.md) for installation, examples, limitations,
 synthetic validation and Workbench adoption.
+
+## CryptoMem Linux adapter (compatibility revision 10)
+
+The pinned CryptoMem 0.3.0 prerelease provides Windows and Linux x86-64 commands
+through the existing tools. Linux uses process TGIDs and matching captured-kernel
+symbols. Other Linux architectures are unsupported until tested; real-memory
+Linux validation remains outstanding. Both commands are manual-only and forced
+offline regardless of the XP addon setting. The installer includes unchanged
+standalone helpers and retains source/license hashes. See [CRYPTOMEM.md](CRYPTOMEM.md)
+for invocation, limits, upgrade and Workbench backend pin/repackaging steps.

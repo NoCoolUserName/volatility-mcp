@@ -1,8 +1,13 @@
 # volatility-mcp
 
-*10,486 lines of code*
+*10,673 lines of code*
 
 *Last measured package: `volatility_mcp-0.1.1-py3-none-any.whl`, 928,541,130 bytes (885.53 MiB); built on 2026-10-23 from source revision `393b49b6bc7534a3ac5363c5b9c3748030ef7d26`. Full wheel including four official symbol packs; dependencies and the separate Workbench app are excluded.*
+
+The optional CryptoMem profile now includes Linux x86-64 memory-image analysis
+alongside Windows. Use matching captured-kernel symbols; other Linux architectures
+and real-memory Linux validation remain outstanding. See [CryptoMem setup and
+validation](docs/CRYPTOMEM.md). The standalone server still exposes ten MCP tools.
 
 Original project code is available under MIT and the Volatility Software License 1.0. Integrated Volatility distributions follow VSL's source and notice requirements; see [LICENSING.md](LICENSING.md) for the component map and release steps.
 
