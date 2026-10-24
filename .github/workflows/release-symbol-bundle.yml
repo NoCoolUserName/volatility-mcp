@@ -1,0 +1,85 @@
+name: Publish bundled symbols
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-symbol-bundle
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements.lock.txt
+      - name: Build and verify the full wheel from committed source
+        run: python scripts/build_symbol_bundle.py --output-dir "$RUNNER_TEMP/release"
+      - name: Upload verified assets and publish draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/release"
+          tag="v$(jq -r .core_version symbol-bundle.json)"
+          revision="$(jq -r .source_revision symbol-bundle.json)"
+          test "$revision" = "$GITHUB_SHA"
+          gh api --paginate "repos/$GH_REPO/releases" --jq '.[]' | jq -s --arg tag "$tag" 'map(select(.tag_name == $tag))[0] // null' > release.json
+          if test "$(jq -r .id release.json)" = null; then
+            gh api --method POST "repos/$GH_REPO/releases" -f tag_name="$tag" -f target_commitish="$revision" -F draft=true > release.json
+          fi
+          # Published assets are immutable: only our unfinished draft may be resumed.
+          test "$(jq -r .draft release.json)" = true
+          release_id="$(jq -r .id release.json)"
+          for file in *.whl SHA256SUMS symbol-bundle.json; do
+            old_id="$(jq -r --arg name "$file" '.assets[] | select(.name == $name) | .id' release.json)"
+            if test -n "$old_id"; then
+              gh api --method DELETE "repos/$GH_REPO/releases/assets/$old_id"
+            fi
+            gh api --method POST "https://uploads.github.com/repos/$GH_REPO/releases/$release_id/assets?name=$file" -H 'Content-Type: application/octet-stream' --input "$file" > asset.json
+            expected="$(sha256sum "$file" | cut -d ' ' -f 1)"
+            test "$(jq -r .state asset.json)" = uploaded
+            test "$(jq -r .digest asset.json)" = "sha256:$expected"
+          done
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          manifest = json.loads(Path('symbol-bundle.json').read_text())
+          wheel = next(Path('.').glob('*.whl'))
+          size = wheel.stat().st_size
+          notes = (
+              f"Full MCP wheel with all four pinned official symbol packs included. "
+              f"Normal setup installs symbols from the package; no separate symbol download is needed.\n\n"
+              f"Download `{wheel.name}` ({size:,} bytes; {size / 1048576:.2f} MiB), "
+              f"verify against `SHA256SUMS`, then install with `python -m pip install /path/to/{wheel.name}`. "
+              f"Python 3.12+, Python dependencies and a configured Volatility analyzer are still required. "
+              f"GitHub's Source code archives do not contain the symbol packs.\n\n"
+              f"Pack hashes, upstream URLs and source revision are in `symbol-bundle.json`. "
+              f"The unchanged symbol packs retain their Volatility Software License notices. "
+              f"These are snapshots, not symbols for every kernel; unmatched images may need additional symbols. "
+              f"Existing packaged Workbench apps are not replaced by installing this standalone server.\n\n"
+              f"Source: `{manifest['source_revision']}`. Each embedded pack and each uploaded asset is SHA-256 verified. "
+              f"The bundle integration was tested with actual offline symbol installation/indexing and synthetic tests; "
+              f"no real-memory recovery validation is claimed.\n"
+          )
+          Path('publish.json').write_text(json.dumps({
+              'name': f"MCP {manifest['core_version']} — symbols included",
+              'body': notes, 'target_commitish': manifest['source_revision'],
+              'draft': False, 'make_latest': 'true',
+          }))
+          PY
+          gh api --method PATCH "repos/$GH_REPO/releases/$release_id" --input publish.json --jq .html_url
