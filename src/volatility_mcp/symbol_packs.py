@@ -29,6 +29,19 @@ PACKS = {
     'linux.zip': (2980184, '58bb7da2ed1e491ce922d04a59881d201e233b5605c9fd5a7f0c08ee528253c6'),
 }
 HOSTS = {'github.com', 'release-assets.githubusercontent.com', 'objects.githubusercontent.com'}
+BUNDLED_DIR = Path(__file__).parent / 'resources' / 'symbol-packs'
+
+
+def bundled_source() -> Path | None:
+    """Release wheels contain the packs; incomplete bundles fail closed."""
+    marker = BUNDLED_DIR.parent / 'symbol-bundle.json'
+    if not BUNDLED_DIR.exists() and not marker.exists():
+        return None
+    _safe(BUNDLED_DIR)
+    _safe(marker)
+    if not BUNDLED_DIR.is_dir() or not marker.is_file():
+        raise ConfigurationError('Incomplete bundled symbols; reinstall the full release wheel.')
+    return BUNDLED_DIR
 
 
 def _https(url: str) -> None:
@@ -110,6 +123,10 @@ def install(config: Config, packs: str = 'all', source_dir: Path | None = None) 
     """
     if packs not in ('windows', 'all'):
         raise ConfigurationError('Symbol packs must be windows or all.')
+    bundled = False
+    if source_dir is None:
+        source_dir = bundled_source()
+        bundled = source_dir is not None
     config = configured(config)
     root = config.symbols
     assert root is not None
@@ -165,7 +182,7 @@ def install(config: Config, packs: str = 'all', source_dir: Path | None = None) 
         if result.returncode:
             raise ConfigurationError(f'Symbol indexing failed; verified packs remain available. Retry symbols-install. {result.stderr[-2000:]}')
         receipt = {'status': 'ready', 'verified_at': utc_now(), 'symbols': str(root), 'checksum_source': CHECKSUM_SOURCE,
-                   'acquisition': 'local_source' if source_dir is not None else 'official_https',
+                   'acquisition': 'bundled' if bundled else ('local_source' if source_dir is not None else 'official_https'),
                    'packs': records, 'index': json.loads(result.stdout),
                    'scope': 'Representative official packs, not exhaustive OS/build support; no evidence was read or uploaded.'}
         audit = root / 'official-symbol-packs.receipt.txt'

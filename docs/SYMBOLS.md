@@ -1,9 +1,12 @@
 # Symbol setup
 
-Normal `volatility-mcp setup` provisions all four pinned official Volatility
-Foundation packs and indexes them using the configured analyzer. The total
-download is 928,304,944 bytes (about 885 MiB); indexing can take several minutes.
-This is setup-time acquisition, not data bundled in the repository or wheel.
+The full release wheel includes all four pinned official Volatility Foundation
+packs: 928,304,944 bytes of original ZIPs (about 885 MiB). Normal `setup` verifies
+and copies these bundled files into the configured writable symbol store, then
+indexes them using the analyzer. No separate symbol download is needed.
+Allow space for the installed bundle and working copy; indexing takes several minutes.
+Source/development installs without a bundle retain the verified download fallback.
+The release asset contains the data; GitHub's automatic Source code ZIP does not.
 There is no new MCP tool and no bulk download during server startup or analysis.
 
 For an existing installation, while analysis is idle:
@@ -28,7 +31,10 @@ Files are verified before atomic publication. Existing mismatched files are
 refused rather than overwritten. Preserve/move an operator-modified pack before
 retrying. ZIP contents are not extracted or executed. A local receipt records
 sources, hashes, and index results. Symbols remain upstream data with their
-applicable upstream rights; this project does not relicense or redistribute packs.
+applicable upstream rights. The full release redistributes the unchanged packs
+under the upstream VSL notice, retained in `resources/SYMBOL_PACK_NOTICES.md`, with
+the license text and corresponding source/pack provenance. An incomplete or corrupt
+installed bundle fails rather than falling back to the network.
 
 Rerunning verifies/reuses complete packs. Interrupted transfers leave no active
 partial ZIP; a later indexing failure leaves verified packs available for retry.
@@ -61,3 +67,20 @@ configuration after successful installation and run only while analysis is idle.
 Automated tests use tiny synthetic archives and ISFs with mocked downloads plus
 real Volatility indexing in the analyzer CI job. No private images or live symbol
 downloads are required by tests.
+
+## Building a full release
+
+From a clean committed checkout with the server build dependencies installed:
+
+```sh
+python scripts/build_symbol_bundle.py --output-dir /path/to/release
+```
+
+The builder acquires the fixed upstream packs once, verifies them, and includes
+them in the wheel with notices and `symbol-bundle.json`. To build without symbol
+downloads, add `--symbol-source /path/to/verified-packs`. Only tracked project
+files enter the build; private evidence, configuration and caches are excluded.
+The script verifies embedded pack hashes and writes wheel `SHA256SUMS` and an
+external provenance manifest. Publish the full wheel, checksums and manifest as
+release assets, with the exact source revision publicly available. Do not publish
+the tiny fixture wheel used by `package_smoke.py` as a release.

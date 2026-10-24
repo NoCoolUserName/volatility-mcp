@@ -1,6 +1,6 @@
 # volatility-mcp
 
-*10,174 lines of code*
+*10,308 lines of code*
 
 *Last measured package: `volatility_mcp-0.1.0-py3-none-any.whl`, 216,880 bytes (0.207 MiB); built on 2026-10-23 from source revision `e1a3f47110a6d6fe13da17370e92de8c0f5bdbae`. Wheel only; dependencies and the separate Workbench app are excluded.*
 
@@ -26,7 +26,7 @@ OpenAI, or Dragos. Original project material retains its MIT grant and is also o
 
 ### Prerequisites
 
-- Python 3.12 or newer, Git, and a local MCP client that supports stdio.
+- Python 3.12 or newer and a local MCP client that supports stdio. Git is needed only for source development.
 - Official [Volatility 3](https://github.com/volatilityfoundation/volatility3),
   installed separately. Setup can reuse an existing installation or create one.
 - Enough storage for the image, complete outputs, symbol cache, and optional dumps.
@@ -39,15 +39,21 @@ support is unverified; Windows hosts are currently unsupported because process
 management uses POSIX primitives. A plugin importing successfully does
 not establish support for every guest OS, symbol set, or image.
 
-Clone this repository using its GitHub **Code** URL, enter the clone directory,
-then create the server environment:
+Download the **full release wheel** from [Releases](https://github.com/NoCoolUserName/volatility-mcp/releases/latest).
+It includes the four official symbol packs, so no separate symbol download is
+needed. Create the server environment and install that file:
 
 ```sh
 python3 -c 'import platform, sys; print(sys.executable, platform.machine())'
 python3 -m venv .venv
-.venv/bin/python -m pip install -r requirements.lock.txt
-.venv/bin/python -m pip install --no-deps -e .
+.venv/bin/python -m pip install /path/to/volatility_mcp-0.1.1-py3-none-any.whl
 ```
+
+Python dependencies and the separately installed Volatility analyzer are still
+prerequisites; this wheel bundles symbol data, not an entire Python runtime.
+For source development, clone the repository, install `requirements.lock.txt`,
+then run `pip install --no-deps -e .` inside the server environment. GitHub's
+automatic **Source code** archives do not contain the large symbol ZIPs.
 
 On Apple silicon the architecture must be `arm64`. If Python is missing or
 running through Rosetta, install a suitable native build from
@@ -72,13 +78,15 @@ PyPI in a separate environment; it does not add Volatility to the MCP environmen
 Use `setup --help` for an alternate Volatility environment location. Setup is
 idempotent: a suitable installation is reused, and existing evidence is retained.
 
-Setup also downloads and verifies the pinned official Windows, macOS, and Linux
-symbol packs (about 885 MiB) and builds their local index. No manual symbol-link
-hunting is needed. Use `--symbol-packs windows` for the Windows packs only, or
+Setup verifies the included official Windows, macOS, and Linux symbol packs
+(about 885 MiB), copies them to local writable storage, and builds their index
+without downloading them. Allow room for both the installed bundle and working
+copy. Use `--symbol-packs windows` for the Windows packs only, or
 `--symbol-packs none` for offline/custom provisioning. Existing installations can
 run `python -m volatility_mcp symbols-install --config /path/to/config.json`.
-The downloads stay in local data storage, outside Git and the wheel; ordinary MCP
-startup and analysis never trigger this bulk installer. These representative packs
+Source/development installs without bundled data retain the verified download
+fallback. An incomplete/corrupt bundle fails rather than silently downloading a
+replacement. Ordinary MCP startup and analysis never trigger bulk installation. These representative packs
 do not cover every OS build. See [symbol setup](docs/SYMBOLS.md) for offline use,
 exact-match limitations, and recovery after interrupted setup.
 
