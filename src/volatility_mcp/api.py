@@ -13,6 +13,8 @@ from .coverage import snapshot, set_plan, job_view, request_failures, report_sum
 from .timestamps import utc_now, timestamped_id
 from .symbol_packs import install as install_symbol_packs, configured as symbol_pack_config
 
+from .linux_symbols import install as install_linux_symbols, describe as linux_symbol_catalog
+
 API_VERSION = 1
 
 def report_spec():

@@ -588,3 +588,12 @@ Workbench installed. The initial build-dependency download failed on PyPI DNS;
 the successful run used the existing local pinned wheelhouse with indexes
 disabled and the already installed build backend. Runtime source was unchanged
 between the focused and final installed-package checks.
+
+Core 0.1.2's expanded Linux symbol provisioning has ten synthetic tests covering
+exact selection, packaged catalog integrity, corrupted contents/hashes, 32-bit
+rejection, size bounds, symlink/lock/overlap refusal, interruption, indexing
+failure/timeout, resumability and CLI configuration. The installed analyzer's
+symbol smoke test additionally indexes a synthetic Linux ISF from the community
+directory layout with network connections blocked. The full core suite passed
+166 tests (one optional skip) on Python 3.12.13. Public symbol download checks
+validate symbol data only; they do not constitute real-memory CryptoMem testing.
