@@ -96,7 +96,7 @@ class ConfigAndSetupTests(unittest.TestCase):
     def test_setup_reuses_existing_config_without_install(self):
         path = self.root / "config.json"
         cli.write_config(path, Config(**self.values))
-        args = cli.parser().parse_args(["setup", "--config", str(path)])
+        args = cli.parser().parse_args(["setup", "--config", str(path), '--symbol-packs', 'none'])
         with patch.object(cli, "validate_vol", return_value={"architecture": "arm64"}), \
              patch.object(cli, "install_volatility") as install:
             outcome = cli.setup(args)

@@ -123,7 +123,7 @@ class RegistrationTests(unittest.TestCase):
         cli.write_config(config, Config(**values))
         values["evidence_root"].mkdir(mode=0o755)
         values["evidence_root"].chmod(0o755)
-        args = cli.parser().parse_args(["setup", "--config", str(config)])
+        args = cli.parser().parse_args(["setup", "--config", str(config), '--symbol-packs', 'none'])
         with patch.object(cli, "validate_vol", return_value={}):
             cli.setup(args)
         self.assertEqual(values["output_root"].stat().st_mode & 0o777, 0o700)

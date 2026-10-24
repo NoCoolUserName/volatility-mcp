@@ -149,13 +149,29 @@ def setup(args: argparse.Namespace) -> dict:
     values.setdefault("evidence_root", str(Path.home() / "Forensics" / "cases"))
     values.setdefault("output_root", str(Path.home() / "Forensics" / "outputs"))
     config = Config.from_dict(values)
+    if args.symbol_packs != 'none':
+        from .symbol_packs import configured
+        config = configured(config)
     info = validate_vol(config)
     for root in (config.evidence_root, config.output_root, config.cache_path):
         root.mkdir(parents=True, exist_ok=True, mode=0o700)
+    symbols = None
+    if args.symbol_packs != 'none':
+        from .symbol_packs import install
+        symbols = install(config, args.symbol_packs, args.symbol_source)
     changed = write_config(selected, config)
     return {"status": "configured" if changed else "already_configured", "config": str(selected),
-            "settings": config.to_dict(), "volatility": info,
+            "settings": config.to_dict(), "volatility": info, 'symbol_packs': symbols,
             "next": f"python -m volatility_mcp doctor --config {selected} --mcp"}
+
+
+def symbols_install(args: argparse.Namespace) -> dict:
+    from .symbol_packs import configured, install
+    path = config_path(args.config)
+    config = configured(load_config(path))
+    result = install(config, args.symbol_packs, args.symbol_source)
+    write_config(path, config)
+    return result
 
 
 def decode_result(result) -> dict:
@@ -366,6 +382,13 @@ def parser() -> argparse.ArgumentParser:
     configure.add_argument("--disable-xpnet", action="store_true")
     configure.add_argument("--install-volatility", action="store_true", help="Create an isolated official Volatility install only when none is configured")
     configure.add_argument("--vol-venv", default=str(Path.home() / "Forensics" / "volatility-env"))
+    configure.add_argument('--symbol-packs', choices=('all', 'windows', 'none'), default='all',
+                           help='Install/index official symbol packs during setup (default: all, about 885 MiB); none skips for offline/custom provisioning')
+    configure.add_argument('--symbol-source', type=Path, help='Use predownloaded official ZIPs from this directory without network access')
+    symbol_setup = commands.add_parser('symbols-install', help='Install/verify official symbol packs and index them while analysis is idle')
+    symbol_setup.add_argument('--config')
+    symbol_setup.add_argument('--symbol-packs', choices=('all', 'windows'), default='all')
+    symbol_setup.add_argument('--symbol-source', type=Path)
     diagnostic = commands.add_parser("doctor", help="Validate paths, architecture, installation, and optionally real MCP calls")
     diagnostic.add_argument("--config")
     diagnostic.add_argument("--mcp", action="store_true", help="Start fresh stdio servers in auto and legacy protocol modes")
@@ -396,6 +419,8 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == 'plugins-install':
             from .addons import install
             result = install(load_config(args.config))
+        elif args.command == 'symbols-install':
+            result = symbols_install(args)
         elif args.command in ('coverage', 'coverage-plan'):
             from .backend import VolatilityBackend
             from .coverage import set_plan
