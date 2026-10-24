@@ -62,6 +62,11 @@ the evidence root. For an older installation with outputs below the evidence roo
 discovery excludes that output tree. New installations use separate roots.
 No personal paths are baked into tracked configuration. Local symbol fixes and
 caches are not redistributed; supply matching official symbols for your image.
+
+Operator `setup` provisions pinned official symbol packs by default; `symbols-install`
+does the same for existing configurations. Downloads are size/SHA-256 checked and
+indexed offline before use. `setup --symbol-packs none` retains custom/offline
+provisioning. This lifecycle is separate from MCP tool execution; see [SYMBOLS.md](SYMBOLS.md).
 New evidence/output/cache directories are private to the local account; existing
 directory permissions are preserved. Keep shared-directory access deliberate.
 
