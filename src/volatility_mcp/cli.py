@@ -169,7 +169,12 @@ def symbols_install(args: argparse.Namespace) -> dict:
     from .symbol_packs import configured, install
     path = config_path(args.config)
     config = configured(load_config(path))
-    result = install(config, args.symbol_packs, args.symbol_source)
+    if args.linux_all or args.linux_banner is not None:
+        from .linux_symbols import install as install_linux
+        result = install_linux(config, banner=args.linux_banner, source_dir=args.symbol_source,
+                               workers=args.workers)
+    else:
+        result = install(config, args.symbol_packs or 'all', args.symbol_source)
     write_config(path, config)
     return result
 
@@ -385,9 +390,15 @@ def parser() -> argparse.ArgumentParser:
     configure.add_argument('--symbol-packs', choices=('all', 'windows', 'none'), default='all',
                            help='Install/index official symbol packs during setup (default: all, about 885 MiB); none skips for offline/custom provisioning')
     configure.add_argument('--symbol-source', type=Path, help='Use predownloaded official ZIPs from this directory without network access')
-    symbol_setup = commands.add_parser('symbols-install', help='Install/verify official symbol packs and index them while analysis is idle')
+    symbol_setup = commands.add_parser('symbols-install', help='Install/verify official packs or the pinned Linux collection and index them while analysis is idle')
     symbol_setup.add_argument('--config')
-    symbol_setup.add_argument('--symbol-packs', choices=('all', 'windows'), default='all')
+    selection = symbol_setup.add_mutually_exclusive_group()
+    selection.add_argument('--symbol-packs', choices=('all', 'windows'))
+    selection.add_argument('--linux-all', action='store_true', help='Install the entire pinned Linux x86-64 collection (about 19.53 GiB)')
+    selection.add_argument('--linux-banner', help='Install exact full Linux kernel banner matches only; never sent to a remote search service')
+    symbol_setup.add_argument('--workers', type=int, default=4, help='Concurrent Linux downloads (1-8, default 4)')
+    linux_catalog = commands.add_parser('symbols-catalog', help='Describe the pinned Linux x86-64 catalog offline')
+    linux_catalog.add_argument('--linux-banner', help='Find exact full kernel banner matches locally')
     symbol_setup.add_argument('--symbol-source', type=Path)
     diagnostic = commands.add_parser("doctor", help="Validate paths, architecture, installation, and optionally real MCP calls")
     diagnostic.add_argument("--config")
@@ -419,6 +430,9 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == 'plugins-install':
             from .addons import install
             result = install(load_config(args.config))
+        elif args.command == 'symbols-catalog':
+            from .linux_symbols import describe
+            result = describe(args.linux_banner)
         elif args.command == 'symbols-install':
             result = symbols_install(args)
         elif args.command in ('coverage', 'coverage-plan'):

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "volatility-mcp"
-version = "0.1.1"
+version = "0.1.2"
 description = "A local MCP server for controlled, evidence-preserving Volatility 3 queries"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -29,4 +29,4 @@ ui = [] # Legacy extra; Workbench is a separate distribution. See its repository
 where = ["src"]
 
 [tool.setuptools.package-data]
-volatility_mcp = ["plugins/*.py", "resources/*.md", "resources/*.json", "resources/symbol-packs/*.zip"]
+volatility_mcp = ["plugins/*.py", "resources/*.md", "resources/*.json", "resources/*.json.gz", "resources/symbol-packs/*.zip"]

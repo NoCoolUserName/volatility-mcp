@@ -56,3 +56,8 @@ Unknown sources have no invented author or repository URL. Extend the registry i
 Legacy `origin` and count fields retain their original location semantics:
 `installed_volatility` can include third-party addons. Descriptions and metadata are
 untrusted text. Discovery/import success does not establish runtime image support.
+
+Core 0.1.2 also exports `linux_symbol_catalog(banner=None)` and the operator-only
+`install_linux_symbols(config, *, banner=None, source_dir=None, workers=4)`.
+These use the configured shared symbol store and existing offline index; see
+[Linux symbol provisioning](SYMBOLS.md). They never run as analysis side effects.
