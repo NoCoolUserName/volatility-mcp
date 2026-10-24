@@ -43,7 +43,8 @@ downloads packages. Neither is contact with a recovered malware endpoint. For a
 network-restricted workflow, provision approved packages and exact symbols in
 advance and enforce network policy outside this application.
 
-Operator setup downloads pinned official symbol packs by default (opt out with
+Operator setup uses included symbol packs in the full release wheel. Source
+installs without bundled data download the pinned packs (opt out with
 `--symbol-packs none`). `symbols-install` is also available explicitly. Fixed HTTPS
 sources, redirect host restrictions, byte/time limits, SHA-256/ZIP checks, exclusive
 installer locking and atomic publication protect provisioning. Existing unknown

@@ -14,6 +14,10 @@ symbols, acquired evidence, reference publications, or other third-party works.
 - **pefile:** pinned dependency for static inspection of saved PE artifacts,
   not vendored or used to execute recovered code. Preserve its
   [upstream MIT license](https://github.com/erocarrera/pefile/blob/master/LICENSE).
+- **Bundled official symbol packs:** full release wheels contain the unmodified
+  Windows, Windows 10 supplement, macOS and Linux ZIPs from Volatility Foundation
+  test-data v0.0.1. Retain [their notice](src/volatility_mcp/resources/SYMBOL_PACK_NOTICES.md)
+  and the VSL text; hashes and source revision accompany the distribution.
 - **Historical XP structure references:** the local `xpnet.XpNetScan` addon retains
   its source links to official Volatility 2
   [TCP/IP layouts](https://github.com/volatilityfoundation/volatility/blob/master/volatility/plugins/overlays/windows/tcpip_vtypes.py),
