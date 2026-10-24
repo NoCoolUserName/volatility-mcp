@@ -30,6 +30,7 @@ class SymbolPackTests(unittest.TestCase):
             data = path.read_bytes()
             self.manifest[name] = (len(data), hashlib.sha256(data).hexdigest())
         self.addCleanup(patch.stopall)
+        patch.object(packs, 'BUNDLED_DIR', self.root/'unbundled'/'symbol-packs').start()
         patch.object(packs, 'PACKS', self.manifest).start()
         self.index = patch.object(packs.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0, '{"unique_identifiers":{"windows":2}}', '')).start()
         self.download = packs._download
@@ -153,6 +154,34 @@ class SymbolPackTests(unittest.TestCase):
             result = cli.setup(args)
         self.assertEqual(result['symbol_packs']['status'], 'ready')
         self.assertEqual(load_config(path).symbols, self.config.cache_path/'tables')
+
+    def test_bundled_packs_used_without_network(self):
+        (self.source.parent/'symbol-bundle.json').write_text('{}')
+        with patch.object(packs, 'BUNDLED_DIR', self.source):
+            result = packs.install(self.config)
+        self.assertEqual(result['acquisition'], 'bundled')
+        self.assertEqual(len(result['packs']), 4)
+        self.network.assert_not_called()
+
+    def test_incomplete_bundle_never_falls_back_to_download(self):
+        marker = self.source.parent/'symbol-bundle.json'
+        marker.write_text('{}')
+        with patch.object(packs, 'BUNDLED_DIR', self.root/'missing'):
+            with self.assertRaisesRegex(ConfigurationError, 'Incomplete bundled'):
+                packs.install(self.config)
+        (self.source/'windows.zip').unlink()
+        with patch.object(packs, 'BUNDLED_DIR', self.source):
+            with self.assertRaisesRegex(ConfigurationError, 'size mismatch'):
+                packs.install(self.config)
+        self.network.assert_not_called()
+
+    def test_corrupt_bundle_never_falls_back_to_download(self):
+        (self.source.parent/'symbol-bundle.json').write_text('{}')
+        (self.source/'windows.zip').write_bytes(b'broken')
+        with patch.object(packs, 'BUNDLED_DIR', self.source):
+            with self.assertRaisesRegex(ConfigurationError, 'size mismatch'):
+                packs.install(self.config)
+        self.network.assert_not_called()
 
     def test_failed_symbols_command_leaves_config_unchanged(self):
         path = self.root/'config.json'

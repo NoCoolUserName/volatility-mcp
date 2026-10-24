@@ -30,8 +30,8 @@ model orchestration, artwork, and presentation belong to
 [Workbench](https://github.com/NoCoolUserName/volatility-workbench).
 
 A distribution release is identified by its Git release tag and immutable commit.
-The extraction retains core version 0.1.0 and all execution identity bytes; future
-execution changes retain the normal conservative cache invalidation rules.
+Core 0.1.1 retains API revision 1 and adds release-bundled symbol data. Execution
+changes retain the normal conservative cache invalidation rules.
 
 ## Plugin catalog
 

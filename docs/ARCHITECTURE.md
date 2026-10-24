@@ -64,7 +64,8 @@ No personal paths are baked into tracked configuration. Local symbol fixes and
 caches are not redistributed; supply matching official symbols for your image.
 
 Operator `setup` provisions pinned official symbol packs by default; `symbols-install`
-does the same for existing configurations. Downloads are size/SHA-256 checked and
+does the same for existing configurations. Full release wheels include the packs;
+source builds can download them. All packs are size/SHA-256 checked and
 indexed offline before use. `setup --symbol-packs none` retains custom/offline
 provisioning. This lifecycle is separate from MCP tool execution; see [SYMBOLS.md](SYMBOLS.md).
 New evidence/output/cache directories are private to the local account; existing
