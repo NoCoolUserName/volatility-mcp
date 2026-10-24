@@ -1,3 +1,46 @@
+# Linux CryptoMem integration — 2026-10-24
+
+- Core suite: 156 tests passed with one optional analyzer test skipped, in an
+  isolated installation of this branch. Includes real stdio MCP calls using a
+  harmless analyzer simulator: Linux timeout and in-flight cancellation in
+  legacy/auto modes terminate the child, preserve partial artifacts/manifests,
+  verify input integrity, and prevent reuse. Both commands retain ten MCP tools.
+- Installed analyzer: Volatility 3 2.28.2, Python 3.12.13, PyCryptodome 3.23.0,
+  pefile 2024.8.26 on macOS ARM64; MCP SDK 2.3.0. CryptoMem 0.3.0 source is pinned
+  at merged `d0ec313680d6aec41e8c73ab05207ea869af0fd1` with unchanged upstream hashes.
+- Fresh community installation: 238 commands with XP enabled, zero import
+  failures, all 198 baseline commands preserved (197 official plus XP).
+  Recreated 0.2.0-to-0.3.0 upgrade preserves all 237 prior commands, adds the Linux
+  adapter and introduces no dependency changes. XP disabled retains both
+  CryptoMem commands (237 total).
+- Twelve installed CryptoMem checks passed using real layers/renderers and
+  simulated Windows processes/VADs and Linux tasks/VMAs. Existing community addon
+  regression suites passed; one LLP64/Windows-only runtime check skipped locally.
+- Actual installed Windows and Linux plugins were invoked through MCP with XP
+  enabled and disabled on a deliberately corrupt synthetic acquisition. Both
+  failed with unsatisfied kernel requirements, forced offline, unchanged input
+  hashes and non-reusable manifests. No real evidence was used.
+- Synthetic evaluation: 20 passed, four unsupported scenarios, no failures; this
+  measures contracts, not recovery accuracy. Report fixture validation passed.
+- Standalone CryptoMem: 76 synthetic tests; PR #3 CI passed Python 3.12/3.13 on
+  Ubuntu and Windows plus quality/secret scanning and CodeQL. Analysis-host tests
+  are not Linux captured-kernel support claims.
+
+Real-memory Linux validation remains outstanding. No suitably licensed Linux
+x86-64 acquisition with verified matching symbols was established. Other Linux
+architectures are unsupported until tested. Kernel symbols must match the actual
+capture; bundled packs are not universal distribution/kernel coverage. No evidence
+or recovered data was sent to external services.
+
+Workbench adoption remains separate: update its three backend pins to the merged
+core revision, validate and rebuild/reinstall using [CRYPTOMEM.md](CRYPTOMEM.md).
+No Linux desktop package, Workbench source change or installed app update is part
+of this change. Core remains version 0.1.1; a new stable core release/version is
+needed for automatic release-based Workbench adoption. CryptoMem 0.3.0 prerelease
+metadata is in its repository; tagging/publication is a separate release step.
+
+---
+
 # Validation
 
 Assessment: **ready with stated limitations for the documented local Apple-silicon
