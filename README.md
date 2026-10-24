@@ -1,6 +1,6 @@
 # volatility-mcp
 
-*10,308 lines of code*
+*10,486 lines of code*
 
 *Last measured package: `volatility_mcp-0.1.1-py3-none-any.whl`, 928,541,130 bytes (885.53 MiB); built on 2026-10-23 from source revision `393b49b6bc7534a3ac5363c5b9c3748030ef7d26`. Full wheel including four official symbol packs; dependencies and the separate Workbench app are excluded.*
 
