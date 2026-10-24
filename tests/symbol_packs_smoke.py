@@ -32,10 +32,17 @@ class IndexSmoke(unittest.TestCase):
             archive = symbols/'windows.zip'
             with zipfile.ZipFile(archive, 'w') as z:
                 z.writestr(preparation.RELATIVE_ISF.as_posix(), data)
+            incomplete = symbols/'incomplete.json'
+            incomplete.write_text(json.dumps({**isf, 'user_types': {}}))
             with patch.object(symbol_module, '__path__', []), \
+                 patch.object(preparation, 'EXPECTED_SHA256', hashlib.sha256(data).hexdigest()), \
                  patch('socket.create_connection', side_effect=AssertionError('No network permitted')):
                 result = preparation.index_all(symbols, cache)
             self.assertEqual(result['unique_identifiers'], {'windows': 1})
+            self.assertEqual(result['preference']['preferred_type_count'], 561)
+            self.assertEqual(len(result['preference']['disabled_zero_type_entries']), 1)
+            manager = SqliteCache(str(cache/'identifier.cache'))
+            self.assertIsNone(manager.get_identifier(incomplete.as_uri()))
             loose = symbols/preparation.RELATIVE_ISF
             loose.parent.mkdir(parents=True)
             loose.write_bytes(data)
