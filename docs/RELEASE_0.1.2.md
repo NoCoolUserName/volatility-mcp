@@ -8,8 +8,12 @@ unsupported until tested. Synthetic validation is documented in VALIDATION.md;
 real-memory Linux validation remains outstanding.
 
 The full release wheel contains the same four verified official starter symbol
-packs. See SYMBOLS.md for additional exact-kernel Linux sources. No universal
-Linux symbol coverage or new community-symbol redistribution is claimed.
+packs, plus a pinned catalog/installer for 10,255 community Linux x86-64 tables
+(20,974,550,776 compressed bytes). Explicit `symbols-install --linux-all` or
+`--linux-banner` provisions the shared symbol store with SHA-256, size, ISF and
+banner verification, resumable installation, and offline indexing. Analysis
+never downloads these tables. The 19.53 GiB community data is not embedded in
+the wheel. No universal kernel coverage or real-memory validation is claimed.
 
 Workbench must adopt this release's source commit and full-wheel digest in its
 backend and distribution pins, then pass its package/native validation and rebuild.

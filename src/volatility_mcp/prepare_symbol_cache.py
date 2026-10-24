@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 from datetime import datetime, timezone
+import gzip
 import hashlib
 import json
 import lzma
@@ -150,7 +151,7 @@ def prepare(symbols_path: Path, cache_path: Path) -> dict:
     return result
 
 
-def index_all(symbols_path: Path, cache_path: Path) -> dict:
+def index_all(symbols_path: Path, cache_path: Path, linux_catalog: Path | None = None, linux_banner: str | None = None) -> dict:
     """Explicit setup-time, offline indexing; never opens a memory image."""
     for path in (symbols_path, cache_path):
         if not path.is_absolute():
@@ -175,7 +176,23 @@ def index_all(symbols_path: Path, cache_path: Path) -> dict:
             'SELECT operating_system, COUNT(DISTINCT identifier) FROM cache '
             'WHERE operating_system IS NOT NULL GROUP BY operating_system'
         ).fetchall()
-    return {'unique_identifiers': dict(counts), 'preference': prepare(symbols_path, cache_path)}
+    verified_linux = 0
+    if linux_catalog is not None:
+        data = json.loads(gzip.decompress(linux_catalog.read_bytes()))
+        for entry in data['entries']:
+            if linux_banner is not None and entry['banner'] != linux_banner.rstrip('\x00\r\n'):
+                continue
+            path = symbols_path/'linux/community'/entry['path']
+            identifier = manager.get_identifier(path.as_uri())
+            stats = manager.get_location_statistics(path.as_uri())
+            if (identifier is None or identifier.rstrip(b'\x00\r\n') != entry['banner'].encode()
+                    or stats is None or stats[1] == 0):
+                raise ValueError(f"Linux ISF not correctly indexed: {entry['path']}")
+            verified_linux += 1
+        if verified_linux == 0:
+            raise ValueError('No requested Linux tables were indexed.')
+    return {'unique_identifiers': dict(counts), 'verified_linux_tables': verified_linux,
+            'preference': prepare(symbols_path, cache_path)}
 
 
 def main() -> int:
@@ -183,9 +200,12 @@ def main() -> int:
     parser.add_argument("symbols_path", type=Path)
     parser.add_argument("cache_path", type=Path)
     parser.add_argument('--index-all', action='store_true', help='Index all local tables offline during explicit setup')
+    parser.add_argument("--linux-catalog", type=Path)
+    parser.add_argument("--linux-banner")
     args = parser.parse_args()
     try:
-        result = (index_all if args.index_all else prepare)(args.symbols_path, args.cache_path)
+        result = (index_all(args.symbols_path, args.cache_path, args.linux_catalog, args.linux_banner)
+                  if args.index_all else prepare(args.symbols_path, args.cache_path))
     except Exception as exc:
         print(f"Cannot prepare supplemental symbol cache: {exc}", file=sys.stderr)
         return 1

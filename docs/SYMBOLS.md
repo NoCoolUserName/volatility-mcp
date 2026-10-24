@@ -120,3 +120,64 @@ build and publish the package version after its normal CI checks pass. It uses
 the same builder, verifies uploaded asset hashes, and publishes only after all
 three assets succeed. An interrupted draft can be resumed; an already published
 release is never overwritten. The runner needs no evidence or local configuration.
+
+## Additional Linux x86-64 collection
+
+Core 0.1.2 ships a pinned, checksum-verified catalog of 10,255 community ISFs
+from Abyss-W4tcher/volatility3-symbols revision
+`297d1eacda67567c134d2873a426ec4ed8009f4d`. The complete compressed download is
+20,974,550,776 bytes (19.53 GiB), covering Ubuntu, Debian, Kali, AlmaLinux and
+Rocky Linux builds. This is a snapshot, not every kernel or distribution.
+Other CryptoMem architectures remain unsupported until tested.
+
+Run these operator commands while analysis is idle:
+
+```sh
+volatility-mcp symbols-catalog
+volatility-mcp symbols-catalog --linux-banner 'FULL CAPTURED KERNEL BANNER'
+volatility-mcp symbols-install --config /path/to/config.json --linux-banner 'FULL CAPTURED KERNEL BANNER'
+# Or explicitly install the complete pinned x86-64 collection:
+volatility-mcp symbols-install --config /path/to/config.json --linux-all
+```
+
+Selection occurs locally. The banner is never submitted to a remote search API;
+only public catalog asset URLs are requested. Files are SHA-256/size verified
+against published GitHub asset digests, decoded with an expanded-size bound,
+and checked for a little-endian 64-bit pointer, Linux types and the full embedded
+kernel banner. The installer writes under `symbols/linux/community/`, then runs
+the existing Volatility offline indexer. It never opens a memory image.
+Four concurrent downloads are used by default (`--workers 1` through `8`).
+Initial full validation/indexing can take hours. Each transfer has a 30-minute
+bound and 60-second I/O timeout; offline indexing has a six-hour bound.
+
+Interrupted or failed installs retain completed verified files and remove
+partial downloads. Repeat the same command to reverify and resume; unknown or
+modified files are refused rather than overwritten. The shared pack-install lock
+prevents overlapping installers. After a hard process kill, confirm no installer
+is running before removing `.symbol-packs.lock`. An indexing failure is not a
+ready install; retry after resolving the diagnostic. A successful run writes
+`linux-community-symbols.receipt.json` with the catalog revision and hashes.
+For offline transfer, provide `--symbol-source /path/to/collection` containing
+catalog-relative paths (for example `Ubuntu/amd64/...json.xz`).
+
+The wheel includes catalog metadata only; the downloaded community tables stay
+outside both MCP and Workbench packages. Existing `--symbol-packs all` behavior
+still provisions the four official starter packs. No MCP tool was added, and
+analysis does not trigger community downloads. Workbench can use the same
+configured store and cache without copying 19.53 GiB into each app update.
+`volatility_mcp.api` additionally exports `linux_symbol_catalog(banner=None)`
+and `install_linux_symbols(config, banner=None, source_dir=None, workers=4)`
+(keyword-only options after config) for explicit operator integrations.
+
+The community collection's public metadata identifies downloadable kernel-derived
+ISFs; these are not relicensed under the project's MIT grant. Original URLs and
+asset digests are retained. This release does not redistribute their ISF payloads.
+A valid download and matching banner do not establish wallet ownership or prove
+correct analysis against a real memory image. Real-memory Linux validation
+remains outstanding.
+
+Maintainers can regenerate metadata with `scripts/build_linux_symbol_catalog.py`
+from the two upstream JSON indexes at one pinned commit and the public paginated
+GitHub release asset metadata. Review changed URLs/digests/banners/counts, update
+`CATALOG_SHA256`, and run catalog and installer tests before publishing. Runtime
+code never trusts a floating remote catalog update.
