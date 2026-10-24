@@ -84,3 +84,9 @@ The script verifies embedded pack hashes and writes wheel `SHA256SUMS` and an
 external provenance manifest. Publish the full wheel, checksums and manifest as
 release assets, with the exact source revision publicly available. Do not publish
 the tiny fixture wheel used by `package_smoke.py` as a release.
+
+Maintainers can run **Publish bundled symbols** from GitHub Actions on `main` to
+build and publish the package version after its normal CI checks pass. It uses
+the same builder, verifies uploaded asset hashes, and publishes only after all
+three assets succeed. An interrupted draft can be resumed; an already published
+release is never overwritten. The runner needs no evidence or local configuration.
