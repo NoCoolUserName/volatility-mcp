@@ -17,6 +17,7 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: write
+      actions: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -25,6 +26,10 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install -r requirements.lock.txt
+      - name: Require matching version, source tag and successful source CI
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/check_release.py
       - name: Build and verify the full wheel from committed source
         run: python scripts/build_symbol_bundle.py --output-dir "$RUNNER_TEMP/release"
       - name: Upload verified assets and publish draft
@@ -38,12 +43,19 @@ jobs:
           tag="v$(jq -r .core_version symbol-bundle.json)"
           revision="$(jq -r .source_revision symbol-bundle.json)"
           test "$revision" = "$GITHUB_SHA"
+          python "$GITHUB_WORKSPACE/scripts/check_release.py" --manifest symbol-bundle.json
           gh api --paginate "repos/$GH_REPO/releases" --jq '.[]' | jq -s --arg tag "$tag" 'map(select(.tag_name == $tag))[0] // null' > release.json
           if test "$(jq -r .id release.json)" = null; then
             gh api --method POST "repos/$GH_REPO/releases" -f tag_name="$tag" -f target_commitish="$revision" -F draft=true > release.json
           fi
           # Published assets are immutable: only our unfinished draft may be resumed.
           test "$(jq -r .draft release.json)" = true
+          # Create a missing tag at the verified source; never move an existing tag.
+          tag_count="$(gh api "repos/$GH_REPO/git/matching-refs/tags/$tag" --jq "[.[] | select(.ref == \"refs/tags/$tag\")] | length")"
+          if test "$tag_count" = 0; then
+            gh api --method POST "repos/$GH_REPO/git/refs" -f ref="refs/tags/$tag" -f sha="$revision" > /dev/null
+          fi
+          python "$GITHUB_WORKSPACE/scripts/check_release.py" --manifest symbol-bundle.json --require-tag
           release_id="$(jq -r .id release.json)"
           for file in *.whl SHA256SUMS symbol-bundle.json; do
             old_id="$(jq -r --arg name "$file" '.assets[] | select(.name == $name) | .id' release.json)"
@@ -82,4 +94,5 @@ jobs:
               'draft': False, 'make_latest': 'true',
           }))
           PY
+          python "$GITHUB_WORKSPACE/scripts/check_release.py" --manifest symbol-bundle.json --require-tag
           gh api --method PATCH "repos/$GH_REPO/releases/$release_id" --input publish.json --jq .html_url
