@@ -390,7 +390,7 @@ def parser() -> argparse.ArgumentParser:
     configure.add_argument('--symbol-packs', choices=('all', 'windows', 'none'), default='all',
                            help='Install/index official symbol packs during setup (default: all, about 885 MiB); none skips for offline/custom provisioning')
     configure.add_argument('--symbol-source', type=Path, help='Use predownloaded official ZIPs from this directory without network access')
-    symbol_setup = commands.add_parser('symbols-install', help='Install/verify official symbol packs and index them while analysis is idle')
+    symbol_setup = commands.add_parser('symbols-install', help='Install/verify official packs or the pinned Linux collection and index them while analysis is idle')
     symbol_setup.add_argument('--config')
     selection = symbol_setup.add_mutually_exclusive_group()
     selection.add_argument('--symbol-packs', choices=('all', 'windows'))

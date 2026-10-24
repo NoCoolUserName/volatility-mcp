@@ -256,3 +256,9 @@ symbols matching the captured kernel; bundled packs are not universal coverage.
 Core
 forces CryptoMem offline and marks it for explicit manual selection. Detector
 implementation and releases belong to the separate plugin repository.
+
+The optional Linux community catalog is package data used only by explicit
+operator provisioning (`symbols-catalog` / `symbols-install`). Downloads enter
+the configured shared symbol directory after hash, size and ISF validation;
+the existing offline indexer verifies each requested table before readiness.
+Analysis tools never call this installer, and the MCP tool surface stays unchanged.
