@@ -3,10 +3,13 @@
 CryptoMem is maintained in
 [NoCoolUserName/volatility3-cryptomem](https://github.com/NoCoolUserName/volatility3-cryptomem).
 That repository owns the detector, tests, and releases. The profile pins
-revision `c6ecd3999b8735588962590f0310f1785edf4d8b` (CryptoMem 0.2.0). Core's compatibility
-revision 9 adds Monero to the existing opt-in community inventory without copying
-the implementation into MCP or Workbench, adding MCP tools, or changing the XP
-addon setting. Installed CryptoMem discovery is independent of `enable_xpnet`.
+revision `d0ec313680d6aec41e8c73ab05207ea869af0fd1` (CryptoMem 0.3.0 prerelease).
+Compatibility revision 10 adds `linux.cryptomem.CryptoMem` and the shared scanner
+helper, preserving the Windows command and output schema. Both commands use the
+existing ten MCP tools, manual selection and forced offline execution. Discovery
+of installed/bundled analyzer CryptoMem is independent of `enable_xpnet`; that
+setting only controls the XP compatibility path.
+
 
 ## What changed from CryptoScan
 
@@ -61,10 +64,10 @@ Select a PID from actual process evidence, then call the existing tool:
 ```
 
 Currency choices are `all`, `btc`, `eth`, `xrp`, `xmr`. PID is required and scalar.
-Use `--currency xmr` for Monero alone; `all` includes it automatically. CryptoMem
-still exposes one command, `windows.cryptomem.CryptoMem`; the command count does
-not increase. Updating the pinned profile accepts the known 0.1.0 source hashes
-while continuing to reject unrecognized local changes.
+Use `--currency xmr` for Monero alone; `all` includes it automatically. CryptoMem exposes Windows and Linux commands; the **MCP tool count stays ten**.
+The profile accepts the previous 0.2.0 Windows source hash and unchanged format
+helper bytes while rejecting unrecognized local changes. Older 0.1.0 installs
+should first upgrade to the documented 0.2.0 profile in an isolated analyzer.
 Defaults are 67,108,864 scan bytes and 1,000 findings; hard maxima are 268,435,456
 bytes and 10,000 findings. Semantic bounds are validated by the plugin before
 scanning; existing MCP schemas validate required arguments, types and choices.
@@ -82,6 +85,38 @@ text is preserved even when a normalized comparison value is available.
 Uniform-case Ethereum-style addresses are `format_only`; invalid checksums
 remain distinguishable candidates. Address-family prefixes do not establish
 which blockchain a recovered string was used on.
+
+## Linux memory images
+
+Linux support starts with **x86-64 (Intel64)**. Other Linux architectures are
+unsupported until tested. This adds memory-image analysis, not Linux desktop
+packaging or a Workbench implementation.
+
+```json
+{"name":"list_plugins","arguments":{"query":"linux.cryptomem.CryptoMem"}}
+```
+
+Select the process PID/TGID (not a thread ID) from `linux.pslist.PsList`:
+
+```json
+{"name":"run_plugin","arguments":{"image":"linux.lime","plugin":"linux.cryptomem.CryptoMem","arguments":["--pid","1234","--currency","all","--max-scan-bytes","67108864","--max-results","1000"]}}
+```
+
+Matching **captured-kernel** symbols must be locally provisioned; a bundled pack
+does not cover all distributions, kernel builds or configurations. Configure the
+operator-owned `symbols` directory with a matching Linux ISF before using offline
+analysis. Missing symbols/layers are explicit failed runs, not absence of addresses.
+Pre-scan failures may not produce a CryptoMem summary; retain stderr and manifest.
+
+Linux scans a single thread-group leader once, excludes kernel threads/tasks
+without user memory, uses a process layer and VMAs with exclusive ends, and
+preserves virtual offsets and process provenance. The same plain scanner and
+unchanged BTC, Ethereum, XRP and Monero validators serve Windows and Linux.
+Read overlap never crosses separate mappings or unreadable gaps; failed reads
+stop with incomplete coverage. Volatility can omit invalid tasks/VMAs, so a
+complete scan covers only enumerated mappings. Linux summary fields are
+`vma_count`/`completed_vmas`; Windows retains `vad_count`/`completed_vads`.
+Rows and limits are otherwise the same. No address occurrence proves ownership.
 
 ## Artifacts, isolation and reuse
 
@@ -141,27 +176,21 @@ dependency pin, bundle or installed application is changed by this MCP PR.
 
 ## Validation and licensing
 
-The 0.2.0 Monero update passed 65 standalone synthetic/format tests, six installed
-CryptoMem checks and the 119-test installed-core suite (one optional analyzer
-skip). Upgrading an isolated 0.1.0 installation retained all 237 discovered
-commands, with zero import failures and no new dependencies. This environment's
-count is distinct from the user's separately configured analyzer. No real-memory
-Monero recovery was tested.
+CryptoMem 0.3.0 has 76 standalone synthetic tests with real Volatility layers,
+renderers and CLI discovery, plus simulated task/VMA enumeration. Includes four
+address families crossing ASCII/UTF-16LE read boundaries, adjacent/separate VMAs,
+unreadable gaps, TGID/TID semantics, symbol errors, limits and Windows regression.
+Core tests run both adapters through the existing subprocess/artifact policies.
+Real stdio MCP tests exercise discovery with XP enabled/disabled, execution,
+empty results, missing symbols, incomplete scans, invalid arguments, timeouts and
+in-flight cancellation in both protocol modes, including child termination and
+preserved manifests. Installed-analyzer smoke tests exercise both actual adapters.
+See [VALIDATION.md](VALIDATION.md) for measured versions and counts.
 
-The standalone repository tests actual detectors with public vectors and
-synthetic buffers, using real Volatility layers/renderers and fake process/VAD
-enumeration. Core adds installed-plugin smoke checks and subprocess-simulator
-tests for parameters, artifacts, isolation, failures, timeout/cancellation and
-reuse. CI installs the pinned source in an isolated analyzer. None establishes
-real-memory recovery or a Windows-build support matrix. Local validation on
-2026-10-23 passed 56 standalone tests, 119 core tests (one optional analyzer test
-skipped there), five installed CryptoMem checks and 79 existing addon checks,
-including XPNet. The isolated full analyzer retained all 197 native commands:
-236 with community plugins, or 237 with XP enabled; no import failures. The
-actual installed plugin rejected a deliberately corrupt synthetic acquisition
-through MCP without changing its hash. Real-image validation
-still needs authorized positive/negative acquisitions, matching symbols, known
-artifact locations, acquisition hashes and per-run coverage.
+**Real-memory Linux validation remains outstanding.** Public sample references
+were inspected but no suitably licensed Linux x86-64 acquisition with matching
+symbols was established. Neither synthetic fixtures nor Windows regressions
+validate Linux kernel/distribution coverage. No recovered data was uploaded.
 
 CryptoMem publishes its source under VSL-1.0, retains CryptoScan reference
 attribution and standards notices, and ships its required notices in LICENSE.

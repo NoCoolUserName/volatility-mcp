@@ -4,6 +4,7 @@ The image contains only a test mode. Address rows are fixed synthetic output for
 testing core artifact/provenance handling, not address-detection test vectors.
 """
 import json
+import os
 from pathlib import Path
 import sys
 import time
@@ -33,6 +34,8 @@ plugins = {
                     option('--currency', choices=['all', 'btc', 'eth', 'xrp', 'xmr']),
                     option('--max-scan-bytes', 'int'), option('--max-results', 'int')]},
 }
+linux = 'linux.cryptomem.CryptoMem'
+plugins[linux] = {**plugins[plugin], 'target_os': 'linux'}
 if any(arg.endswith('catalog.py') for arg in sys.argv):
     if '--xpnet' in sys.argv:
         plugins['xpnet.XpNetScan'] = {
@@ -40,7 +43,8 @@ if any(arg.endswith('catalog.py') for arg in sys.argv):
             'origin': 'local_compatibility', 'options': []}
     if (root / 'missing-dependency').exists():
         del plugins[plugin]
-        failures = ['volatility3.plugins.windows.cryptomem']
+        del plugins[linux]
+        failures = ['volatility3.plugins.windows.cryptomem', 'volatility3.plugins.linux.cryptomem']
     else:
         failures = []
     print(json.dumps({'version': 'SYNTHETIC', 'architecture': 'SYNTHETIC',
@@ -52,7 +56,7 @@ image = Path(sys.argv[sys.argv.index('-f') + 1])
 files = Path(sys.argv[sys.argv.index('-o') + 1])
 with (root / 'analysis-count.jsonl').open('a') as counter:
     counter.write(json.dumps({'argv': sys.argv[1:]}) + '\n')
-(root / 'analysis-started').write_text('SYNTHETIC process started')
+(root / 'analysis-started').write_text(str(os.getpid()))
 (files / 'invocation.txt').write_text('SYNTHETIC execution; no memory analyzed\n')
 mode = image.read_text().strip()
 if mode == 'timeout':
@@ -60,6 +64,12 @@ if mode == 'timeout':
     time.sleep(20)
 elif mode == 'corrupt':
     print('Unsatisfied requirement plugins.CryptoMem.kernel.layer_name', file=sys.stderr)
+    raise SystemExit(1)
+elif mode == 'symbols':
+    print('Unsatisfied requirement plugins.CryptoMem.kernel.symbol_table_name', file=sys.stderr)
+    raise SystemExit(1)
+elif mode == 'incomplete':
+    print('ScanIncomplete: Unreadable process memory; scan stopped', file=sys.stderr)
     raise SystemExit(1)
 elif mode == 'dependency':
     print("ModuleNotFoundError: No module named 'Crypto.Hash.keccak'", file=sys.stderr)
@@ -72,7 +82,7 @@ elif mode == 'badjson':
 elif mode == 'mutate':
     image.write_text('SYNTHETIC unexpected source change')
     print('[]')
-elif plugin not in sys.argv:
+elif plugin not in sys.argv and linux not in sys.argv:
     print(json.dumps([{'PID': 42, 'ImageFileName': 'synthetic.exe'}]))
 elif mode == 'empty':
     print('[]')
