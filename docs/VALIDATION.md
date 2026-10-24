@@ -20,6 +20,10 @@
   enabled and disabled on a deliberately corrupt synthetic acquisition. Both
   failed with unsatisfied kernel requirements, forced offline, unchanged input
   hashes and non-reusable manifests. No real evidence was used.
+- Isolated wheel packaging smoke passed, including all 156 core tests (one
+  optional analyzer skip), ten tools in both MCP protocol modes, dependency checks
+  and no Workbench dependency. A clean tracked-source core wheel was built and
+  measured in README; it excludes symbol packs and analyzer/addon downloads.
 - Synthetic evaluation: 20 passed, four unsupported scenarios, no failures; this
   measures contracts, not recovery accuracy. Report fixture validation passed.
 - Standalone CryptoMem: 76 synthetic tests; PR #3 CI passed Python 3.12/3.13 on
