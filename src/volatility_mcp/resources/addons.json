@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "profile": "community-2026-10",
-  "compatibility_revision": 8,
+  "compatibility_revision": 9,
   "volatility_version": "2.28.2",
   "offline_plugins": [
     "windows.cobaltstrike.CobaltStrike",
@@ -604,38 +604,40 @@
     },
     {
       "repository": "NoCoolUserName/volatility3-cryptomem",
-      "commit": "d64aab3fe1a595336f51023a9a3d5d3da4678511",
+      "commit": "c6ecd3999b8735588962590f0310f1785edf4d8b",
       "license": "VSL-1.0; preserve CryptoMem, CryptoScan reference and standards notices; LICENSE is archived by installer",
       "files": [
         {
           "path": "plugins/windows/cryptomem.py",
           "target": "windows/cryptomem.py",
-          "sha256": "3f5211f7b65440384f1d379c49aaf331aba6975430e8bb0a948db655e2a3886b",
-          "installed_sha256": "3f5211f7b65440384f1d379c49aaf331aba6975430e8bb0a948db655e2a3886b",
+          "sha256": "e11ec76b3617be941306f5f1aa3a44f78f8785a44063b616c37d061498140ffa",
+          "installed_sha256": "e11ec76b3617be941306f5f1aa3a44f78f8785a44063b616c37d061498140ffa",
           "dependencies": [
             "pycryptodome==3.23.0"
           ],
-          "limitations": "Explicit single-PID Windows process scan; BTC Base58Check/Bech32/Bech32m, Ethereum-style and XRP classic address candidates, plus bounded direct-address payment requests. ASCII and UTF-16LE; format/checksum validation is not ownership, control, balance, transaction activity, or wallet identification. Requires local matching kernel symbols and pycryptodome 3.23.0 for ERC-55. Offline bounded reads/results; incomplete scans fail and retain artifacts. Synthetic validation only; real-memory recovery accuracy unvalidated."
+          "limitations": "Explicit single-PID Windows process scan; BTC Base58Check/Bech32/Bech32m, Ethereum-style, XRP classic and Monero standard/subaddress/integrated address candidates, plus bounded direct-address payment requests. ASCII and UTF-16LE; format/checksum validation is not ownership, control, balance, transaction activity, or wallet identification. Requires local matching kernel symbols and pycryptodome 3.23.0 for ERC-55 and Monero Keccak checksums. Monero block encoding, length and network/type prefixes are checked; curve validity and Monero URI parameters are not. Offline bounded reads/results; incomplete scans fail and retain artifacts. Synthetic validation only; real-memory recovery accuracy unvalidated.",
+          "previous_installed_sha256": "3f5211f7b65440384f1d379c49aaf331aba6975430e8bb0a948db655e2a3886b"
         },
         {
           "path": "plugins/windows/cryptomem_formats.py",
           "target": "windows/cryptomem_formats.py",
-          "sha256": "83136f15510fb898df114d0bada95f1e32d73c198fb0054c082085eedfb9893d",
-          "installed_sha256": "83136f15510fb898df114d0bada95f1e32d73c198fb0054c082085eedfb9893d",
+          "sha256": "9a7ab66d321133cda8a807d53f0040d17c41ee00718b3a19d648147dfe5b405c",
+          "installed_sha256": "9a7ab66d321133cda8a807d53f0040d17c41ee00718b3a19d648147dfe5b405c",
           "dependencies": [
             "pycryptodome==3.23.0"
           ],
-          "limitations": "Explicit single-PID Windows process scan; BTC Base58Check/Bech32/Bech32m, Ethereum-style and XRP classic address candidates, plus bounded direct-address payment requests. ASCII and UTF-16LE; format/checksum validation is not ownership, control, balance, transaction activity, or wallet identification. Requires local matching kernel symbols and pycryptodome 3.23.0 for ERC-55. Offline bounded reads/results; incomplete scans fail and retain artifacts. Synthetic validation only; real-memory recovery accuracy unvalidated."
+          "limitations": "Explicit single-PID Windows process scan; BTC Base58Check/Bech32/Bech32m, Ethereum-style, XRP classic and Monero standard/subaddress/integrated address candidates, plus bounded direct-address payment requests. ASCII and UTF-16LE; format/checksum validation is not ownership, control, balance, transaction activity, or wallet identification. Requires local matching kernel symbols and pycryptodome 3.23.0 for ERC-55 and Monero Keccak checksums. Monero block encoding, length and network/type prefixes are checked; curve validity and Monero URI parameters are not. Offline bounded reads/results; incomplete scans fail and retain artifacts. Synthetic validation only; real-memory recovery accuracy unvalidated.",
+          "previous_installed_sha256": "83136f15510fb898df114d0bada95f1e32d73c198fb0054c082085eedfb9893d"
         }
       ],
       "plugins": [
         "windows.cryptomem.CryptoMem"
       ],
-      "limitations": "Explicit single-PID Windows process scan; BTC Base58Check/Bech32/Bech32m, Ethereum-style and XRP classic address candidates, plus bounded direct-address payment requests. ASCII and UTF-16LE; format/checksum validation is not ownership, control, balance, transaction activity, or wallet identification. Requires local matching kernel symbols and pycryptodome 3.23.0 for ERC-55. Offline bounded reads/results; incomplete scans fail and retain artifacts. Synthetic validation only; real-memory recovery accuracy unvalidated.",
+      "limitations": "Explicit single-PID Windows process scan; BTC Base58Check/Bech32/Bech32m, Ethereum-style, XRP classic and Monero standard/subaddress/integrated address candidates, plus bounded direct-address payment requests. ASCII and UTF-16LE; format/checksum validation is not ownership, control, balance, transaction activity, or wallet identification. Requires local matching kernel symbols and pycryptodome 3.23.0 for ERC-55 and Monero Keccak checksums. Monero block encoding, length and network/type prefixes are checked; curve validity and Monero URI parameters are not. Offline bounded reads/results; incomplete scans fail and retain artifacts. Synthetic validation only; real-memory recovery accuracy unvalidated.",
       "notices": [
         {
           "path": "LICENSE",
-          "sha256": "8deb3acf038d355b4909e471af1289b20c88528f8754aca69a6501f4a7c4f8f5"
+          "sha256": "70ef1d4d314a633d83bf8307910498715af73b4750ec35c30af649b490ddc974"
         }
       ]
     }

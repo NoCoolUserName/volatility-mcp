@@ -83,6 +83,8 @@ class CryptoMemBackendTests(unittest.TestCase):
         valid = ['--pid', '0x2a', '--currency', 'btc', '--max-scan-bytes', '65536',
                  '--max-results', '10']
         self.assertEqual(validate(valid), valid)
+        self.assertEqual(validate(['--pid', '42', '--currency', 'xmr']),
+                         ['--pid', '42', '--currency', 'xmr'])
         for args in ([], ['--pid', 'x'], ['--pid', '42', '43'],
                      ['--pid', '42', '--pid', '43'], ['--pid', '42', '--currency', 'doge'],
                      ['--pid', '42', '--max-results', '1.5'],
