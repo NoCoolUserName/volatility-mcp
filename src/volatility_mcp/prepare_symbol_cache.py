@@ -33,10 +33,26 @@ def prepare(symbols_path: Path, cache_path: Path) -> dict:
         for current in (path, *path.parents):
             if current.is_symlink():
                 raise ValueError(f"Symbol/cache paths must not contain symlinks: {current}")
-    if not (symbols_path / RELATIVE_ISF).exists():
-        return {"policy": "normal configured symbols; no legacy XP preference needed"}
     isf_path = symbols_path / RELATIVE_ISF
-    payload = isf_path.read_bytes()
+    archive = symbols_path / 'windows.zip'
+    use_loose = isf_path.exists()
+    if not use_loose and not archive.is_file():
+        return {"policy": "normal configured symbols; no legacy XP preference needed"}
+    if not use_loose and archive.is_symlink():
+        raise ValueError('Symbol archive must not be a symlink.')
+
+    def read_payload():
+        if use_loose:
+            return isf_path.read_bytes()
+        with zipfile.ZipFile(archive) as packed:
+            return packed.read(RELATIVE_ISF.as_posix())
+
+    try:
+        payload = read_payload()
+    except KeyError:
+        return {"policy": "normal configured symbols; no legacy XP preference needed"}
+    preferred_uri = (isf_path.resolve().as_uri() if use_loose else
+                     f'jar:file:{archive}!{RELATIVE_ISF.as_posix()}')
     if hashlib.sha256(payload).hexdigest() != EXPECTED_SHA256:
         raise ValueError("Supplemental ISF no longer matches its reviewed official SHA-256.")
     isf = json.loads(lzma.decompress(payload))
@@ -64,7 +80,6 @@ def prepare(symbols_path: Path, cache_path: Path) -> dict:
     manager = SqliteCache(str(database_path))
     manager.update(progress_callback=lambda *args, **kwargs: None)
     identifier = WindowsIdentifier.get_identifier(isf)
-    preferred_uri = isf_path.resolve().as_uri()
     stats = manager.get_location_statistics(preferred_uri)
     if manager.get_identifier(preferred_uri) != identifier or stats is None or stats[1] != 561:
         raise ValueError("Official cache indexing did not register the verified typed supplemental ISF.")
@@ -92,7 +107,6 @@ def prepare(symbols_path: Path, cache_path: Path) -> dict:
     if selected_uri != preferred_uri:
         # The complete official pack contains the same typed XP table. Permit
         # only this exact local duplicate, with the same reviewed byte hash.
-        archive = symbols_path / 'windows.zip'
         duplicate_uri = f'jar:file:{archive}!{RELATIVE_ISF.as_posix()}'
         if selected_uri != duplicate_uri or archive.is_symlink():
             raise ValueError(f"Cache did not select the verified full typed ISF: selected {selected_uri!r}.")
@@ -100,7 +114,7 @@ def prepare(symbols_path: Path, cache_path: Path) -> dict:
             if hashlib.sha256(packed.read(RELATIVE_ISF.as_posix())).hexdigest() != EXPECTED_SHA256:
                 raise ValueError('Official-pack XP duplicate differs from the verified typed ISF.')
     # Assert the policy has never changed the supplemental file bytes.
-    if hashlib.sha256(isf_path.read_bytes()).hexdigest() != EXPECTED_SHA256:
+    if hashlib.sha256(read_payload()).hexdigest() != EXPECTED_SHA256:
         raise ValueError("Supplemental ISF changed during cache preparation.")
     result = {
         "prepared_at": datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%SZ'),

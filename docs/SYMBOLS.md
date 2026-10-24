@@ -37,6 +37,8 @@ that no installer is still running. Network errors are reported; setup does not
 silently claim complete provisioning. Indexing is offline and never reads a memory
 image. The existing typed XP preference also accepts its byte-identical duplicate
 inside the official Windows pack, while still rejecting different table contents.
+Fresh pack-only stores also apply that preference if an older analyzer contains
+an incomplete table for the same reviewed XP identifier.
 
 ## Coverage and consumers
 
