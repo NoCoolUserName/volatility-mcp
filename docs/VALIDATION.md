@@ -1,3 +1,34 @@
+# Experimental Intel64 Mac CryptoMem integration — 2026-10-24
+
+CryptoMem 0.4.0 is pinned at `f462c79dd249f2251698620485e1241a3b35d5cc`
+(standalone PR #4 merged after Ubuntu/Windows Python 3.12/3.13, quality and CodeQL
+checks passed). Core compatibility revision 11 adds the Mac command, fixed Mac
+plugin destination and existing manual/offline policy; tool count remains ten.
+
+- Standalone: 88 tests, including 12 new Mac tests and Windows/Linux regressions.
+- Core: isolated installed-wheel smoke passed all 181 tests (one optional skip),
+  both MCP negotiation modes and the synthetic report contract check.
+- Installed analyzer: reviewed 0.3.0-to-0.4.0 upgrade preserved all 238 prior
+  commands, added one (239 total), had zero import failures and added no dependencies.
+- Eighteen installed CryptoMem layer/renderer checks passed for all three adapters.
+- Actual stdio MCP discovery and invocation of Windows/Linux/Mac commands passed
+  with XP enabled and disabled. Invalid synthetic captures return explicit missing
+  kernel requirements, retain input hashes, stay offline and cannot be reused.
+- Simulated analyzer execution over actual MCP verifies Mac timeout and cancellation,
+  retained partial outputs, final manifests and child cleanup in auto/legacy modes.
+- Pinned Ruff, Gitleaks and diff whitespace checks passed.
+
+Versions: Python 3.12.13 locally, Volatility 3 2.28.2, MCP SDK 2.3.0,
+PyCryptodome 3.23.0. A public legacy Intel64 Mac symbol table was inspected for the
+required process/map fields; this is not real-memory validation. Real-memory Mac
+and Linux validation remain outstanding. Nested Mac submaps, Intel32/ARM64 Mac
+captures and modern macOS are unsupported. No private evidence was uploaded.
+
+Workbench requires a backend pin update/repackage to embed the new inventory;
+this core change adds no desktop implementation.
+
+---
+
 # Linux CryptoMem integration — 2026-10-24
 
 - Core suite: 156 tests passed with one optional analyzer test skipped, in an

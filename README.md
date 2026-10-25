@@ -2,7 +2,7 @@
 
 *11,177 lines of code*
 
-*Last measured package: `volatility_mcp-0.1.2-py3-none-any.whl`, 929,333,670 bytes (886.281652 MiB); measured on 2026-10-24 from source revision `5e3affb9c9fcf1be2e6b463194cef488518c7ff6`. Full release wheel includes four official symbol packs and the Linux catalog; excludes community Linux ISF downloads, analyzer/addon downloads, Python dependencies and the separate Workbench app.*
+*Last measured package: `volatility_mcp-0.1.3-py3-none-any.whl`, 1,016,472 bytes (0.969383 MiB); measured on 2026-10-24 from source revision `a49109a24fbe02f78500f6980c149efd90e1ff13`. Lean wheel includes the Linux catalog; excludes official symbol packs, community Linux ISF downloads, analyzer/addon downloads, Python dependencies and the separate Workbench app.*
 
 The optional CryptoMem profile now includes Linux x86-64 memory-image analysis
 alongside Windows. Use matching captured-kernel symbols; other Linux architectures
