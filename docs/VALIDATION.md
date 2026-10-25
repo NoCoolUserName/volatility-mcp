@@ -658,3 +658,29 @@ with the exact tag and successful main CI before publication. Wheel size is
 `831fbfad2a47c5ed9dc743b0eddfc0723109b935209cb873dc4c4ea4278e4da1`.
 The working symbol store was not changed by packaging. The 10,255-table Linux
 collection remains separate from the wheel, and no private evidence was included.
+# CryptoMem 0.5.0 / core 0.1.4 increment
+
+Isolated local checks: 191 core tests under Python 3.14.6 / MCP 2.3.0 (one optional
+skip), including real stdio protocol exchanges, XP-independent discovery, existing
+address behavior, extraction confinement and blocked raw/query/reference/inspection
+read paths. Timeout and cancellation preserve masked responses and block complete
+secret and temporary files. Eighteen installed adapter regressions pass under
+Python 3.12.13 / Volatility 3 2.28.2 / PyCryptodome 3.23.0.
+
+`tests/cryptomem_extended_mcp_smoke.py` invokes the actually installed 0.5.0 plugin
+through all three adapters and the real ten-tool MCP transport, in legacy/auto
+modes with XP off/on. It supplies generated process mappings and public BIP-39 /
+BIP-32 text, checks original input integrity, masking, extraction mode 0600,
+saved reads/queries, timeout and cancellation. These are synthetic buffers, not
+acquired memory or a real captured kernel. Standalone has 101 synthetic tests on
+Python 3.12.13 and 3.14.6; supported CI adds Python 3.12/3.13 and Windows/Linux.
+No private evidence or recovered material was used or uploaded.
+
+Real-memory Linux/macOS validation with suitably licensed captures and exact
+symbols remains outstanding. The existing full Linux symbol index is a separate,
+active operator process; no second installer, cache deletion or rebuild was started.
+Only final exit status and a receipt for all 10,255 tables can establish completion.
+Workbench 0.1.2 still embeds the 0.1.3 backend inventory and requires a separate
+tested adoption/repackage to include this increment.
+
+Installed-wheel package smoke also passed under Python 3.12.13 / MCP 2.3.0: 191 tests (one optional skip), dependency check, packaged report contract, no Workbench dependency and ten tools in both protocol modes. A full local wheel was built from `fe1e3597a70a08eb39ea15856bfdda77a93dbc49` using existing SHA-256-verified official packs; it is 929,336,320 bytes, SHA-256 `2f15fa4788a1f407255cb979f335294b55976d28af60420de731443a0bfd0f9f`. This measurement covers the local build, not a later CI-built release asset.

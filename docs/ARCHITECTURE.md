@@ -1,5 +1,14 @@
 # Architecture
 
+CryptoMem 0.5.0 remains a separately maintained, hash-pinned add-on. New detectors
+are explicit Boolean plugin options on the same ten tools. The standalone plugin
+masks secret values before rendering; core contains no duplicate detector. A
+shared local-only extraction guard runs before raw paging, structured queries,
+evidence resolution and artifact inspection. It also covers `.vol3` temporary
+files from interrupted extraction. Schema-1 address defaults remain; opt-in richer
+findings and summaries have separate schema-2 filenames. Execution stays offline,
+manual, bounded and confined to configured case outputs; see CRYPTOMEM.md.
+
 ## Core and optional companion
 
 ```text

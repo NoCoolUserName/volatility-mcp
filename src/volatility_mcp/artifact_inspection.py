@@ -47,6 +47,11 @@ def inspect_saved(backend, image, run_id, artifact, operation, min_length, encod
         backend._check_components(source)
         if resolved_path(source, strict=True) != source or not source.is_relative_to(run):
             raise EvidenceError('Artifact escapes the registered run')
+        from .secret_outputs import check_shareable
+        try:
+            check_shareable(source, backend.outputs)
+        except ValueError as exc:
+            raise EvidenceError(str(exc)) from None
         recorded = next((a for c in record.get('commands', []) for a in c.get('artifacts', [])
                          if a['path'] == str(source)), None)
         if recorded is None:

@@ -98,6 +98,51 @@ class CryptoMemBackendTests(unittest.TestCase):
                 validate(['--pid', '42', flag, '/tmp/untrusted'])
         self.assertEqual(self.count(), 0)
 
+    def test_secret_extraction_is_explicit_private_and_never_readable_over_mcp(self):
+        args = ['--pid','42','--detect-mnemonics','--extract-secrets']
+        with self.assertRaisesRegex(EvidenceError,'requires an enabled'):
+            self.run_crypto(arguments=['--pid','42','--extract-secrets'])
+        self.backend.outputs.chmod(0o755)
+        with self.assertRaisesRegex(EvidenceError,'private configured output'):
+            self.run_crypto(arguments=args)
+        self.backend.outputs.chmod(0o700)
+        result = self.run_crypto(arguments=args)
+        self.assertEqual(result['status'],'success')
+        secret = 'abandon '*11+'about'  # Public BIP-39 vector, no evidence.
+        self.assertNotIn(secret,json.dumps(result))
+        files = Path(result['commands'][0]['files_directory'])
+        path = files/'cryptomem-secrets-v1.jsonl'
+        self.assertIn(secret,path.read_text())
+        self.assertEqual(path.stat().st_mode & 0o777,0o600)
+        for name in (path.name,'tmp_synthetic.vol3'):
+            relative = 'json/files/'+name
+            with self.subTest(name=name):
+                for offset,limit in ((0,1),(5,10),(15,65536)):
+                    with self.assertRaisesRegex(EvidenceError,'local-only'):
+                        self.backend.read_output(str(files/name),offset,limit)
+                with self.assertRaisesRegex(EvidenceError,'local-only'):
+                    self.backend.query_output('example.raw',result['run_id'],relative)
+                with self.assertRaisesRegex(EvidenceError,'local-only'):
+                    self.backend.get_evidence({'source':{'image':'example.raw','run_id':result['run_id'],'artifact':relative}})
+                with self.assertRaisesRegex(EvidenceError,'local-only'):
+                    self.backend.inspect_artifact('example.raw',result['run_id'],relative,'strings')
+        self.assertIn('[REDACTED SECRET]',self.backend.read_output(str(files/'cryptomem-findings-v2.jsonl'))['content'])
+        self.assertIn('[REDACTED SECRET]',self.backend.read_output(result['json_artifact'])['content'])
+        self.assertNotIn(secret,json.dumps(self.backend.case_history('example.raw')))
+        self.assertTrue(self.run_crypto(arguments=args)['reused'])
+
+    def test_masked_secret_failures_and_timeout_keep_extraction_local(self):
+        args=['--pid','42','--detect-mnemonics','--extract-secrets']
+        self.backend.command_timeout=1
+        for mode,status in (('incomplete','error'),('timeout','timeout')):
+            result=self.run_crypto(mode,arguments=args)
+            self.assertEqual(result['status'],status)
+            self.assertFalse(result['reuse_eligible'])
+            self.assertNotIn('abandon '*11+'about',json.dumps(result))
+            path=Path(result['commands'][0]['files_directory'])/'cryptomem-secrets-v1.jsonl'
+            with self.assertRaisesRegex(EvidenceError,'local-only'):
+                self.backend.read_output(str(path))
+
     def test_execution_preserves_source_artifacts_hashes_and_provenance(self):
         original = self.image.read_bytes()
         result = self.run_crypto()

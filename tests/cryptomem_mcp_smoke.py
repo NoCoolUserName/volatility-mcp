@@ -40,7 +40,7 @@ async def check(config_path):
                 assert not catalog['import_failures']
                 for plugin in catalog['plugins']:
                     assert plugin['manual_only']
-                    assert plugin['plugin_version'] == [0,4,0]
+                    assert plugin['plugin_version'] == [0,5,0]
                     result = decode_result(await client.call_tool('run_plugin', {'image':'invalid.raw',
                         'plugin':plugin['name'],'arguments':['--pid','42']}))
                     assert result['status'] == 'error', result['status']

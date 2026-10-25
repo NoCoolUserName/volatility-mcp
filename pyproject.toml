@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "volatility-mcp"
-version = "0.1.3"
+version = "0.1.4"
 description = "A local MCP server for controlled, evidence-preserving Volatility 3 queries"
 readme = "README.md"
 requires-python = ">=3.12"

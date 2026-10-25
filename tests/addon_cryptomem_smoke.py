@@ -150,7 +150,8 @@ class InstalledCryptoMemTests(unittest.TestCase):
         self.assertIsNone(pid['nargs'])
         self.assertEqual(option_spec(reqs['currency'])['choices'], ['all', 'btc', 'eth', 'xrp', 'xmr'])
         self.assertEqual({req.name for req in reqs.values() if option_spec(req) is not None},
-                         {'pid', 'currency', 'max_scan_bytes', 'max_results'})
+                         {'pid', 'currency', 'max_scan_bytes', 'max_results',
+                          'detect_mnemonics', 'detect_private_keys', 'detect_txids', 'extract_secrets'})
 
     def test_real_renderer_artifacts_offsets_and_core_row_consumption(self):
         data = b'prefix ' + BTC + b' suffix'

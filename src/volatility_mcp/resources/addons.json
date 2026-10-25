@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "profile": "community-2026-10",
-  "compatibility_revision": 11,
+  "compatibility_revision": 12,
   "volatility_version": "2.28.2",
   "offline_plugins": [
     "windows.cobaltstrike.CobaltStrike",
@@ -606,19 +606,19 @@
     },
     {
       "repository": "NoCoolUserName/volatility3-cryptomem",
-      "commit": "f462c79dd249f2251698620485e1241a3b35d5cc",
+      "commit": "69f8d1f0c94b51b19da6de810e2b57a33df3d9c9",
       "license": "VSL-1.0; preserve CryptoMem, CryptoScan reference and standards notices; LICENSE is archived by installer",
       "files": [
         {
           "path": "plugins/windows/cryptomem.py",
           "target": "windows/cryptomem.py",
-          "sha256": "5aafaea1c854dfce2635603dbb8bff42e456bfeab3aa1a7d0356ed5b8ba2c069",
-          "installed_sha256": "5aafaea1c854dfce2635603dbb8bff42e456bfeab3aa1a7d0356ed5b8ba2c069",
+          "sha256": "6b878890e0160970bbc03f3b76c76d6bd4b50dc1c9162432deadffab40fbaaa4",
+          "installed_sha256": "6b878890e0160970bbc03f3b76c76d6bd4b50dc1c9162432deadffab40fbaaa4",
           "dependencies": [
             "pycryptodome==3.23.0"
           ],
-          "limitations": "Explicit single-PID Windows or Linux x86-64 process scan (Linux TGID, not TID); BTC Base58Check/Bech32/Bech32m, Ethereum-style, XRP classic and Monero standard/subaddress/integrated address candidates, plus bounded direct-address payment requests. ASCII and UTF-16LE; format/checksum validation is not ownership, control, balance, transaction activity, or wallet identification. Requires local matching kernel symbols and pycryptodome 3.23.0 for ERC-55 and Monero Keccak checksums. Monero block encoding, length and network/type prefixes are checked; curve validity and Monero URI parameters are not. Offline bounded reads/results; incomplete scans fail and retain artifacts. Synthetic validation only; real-memory recovery accuracy unvalidated. Other Linux architectures unsupported until tested. Linux symbols must match the captured kernel build; bundled packs are not universal coverage. Linux VMAs use exclusive ends and thread leaders only. Experimental legacy macOS Intel64 adapter uses BSD PIDs and VM maps. Exact Darwin kernel symbols required; legacy packs are not universal. Apple silicon/ARM64, Intel32 macOS and modern macOS are unsupported. Declared map counts are checked; nested submaps (including ordinary shared-region submaps) cause incomplete failure before scanning. Upstream macOS support is no longer actively maintained. Real-memory macOS validation remains outstanding.",
-          "previous_installed_sha256": "9718a0a25ebc433b9564748ff4c71b34e7423cb3ea13607b9b1c80512d249948"
+          "limitations": "Explicit single-PID Windows or Linux x86-64 process scan (Linux TGID, not TID); BTC Base58Check/Bech32/Bech32m, Ethereum-style, XRP classic and Monero standard/subaddress/integrated address candidates, plus bounded direct-address payment requests. ASCII and UTF-16LE; format/checksum validation is not ownership, control, balance, transaction activity, or wallet identification. Requires local matching kernel symbols and pycryptodome 3.23.0 for ERC-55 and Monero Keccak checksums. Monero block encoding, length and network/type prefixes are checked; curve validity and Monero URI parameters are not. Offline bounded reads/results; incomplete scans fail and retain artifacts. Synthetic validation only; real-memory recovery accuracy unvalidated. Other Linux architectures unsupported until tested. Linux symbols must match the captured kernel build; bundled packs are not universal coverage. Linux VMAs use exclusive ends and thread leaders only. Experimental legacy macOS Intel64 adapter uses BSD PIDs and VM maps. Exact Darwin kernel symbols required; legacy packs are not universal. Apple silicon/ARM64, Intel32 macOS and modern macOS are unsupported. Declared map counts are checked; nested submaps (including ordinary shared-region submaps) cause incomplete failure before scanning. Upstream macOS support is no longer actively maintained. Real-memory macOS validation remains outstanding. CryptoMem 0.5.0: opt-in English BIP-39, Bitcoin WIF/xprv/tprv and ambiguous hexadecimal transaction-ID candidates; masked ordinary outputs, separate versioned artifacts and explicit private local-only extraction. No other mnemonic languages/schemes, arbitrary binary keys, encrypted-wallet recovery, transaction parsing, wallet interaction or network enrichment. Synthetic tests only.",
+          "previous_installed_sha256": "5aafaea1c854dfce2635603dbb8bff42e456bfeab3aa1a7d0356ed5b8ba2c069"
         },
         {
           "path": "plugins/windows/cryptomem_formats.py",
@@ -628,40 +628,61 @@
           "dependencies": [
             "pycryptodome==3.23.0"
           ],
-          "limitations": "Explicit single-PID Windows or Linux x86-64 process scan (Linux TGID, not TID); BTC Base58Check/Bech32/Bech32m, Ethereum-style, XRP classic and Monero standard/subaddress/integrated address candidates, plus bounded direct-address payment requests. ASCII and UTF-16LE; format/checksum validation is not ownership, control, balance, transaction activity, or wallet identification. Requires local matching kernel symbols and pycryptodome 3.23.0 for ERC-55 and Monero Keccak checksums. Monero block encoding, length and network/type prefixes are checked; curve validity and Monero URI parameters are not. Offline bounded reads/results; incomplete scans fail and retain artifacts. Synthetic validation only; real-memory recovery accuracy unvalidated. Other Linux architectures unsupported until tested. Linux symbols must match the captured kernel build; bundled packs are not universal coverage. Linux VMAs use exclusive ends and thread leaders only. Experimental legacy macOS Intel64 adapter uses BSD PIDs and VM maps. Exact Darwin kernel symbols required; legacy packs are not universal. Apple silicon/ARM64, Intel32 macOS and modern macOS are unsupported. Declared map counts are checked; nested submaps (including ordinary shared-region submaps) cause incomplete failure before scanning. Upstream macOS support is no longer actively maintained. Real-memory macOS validation remains outstanding.",
-          "previous_installed_sha256": "83136f15510fb898df114d0bada95f1e32d73c198fb0054c082085eedfb9893d"
+          "limitations": "Explicit single-PID Windows or Linux x86-64 process scan (Linux TGID, not TID); BTC Base58Check/Bech32/Bech32m, Ethereum-style, XRP classic and Monero standard/subaddress/integrated address candidates, plus bounded direct-address payment requests. ASCII and UTF-16LE; format/checksum validation is not ownership, control, balance, transaction activity, or wallet identification. Requires local matching kernel symbols and pycryptodome 3.23.0 for ERC-55 and Monero Keccak checksums. Monero block encoding, length and network/type prefixes are checked; curve validity and Monero URI parameters are not. Offline bounded reads/results; incomplete scans fail and retain artifacts. Synthetic validation only; real-memory recovery accuracy unvalidated. Other Linux architectures unsupported until tested. Linux symbols must match the captured kernel build; bundled packs are not universal coverage. Linux VMAs use exclusive ends and thread leaders only. Experimental legacy macOS Intel64 adapter uses BSD PIDs and VM maps. Exact Darwin kernel symbols required; legacy packs are not universal. Apple silicon/ARM64, Intel32 macOS and modern macOS are unsupported. Declared map counts are checked; nested submaps (including ordinary shared-region submaps) cause incomplete failure before scanning. Upstream macOS support is no longer actively maintained. Real-memory macOS validation remains outstanding. CryptoMem 0.5.0: opt-in English BIP-39, Bitcoin WIF/xprv/tprv and ambiguous hexadecimal transaction-ID candidates; masked ordinary outputs, separate versioned artifacts and explicit private local-only extraction. No other mnemonic languages/schemes, arbitrary binary keys, encrypted-wallet recovery, transaction parsing, wallet interaction or network enrichment. Synthetic tests only.",
+          "previous_installed_sha256": "9a7ab66d321133cda8a807d53f0040d17c41ee00718b3a19d648147dfe5b405c"
         },
         {
           "path": "plugins/windows/cryptomem_scan.py",
           "target": "windows/cryptomem_scan.py",
-          "sha256": "c4243f6b498ec9556b38d3f1ebe4f7abd8de87c279c025a4b7f9d269c13e0a8e",
-          "installed_sha256": "c4243f6b498ec9556b38d3f1ebe4f7abd8de87c279c025a4b7f9d269c13e0a8e",
+          "sha256": "caeda684120855d9cec9134bc51aa32d58f4f1ffb314d82b04a9d1ed36c6a77d",
+          "installed_sha256": "caeda684120855d9cec9134bc51aa32d58f4f1ffb314d82b04a9d1ed36c6a77d",
           "dependencies": [
             "pycryptodome==3.23.0"
           ],
-          "limitations": "Explicit single-PID Windows or Linux x86-64 process scan (Linux TGID, not TID); BTC Base58Check/Bech32/Bech32m, Ethereum-style, XRP classic and Monero standard/subaddress/integrated address candidates, plus bounded direct-address payment requests. ASCII and UTF-16LE; format/checksum validation is not ownership, control, balance, transaction activity, or wallet identification. Requires local matching kernel symbols and pycryptodome 3.23.0 for ERC-55 and Monero Keccak checksums. Monero block encoding, length and network/type prefixes are checked; curve validity and Monero URI parameters are not. Offline bounded reads/results; incomplete scans fail and retain artifacts. Synthetic validation only; real-memory recovery accuracy unvalidated. Other Linux architectures unsupported until tested. Linux symbols must match the captured kernel build; bundled packs are not universal coverage. Linux VMAs use exclusive ends and thread leaders only. Experimental legacy macOS Intel64 adapter uses BSD PIDs and VM maps. Exact Darwin kernel symbols required; legacy packs are not universal. Apple silicon/ARM64, Intel32 macOS and modern macOS are unsupported. Declared map counts are checked; nested submaps (including ordinary shared-region submaps) cause incomplete failure before scanning. Upstream macOS support is no longer actively maintained. Real-memory macOS validation remains outstanding.",
-          "previous_installed_sha256": "3c55bc8e5d771d246cd3ea85a5c648f3eefb2fd2f4b06dc23869fd79ffba14f0"
+          "limitations": "Explicit single-PID Windows or Linux x86-64 process scan (Linux TGID, not TID); BTC Base58Check/Bech32/Bech32m, Ethereum-style, XRP classic and Monero standard/subaddress/integrated address candidates, plus bounded direct-address payment requests. ASCII and UTF-16LE; format/checksum validation is not ownership, control, balance, transaction activity, or wallet identification. Requires local matching kernel symbols and pycryptodome 3.23.0 for ERC-55 and Monero Keccak checksums. Monero block encoding, length and network/type prefixes are checked; curve validity and Monero URI parameters are not. Offline bounded reads/results; incomplete scans fail and retain artifacts. Synthetic validation only; real-memory recovery accuracy unvalidated. Other Linux architectures unsupported until tested. Linux symbols must match the captured kernel build; bundled packs are not universal coverage. Linux VMAs use exclusive ends and thread leaders only. Experimental legacy macOS Intel64 adapter uses BSD PIDs and VM maps. Exact Darwin kernel symbols required; legacy packs are not universal. Apple silicon/ARM64, Intel32 macOS and modern macOS are unsupported. Declared map counts are checked; nested submaps (including ordinary shared-region submaps) cause incomplete failure before scanning. Upstream macOS support is no longer actively maintained. Real-memory macOS validation remains outstanding. CryptoMem 0.5.0: opt-in English BIP-39, Bitcoin WIF/xprv/tprv and ambiguous hexadecimal transaction-ID candidates; masked ordinary outputs, separate versioned artifacts and explicit private local-only extraction. No other mnemonic languages/schemes, arbitrary binary keys, encrypted-wallet recovery, transaction parsing, wallet interaction or network enrichment. Synthetic tests only.",
+          "previous_installed_sha256": "c4243f6b498ec9556b38d3f1ebe4f7abd8de87c279c025a4b7f9d269c13e0a8e"
         },
         {
           "path": "plugins/linux/cryptomem.py",
           "target": "linux/cryptomem.py",
-          "sha256": "54c3396509f2237420c267cebb8931e1d9327fcf002181785357f06d74f162ec",
-          "installed_sha256": "54c3396509f2237420c267cebb8931e1d9327fcf002181785357f06d74f162ec",
+          "sha256": "6f6341de6354bbd8259b7048ec8062d263b39364b3c4b353af08cf6dad523f43",
+          "installed_sha256": "6f6341de6354bbd8259b7048ec8062d263b39364b3c4b353af08cf6dad523f43",
           "dependencies": [
             "pycryptodome==3.23.0"
           ],
-          "limitations": "Explicit single-PID Windows or Linux x86-64 process scan (Linux TGID, not TID); BTC Base58Check/Bech32/Bech32m, Ethereum-style, XRP classic and Monero standard/subaddress/integrated address candidates, plus bounded direct-address payment requests. ASCII and UTF-16LE; format/checksum validation is not ownership, control, balance, transaction activity, or wallet identification. Requires local matching kernel symbols and pycryptodome 3.23.0 for ERC-55 and Monero Keccak checksums. Monero block encoding, length and network/type prefixes are checked; curve validity and Monero URI parameters are not. Offline bounded reads/results; incomplete scans fail and retain artifacts. Synthetic validation only; real-memory recovery accuracy unvalidated. Other Linux architectures unsupported until tested. Linux symbols must match the captured kernel build; bundled packs are not universal coverage. Linux VMAs use exclusive ends and thread leaders only. Experimental legacy macOS Intel64 adapter uses BSD PIDs and VM maps. Exact Darwin kernel symbols required; legacy packs are not universal. Apple silicon/ARM64, Intel32 macOS and modern macOS are unsupported. Declared map counts are checked; nested submaps (including ordinary shared-region submaps) cause incomplete failure before scanning. Upstream macOS support is no longer actively maintained. Real-memory macOS validation remains outstanding.",
-          "previous_installed_sha256": "1c9b67319ee1e0da9a8c8d4b85ddb58ec7fe695b62f63c94b01c0d254d325d58"
+          "limitations": "Explicit single-PID Windows or Linux x86-64 process scan (Linux TGID, not TID); BTC Base58Check/Bech32/Bech32m, Ethereum-style, XRP classic and Monero standard/subaddress/integrated address candidates, plus bounded direct-address payment requests. ASCII and UTF-16LE; format/checksum validation is not ownership, control, balance, transaction activity, or wallet identification. Requires local matching kernel symbols and pycryptodome 3.23.0 for ERC-55 and Monero Keccak checksums. Monero block encoding, length and network/type prefixes are checked; curve validity and Monero URI parameters are not. Offline bounded reads/results; incomplete scans fail and retain artifacts. Synthetic validation only; real-memory recovery accuracy unvalidated. Other Linux architectures unsupported until tested. Linux symbols must match the captured kernel build; bundled packs are not universal coverage. Linux VMAs use exclusive ends and thread leaders only. Experimental legacy macOS Intel64 adapter uses BSD PIDs and VM maps. Exact Darwin kernel symbols required; legacy packs are not universal. Apple silicon/ARM64, Intel32 macOS and modern macOS are unsupported. Declared map counts are checked; nested submaps (including ordinary shared-region submaps) cause incomplete failure before scanning. Upstream macOS support is no longer actively maintained. Real-memory macOS validation remains outstanding. CryptoMem 0.5.0: opt-in English BIP-39, Bitcoin WIF/xprv/tprv and ambiguous hexadecimal transaction-ID candidates; masked ordinary outputs, separate versioned artifacts and explicit private local-only extraction. No other mnemonic languages/schemes, arbitrary binary keys, encrypted-wallet recovery, transaction parsing, wallet interaction or network enrichment. Synthetic tests only.",
+          "previous_installed_sha256": "54c3396509f2237420c267cebb8931e1d9327fcf002181785357f06d74f162ec"
         },
         {
           "path": "plugins/mac/cryptomem.py",
           "target": "mac/cryptomem.py",
-          "sha256": "bcd4fcf610e3919a76a9a295f112d35e26683479c3bd3854fd5e31287ef6e842",
-          "installed_sha256": "bcd4fcf610e3919a76a9a295f112d35e26683479c3bd3854fd5e31287ef6e842",
+          "sha256": "de037f7898571117b38d5401c309829ca24d380239559be3c5379b9f4ee2f790",
+          "installed_sha256": "de037f7898571117b38d5401c309829ca24d380239559be3c5379b9f4ee2f790",
           "dependencies": [
             "pycryptodome==3.23.0"
           ],
-          "limitations": "Explicit single-PID Windows or Linux x86-64 process scan (Linux TGID, not TID); BTC Base58Check/Bech32/Bech32m, Ethereum-style, XRP classic and Monero standard/subaddress/integrated address candidates, plus bounded direct-address payment requests. ASCII and UTF-16LE; format/checksum validation is not ownership, control, balance, transaction activity, or wallet identification. Requires local matching kernel symbols and pycryptodome 3.23.0 for ERC-55 and Monero Keccak checksums. Monero block encoding, length and network/type prefixes are checked; curve validity and Monero URI parameters are not. Offline bounded reads/results; incomplete scans fail and retain artifacts. Synthetic validation only; real-memory recovery accuracy unvalidated. Other Linux architectures unsupported until tested. Linux symbols must match the captured kernel build; bundled packs are not universal coverage. Linux VMAs use exclusive ends and thread leaders only. Experimental legacy macOS Intel64 adapter uses BSD PIDs and VM maps. Exact Darwin kernel symbols required; legacy packs are not universal. Apple silicon/ARM64, Intel32 macOS and modern macOS are unsupported. Declared map counts are checked; nested submaps (including ordinary shared-region submaps) cause incomplete failure before scanning. Upstream macOS support is no longer actively maintained. Real-memory macOS validation remains outstanding."
+          "limitations": "Explicit single-PID Windows or Linux x86-64 process scan (Linux TGID, not TID); BTC Base58Check/Bech32/Bech32m, Ethereum-style, XRP classic and Monero standard/subaddress/integrated address candidates, plus bounded direct-address payment requests. ASCII and UTF-16LE; format/checksum validation is not ownership, control, balance, transaction activity, or wallet identification. Requires local matching kernel symbols and pycryptodome 3.23.0 for ERC-55 and Monero Keccak checksums. Monero block encoding, length and network/type prefixes are checked; curve validity and Monero URI parameters are not. Offline bounded reads/results; incomplete scans fail and retain artifacts. Synthetic validation only; real-memory recovery accuracy unvalidated. Other Linux architectures unsupported until tested. Linux symbols must match the captured kernel build; bundled packs are not universal coverage. Linux VMAs use exclusive ends and thread leaders only. Experimental legacy macOS Intel64 adapter uses BSD PIDs and VM maps. Exact Darwin kernel symbols required; legacy packs are not universal. Apple silicon/ARM64, Intel32 macOS and modern macOS are unsupported. Declared map counts are checked; nested submaps (including ordinary shared-region submaps) cause incomplete failure before scanning. Upstream macOS support is no longer actively maintained. Real-memory macOS validation remains outstanding. CryptoMem 0.5.0: opt-in English BIP-39, Bitcoin WIF/xprv/tprv and ambiguous hexadecimal transaction-ID candidates; masked ordinary outputs, separate versioned artifacts and explicit private local-only extraction. No other mnemonic languages/schemes, arbitrary binary keys, encrypted-wallet recovery, transaction parsing, wallet interaction or network enrichment. Synthetic tests only.",
+          "previous_installed_sha256": "bcd4fcf610e3919a76a9a295f112d35e26683479c3bd3854fd5e31287ef6e842"
+        },
+        {
+          "path": "plugins/windows/cryptomem_bip39.py",
+          "target": "windows/cryptomem_bip39.py",
+          "sha256": "a018f390d6d87adc9aa3a909f34ae26b6e409b3f6dab15d8bfff8cb329aea928",
+          "installed_sha256": "a018f390d6d87adc9aa3a909f34ae26b6e409b3f6dab15d8bfff8cb329aea928",
+          "dependencies": [
+            "pycryptodome==3.23.0"
+          ],
+          "limitations": "Shared plain CryptoMem helpers; pinned English word list or opt-in format validators; no network operations. See standalone EXTENDED_FORMATS.md."
+        },
+        {
+          "path": "plugins/windows/cryptomem_extended.py",
+          "target": "windows/cryptomem_extended.py",
+          "sha256": "a7cbb404a72cbd2df811c035928bcb68ac5862a9a5b46202e8871d15a77bc557",
+          "installed_sha256": "a7cbb404a72cbd2df811c035928bcb68ac5862a9a5b46202e8871d15a77bc557",
+          "dependencies": [
+            "pycryptodome==3.23.0"
+          ],
+          "limitations": "Shared plain CryptoMem helpers; pinned English word list or opt-in format validators; no network operations. See standalone EXTENDED_FORMATS.md."
         }
       ],
       "plugins": [
@@ -673,7 +694,7 @@
       "notices": [
         {
           "path": "LICENSE",
-          "sha256": "70ef1d4d314a633d83bf8307910498715af73b4750ec35c30af649b490ddc974"
+          "sha256": "2231901cda44b37726b0b15aeeaa2de134fc1188ad113e0b454d8d601d83a422"
         }
       ]
     }
