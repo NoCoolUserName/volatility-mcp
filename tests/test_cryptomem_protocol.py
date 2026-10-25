@@ -109,7 +109,7 @@ class CryptoMemProtocolTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(record['status'],'cancelled')
             self.assert_child_gone()
             files=Path(record['commands'][0]['files_directory'])
-            for name in ('cryptomem-secrets-v1.jsonl','tmp_synthetic.vol3'):
+            for name in ('tmp_synthetic.vol3','cryptomem-secrets-v1.jsonl'):
                 result=await client.call_tool('read_output',{'path':str(files/name)})
                 self.assertTrue(result.is_error)
 
