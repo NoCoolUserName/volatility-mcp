@@ -40,6 +40,7 @@ jobs:
       - run: '"$RUNNER_TEMP/analyzer/bin/python" tests/addon_python_runtime_smoke.py -v'
       - run: '"$RUNNER_TEMP/analyzer/bin/python" tests/addon_cryptomem_smoke.py -v'
       - run: 'python tests/cryptomem_mcp_smoke.py "$RUNNER_TEMP/addons.json"'
+      - run: 'python tests/cryptomem_extended_mcp_smoke.py "$RUNNER_TEMP/analyzer/bin/python"'
       - run: '"$RUNNER_TEMP/analyzer/bin/python" tests/symbol_packs_smoke.py -v'
   test:
     runs-on: ubuntu-latest

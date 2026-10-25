@@ -71,6 +71,11 @@ def resolve_source(backend, image, run_id, artifact):
     path = folder/artifact
     backend._check_components(path)
     require(resolved_path(path).is_relative_to(folder) and path.is_file(), 'Saved artifact is missing or escapes its run')
+    from .secret_outputs import check_shareable
+    try:
+        check_shareable(path, backend.outputs)
+    except ValueError as exc:
+        raise EvidenceError(str(exc)) from None
     if inspection:
         parent = record['source_ref']
         require(not parent['run_id'].startswith('inspection-'), 'Inspection parent must be an original extraction run')

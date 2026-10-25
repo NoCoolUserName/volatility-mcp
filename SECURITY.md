@@ -43,6 +43,18 @@ downloads packages. Neither is contact with a recovered malware endpoint. For a
 network-restricted workflow, provision approved packages and exact symbols in
 advance and enforce network policy outside this application.
 
+CryptoMem's opt-in mnemonic and serialized private-key findings are masked by
+the pinned standalone plugin before any renderer or ordinary artifact is written.
+Full values require `--extract-secrets` with an enabled secret detector, private
+configured output root and a private POSIX plugin handler. MCP subprocesses use
+umask 077. Core refuses every MCP output-reading/inspection route to complete
+extraction files and unclassified extraction-run files, including interrupted
+Volatility temporary files. Masked v2 findings, summaries and renderer JSON remain
+readable. Full extraction stays for local operator access; never paste it into
+reports, AI clients, screenshots, CI logs or external services. This policy trusts
+the pinned plugin, run metadata, local filesystem and configured analyzer; it is
+not a general secret scrubber for other tools or operator-created copies.
+
 Operator setup uses included symbol packs in the full release wheel. Source
 installs without bundled data download the pinned packs (opt out with
 `--symbol-packs none`). `symbols-install` is also available explicitly. Fixed HTTPS

@@ -365,6 +365,7 @@ class VolatilityBackend:
                     # Keep the execution lock alive if the server is force-killed
                     # while its analyzer survives. A new client must not overlap it.
                     pass_fds=(lock_fd,),
+                    umask=0o077,
                     env={k: v for k, v in os.environ.items()
                          if k not in {"PYTHONPATH", "PYTHONHOME", "VOLATILITY_PLUGINS"}})
                 deadline = time.monotonic() + self.command_timeout
@@ -453,6 +454,12 @@ class VolatilityBackend:
             # processes whose analyzer environment may have been upgraded.
             self._catalog = None
             normalized, values = self._parse_arguments(plugin, arguments)
+            from .secret_outputs import CRYPTOMEM
+            if plugin in CRYPTOMEM and values.get('extract_secrets'):
+                if not (values.get('detect_mnemonics') or values.get('detect_private_keys')):
+                    raise EvidenceError('Secret extraction requires an enabled secret detector.')
+                if self.outputs.stat().st_mode & 0o077:
+                    raise EvidenceError('Secret extraction requires a private configured output root (mode 0700).')
             hashes = HashMeasurements(file_fingerprint)
             before = hashes.file(source, 'image_before')
             case = self.case_directory(source)
@@ -655,6 +662,11 @@ class VolatilityBackend:
         resolved = resolved_path(candidate, strict=True)
         if not resolved.is_relative_to(self.outputs):
             raise EvidenceError("Artifact escapes output root.")
+        from .secret_outputs import check_shareable
+        try:
+            check_shareable(resolved, self.outputs)
+        except ValueError as exc:
+            raise EvidenceError(str(exc)) from None
         fingerprint = file_fingerprint(resolved)
         with resolved.open("rb") as stream:
             stream.seek(offset)
