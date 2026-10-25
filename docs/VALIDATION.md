@@ -597,3 +597,21 @@ symbol smoke test additionally indexes a synthetic Linux ISF from the community
 directory layout with network connections blocked. The full core suite passed
 166 tests (one optional skip) on Python 3.12.13. Public symbol download checks
 validate symbol data only; they do not constitute real-memory CryptoMem testing.
+
+The published 0.1.2 full wheel was downloaded and matched SHA-256
+`b07cf208140213f5e17569765881a8b6cc37063904ee2cb60b360c0fb524876e`.
+Its source revision is `5e3affb9c9fcf1be2e6b463194cef488518c7ff6`; exact-source
+main CI and release gates passed. A public AlmaLinux 4.18.0-240.15.1.el8_3
+x86-64 ISF passed hash/content verification and actual offline Volatility 2.28.2
+index registration. This is symbol-data validation, not a memory-image result.
+
+An existing external Volatility 2.28.2 analyzer was upgraded from CryptoMem 0.2.0
+to 0.3.0 through the pinned installer without dependency replacements or import
+failures. Both commands were then invoked through actual MCP with XP on and off
+against temporary synthetic invalid acquisitions; all reported unsatisfied
+kernel/symbol requirements and preserved input hashes. The real bulk symbol
+installer also stopped cleanly on SIGINT after 841 completed tables, retained
+those files, removed partial downloads and its lock, and resumed by reverifying
+completed data. Full collection readiness is reported only after offline index
+verification; downloading some tables does not establish readiness or coverage
+for a particular captured kernel.
