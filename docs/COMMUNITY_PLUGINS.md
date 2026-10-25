@@ -256,3 +256,11 @@ Linux validation remains outstanding. Both commands are manual-only and forced
 offline regardless of the XP addon setting. The installer includes unchanged
 standalone helpers and retains source/license hashes. See [CRYPTOMEM.md](CRYPTOMEM.md)
 for invocation, limits, upgrade and Workbench backend pin/repackaging steps.
+
+## CryptoMem Intel64 macOS adapter (compatibility revision 11)
+
+CryptoMem 0.4.0 adds `mac.cryptomem.CryptoMem` to the pinned inventory and existing
+manual/offline execution policy. Plugin destinations now also permit a fixed
+`mac/<module>.py`; symbol/data destination rules are unchanged. The installer
+accepts the reviewed 0.3.0 hashes for upgrades and preserves native plugins. See
+[scope and limitations](CRYPTOMEM.md#experimental-legacy-intel64-macos-adapter-040).

@@ -251,7 +251,7 @@ owned by its separate distribution. Core imports no application modules.
 [CryptoMem](CRYPTOMEM.md) is installed unchanged in the analyzer through the
 optional community profile. Existing discovery, execution, case isolation,
 artifact conventions and reuse apply; `enable_xpnet` only controls the existing
-bundled XP path and does not disable this independently installed plugin. Windows and Linux x86-64 adapters share the standalone scanner. Linux requires
+bundled XP path and does not disable this independently installed plugin. Windows, Linux x86-64 and experimental legacy macOS Intel64 adapters share the standalone scanner. Linux requires
 symbols matching the captured kernel; bundled packs are not universal coverage.
 Core
 forces CryptoMem offline and marks it for explicit manual selection. Detector

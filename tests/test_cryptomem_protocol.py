@@ -14,6 +14,7 @@ import test_backend
 
 
 class CryptoMemProtocolTests(unittest.IsolatedAsyncioTestCase):
+    PLUGIN = "linux.cryptomem.CryptoMem"
     def setUp(self):
         self.fixture = test_backend.BackendTests()
         self.fixture.setUp()
@@ -29,15 +30,15 @@ class CryptoMemProtocolTests(unittest.IsolatedAsyncioTestCase):
         return StdioServerParameters(command=sys.executable,
             args=['-m', 'volatility_mcp', 'serve', '--config', str(path)])
 
-    async def test_both_commands_discovery_invocation_and_failures(self):
+    async def test_all_commands_discovery_invocation_and_failures(self):
         for xp in (False, True):
             async with Client(self.transport(xp=xp), mode='legacy', read_timeout_seconds=20) as client:
                 self.assertEqual(len((await client.list_tools()).tools), 10)
                 catalog = decode_result(await client.call_tool('list_plugins', {'query':'cryptomem'}))
                 self.assertEqual({p['name'] for p in catalog['plugins']},
-                                 {'linux.cryptomem.CryptoMem','windows.cryptomem.CryptoMem'})
+                                 {'linux.cryptomem.CryptoMem','windows.cryptomem.CryptoMem','mac.cryptomem.CryptoMem'})
                 self.assertTrue(all(p['manual_only'] for p in catalog['plugins']))
-                for os_name in ('windows', 'linux'):
+                for os_name in ('windows', 'linux', 'mac'):
                     plugin = os_name + '.cryptomem.CryptoMem'
                     args = {'image':'example.raw','plugin':plugin,'arguments':['--pid','42']}
                     for mode, status in (('positive','success'), ('empty','success'),
@@ -54,11 +55,11 @@ class CryptoMemProtocolTests(unittest.IsolatedAsyncioTestCase):
                     invalid = await client.call_tool('run_plugin', {**args,'arguments':['--pid','42','--currency','doge']})
                     self.assertTrue(invalid.is_error)
 
-    async def test_linux_timeout_retains_partial_output_and_reaps_child(self):
+    async def test_timeout_retains_partial_output_and_reaps_child(self):
         self.fixture.image.write_text('timeout')
         async with Client(self.transport(timeout=1), mode='auto', read_timeout_seconds=20) as client:
             run = decode_result(await client.call_tool('run_plugin', {'image':'example.raw',
-                'plugin':'linux.cryptomem.CryptoMem','arguments':['--pid','42']}))
+                'plugin':self.PLUGIN,'arguments':['--pid','42']}))
             self.assertEqual(run['status'],'timeout')
             self.assertFalse(run['reuse_eligible'])
             self.assertTrue(run['integrity_verified'])
@@ -70,14 +71,14 @@ class CryptoMemProtocolTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(ProcessLookupError):
             os.kill(pid, 0)
 
-    async def test_linux_cancellation_finalizes_manifest_in_both_protocol_modes(self):
+    async def test_cancellation_finalizes_manifest_in_both_protocol_modes(self):
         for mode in ('legacy', 'auto'):
             (self.fixture.root / 'analysis-started').unlink(missing_ok=True)
             self.fixture.image.write_text('timeout')
             previous = set(self.fixture.backend.outputs.glob('*/runs/*/manifest.json'))
             async with Client(self.transport(timeout=10), mode=mode, read_timeout_seconds=20) as client:
                 task = asyncio.create_task(client.call_tool('run_plugin', {'image':'example.raw',
-                    'plugin':'linux.cryptomem.CryptoMem','arguments':['--pid','42']}))
+                    'plugin':self.PLUGIN,'arguments':['--pid','42']}))
                 for _ in range(250):
                     if (self.fixture.root / 'analysis-started').exists():
                         break
@@ -100,6 +101,10 @@ class CryptoMemProtocolTests(unittest.IsolatedAsyncioTestCase):
                 self.assertFalse(manifest['reuse_eligible'])
                 self.assertIn('SYNTHETIC partial output',Path(manifest['commands'][0]['stdout_path']).read_text())
                 self.assert_child_gone()
+
+
+class MacCryptoMemProtocolTests(CryptoMemProtocolTests):
+    PLUGIN = 'mac.cryptomem.CryptoMem'
 
 
 if __name__ == '__main__':
