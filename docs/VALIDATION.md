@@ -682,3 +682,5 @@ active operator process; no second installer, cache deletion or rebuild was star
 Only final exit status and a receipt for all 10,255 tables can establish completion.
 Workbench 0.1.2 still embeds the 0.1.3 backend inventory and requires a separate
 tested adoption/repackage to include this increment.
+
+Installed-wheel package smoke also passed under Python 3.12.13 / MCP 2.3.0: 191 tests (one optional skip), dependency check, packaged report contract, no Workbench dependency and ten tools in both protocol modes. A full local wheel was built from `fe1e3597a70a08eb39ea15856bfdda77a93dbc49` using existing SHA-256-verified official packs; it is 929,336,320 bytes, SHA-256 `2f15fa4788a1f407255cb979f335294b55976d28af60420de731443a0bfd0f9f`. This measurement covers the local build, not a later CI-built release asset.
