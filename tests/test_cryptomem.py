@@ -114,7 +114,7 @@ class CryptoMemBackendTests(unittest.TestCase):
         path = files/'cryptomem-secrets-v1.jsonl'
         self.assertIn(secret,path.read_text())
         self.assertEqual(path.stat().st_mode & 0o777,0o600)
-        for name in ('cryptomem-secrets-v1.jsonl','tmp_synthetic.vol3'):
+        for name in (path.name,'tmp_synthetic.vol3'):
             relative = 'json/files/'+name
             with self.subTest(name=name):
                 for offset,limit in ((0,1),(5,10),(15,65536)):
