@@ -646,3 +646,15 @@ those files, removed partial downloads and its lock, and resumed by reverifying
 completed data. Full collection readiness is reported only after offline index
 verification; downloading some tables does not establish readiness or coverage
 for a particular captured kernel.
+
+## Published 0.1.3 full wheel
+
+The full release wheel was built from clean source
+`5b66bc42d8e349f162fb005107d12c94061b7073` using the four unchanged public starter
+ZIPs from the prior verified app bundle. Every embedded pack and uploaded release
+asset matched its pinned SHA-256. The repository's unmodified release gate passed
+with the exact tag and successful main CI before publication. Wheel size is
+929,334,231 bytes; SHA-256
+`831fbfad2a47c5ed9dc743b0eddfc0723109b935209cb873dc4c4ea4278e4da1`.
+The working symbol store was not changed by packaging. The 10,255-table Linux
+collection remains separate from the wheel, and no private evidence was included.
