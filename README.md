@@ -1,12 +1,15 @@
 # volatility-mcp
 
-*11,177 lines of code*
+*11,454 lines of code*
 
 *Last measured package: `volatility_mcp-0.1.3-py3-none-any.whl`, 929,334,231 bytes (886.282187 MiB); measured on 2026-10-24 from source revision `5b66bc42d8e349f162fb005107d12c94061b7073`. Full release wheel includes four official symbol packs and the Linux catalog; excludes community Linux ISF downloads, analyzer/addon downloads, Python dependencies and the separate Workbench app.*
 
-The optional CryptoMem profile now includes Linux x86-64 memory-image analysis
-alongside Windows. Use matching captured-kernel symbols; other Linux architectures
-and real-memory Linux validation remain outstanding. See [CryptoMem setup and
+The optional CryptoMem 0.5.0 profile adds opt-in English BIP-39, Bitcoin WIF and
+xprv/tprv validation, and explicitly ambiguous transaction-ID candidates. Secret
+values stay masked; full extraction is explicit, private and local-only. Windows,
+Linux x86-64 and experimental legacy Intel64 Mac adapters share the scanner.
+Use matching captured-kernel symbols; other architectures, nested Mac submaps
+and real-memory Linux/macOS validation remain outstanding. See [CryptoMem setup and
 validation](docs/CRYPTOMEM.md). The standalone server still exposes ten MCP tools. The [symbol installer](docs/SYMBOLS.md)
 can provision a pinned 10,255-table Linux x86-64 collection into the same offline
 store, either in full or by exact kernel banner.
