@@ -3,9 +3,9 @@
 CryptoMem is maintained in
 [NoCoolUserName/volatility3-cryptomem](https://github.com/NoCoolUserName/volatility3-cryptomem).
 That repository owns the detector, tests, and releases. The profile pins
-revision `d0ec313680d6aec41e8c73ab05207ea869af0fd1` (CryptoMem 0.3.0 prerelease).
-Compatibility revision 10 adds `linux.cryptomem.CryptoMem` and the shared scanner
-helper, preserving the Windows command and output schema. Both commands use the
+revision `f462c79dd249f2251698620485e1241a3b35d5cc` (CryptoMem 0.4.0 prerelease).
+Compatibility revision 11 adds experimental `mac.cryptomem.CryptoMem`, preserving
+the Windows and Linux commands and output schemas. All three commands use the
 existing ten MCP tools, manual selection and forced offline execution. Discovery
 of installed/bundled analyzer CryptoMem is independent of `enable_xpnet`; that
 setting only controls the XP compatibility path.
@@ -64,7 +64,7 @@ Select a PID from actual process evidence, then call the existing tool:
 ```
 
 Currency choices are `all`, `btc`, `eth`, `xrp`, `xmr`. PID is required and scalar.
-Use `--currency xmr` for Monero alone; `all` includes it automatically. CryptoMem exposes Windows and Linux commands; the **MCP tool count stays ten**.
+Use `--currency xmr` for Monero alone; `all` includes it automatically. CryptoMem exposes Windows, Linux and experimental Intel64 Mac commands; the **MCP tool count stays ten**.
 The profile accepts the previous 0.2.0 Windows source hash and unchanged format
 helper bytes while rejecting unrecognized local changes. Older 0.1.0 installs
 should first upgrade to the documented 0.2.0 profile in an isolated analyzer.
@@ -197,3 +197,32 @@ attribution and standards notices, and ships its required notices in LICENSE.
 Core archives the pinned LICENSE with the installation receipt. Existing
 community-plugin licensing restrictions remain unchanged; see
 [LICENSING.md](../LICENSING.md) and [COMMUNITY_PLUGINS.md](COMMUNITY_PLUGINS.md).
+
+## Experimental legacy Intel64 macOS adapter (0.4.0)
+
+The existing `list_plugins` and `run_plugin` tools expose `mac.cryptomem.CryptoMem`
+after `plugins-install`. It is manual-only and forced offline, independent of the
+XP add-on toggle. Select a positive BSD PID from `mac.pslist.PsList`, not a Mach
+thread ID. For example:
+
+```json
+{"name":"run_plugin","arguments":{"image":"mac.raw","plugin":"mac.cryptomem.CryptoMem","arguments":["--pid","1234","--currency","all"]}}
+```
+
+Reuse the bundled legacy `mac.zip` only when its Darwin kernel banner exactly
+matches the capture. No new Mac symbol download or MCP tool is added. Existing
+Mac plugins and symbols do not imply modern macOS support; upstream Mac analysis
+is no longer actively maintained. Intel32, Apple silicon/ARM64 and modern macOS
+captures are unsupported. An ARM64 analysis host is distinct from the capture.
+
+The adapter reuses the shared scanner and validators, selects one BSD process and
+checks exclusive-ended VM maps against the declared map count. Damaged/truncated
+lists, overlaps, missing fields/layers, unreadable pages and limits fail explicitly.
+Nested submaps are currently unsupported and cause incomplete failure before
+scanning; this can affect ordinary processes with shared-region mappings. The
+Mac summary uses `vma_count` and `completed_vmas`. No kernel build matrix is claimed.
+
+Validation is synthetic. Real-memory macOS validation remains outstanding. An
+address in memory establishes neither wallet ownership nor activity. Workbench
+needs a pin to this core release and a new package to embed the updated inventory;
+its existing UI/tools need no separate Mac detector.
