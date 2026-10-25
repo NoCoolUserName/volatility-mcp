@@ -53,7 +53,10 @@ are representative snapshots, not all historical or future Windows/macOS/Linux
 kernels. The base Windows pack is older; the separate supplement adds one Windows
 10 build. Windows symbols require matching PDB identifiers; Linux/macOS require
 matching kernel banners. Unmatched images can still need individually acquired
-symbols. CryptoMem 0.3.0 supports Windows x86/x64 and Linux x86-64 process memory. Its
+symbols. CryptoMem 0.4.0 supports Windows x86/x64, Linux x86-64 and experimental legacy
+macOS Intel64 process memory. Mac captures require exact Darwin symbols and usable
+flat VM mappings; nested submaps fail as incomplete. Apple silicon/Intel32 Mac
+captures and modern macOS are unsupported. Its
 Linux support is synthetic-tested; these packs do not establish real-memory
 recovery accuracy or compatibility with an unmatched kernel.
 

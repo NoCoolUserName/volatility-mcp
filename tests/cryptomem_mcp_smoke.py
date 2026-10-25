@@ -36,11 +36,11 @@ async def check(config_path):
                 assert len((await client.list_tools()).tools) == 10
                 catalog = decode_result(await client.call_tool('list_plugins', {'query':'cryptomem'}))
                 assert {p['name'] for p in catalog['plugins']} == {
-                    'linux.cryptomem.CryptoMem','windows.cryptomem.CryptoMem'}
+                    'linux.cryptomem.CryptoMem','windows.cryptomem.CryptoMem','mac.cryptomem.CryptoMem'}
                 assert not catalog['import_failures']
                 for plugin in catalog['plugins']:
                     assert plugin['manual_only']
-                    assert plugin['plugin_version'] == [0,3,0]
+                    assert plugin['plugin_version'] == [0,4,0]
                     result = decode_result(await client.call_tool('run_plugin', {'image':'invalid.raw',
                         'plugin':plugin['name'],'arguments':['--pid','42']}))
                     assert result['status'] == 'error', result['status']
@@ -49,7 +49,7 @@ async def check(config_path):
                     assert 'Unsatisfied requirement' in (result['error_preview'] +
                         Path(result['commands'][0]['stdout_path']).read_text())
                     assert hashlib.sha256(image.read_bytes()).hexdigest() == before
-        print('Installed CryptoMem: both commands discovered and invoked via ten-tool MCP; '
+        print('Installed CryptoMem: all three commands discovered and invoked via ten-tool MCP; '
               'XP on/off; unsatisfied kernel requirements fail; synthetic input unchanged')
 
 
