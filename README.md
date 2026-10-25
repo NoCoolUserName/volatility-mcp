@@ -2,7 +2,7 @@
 
 *11,454 lines of code*
 
-*Last measured package: `volatility_mcp-0.1.3-py3-none-any.whl`, 929,334,231 bytes (886.282187 MiB); measured on 2026-10-24 from source revision `5b66bc42d8e349f162fb005107d12c94061b7073`. Full release wheel includes four official symbol packs and the Linux catalog; excludes community Linux ISF downloads, analyzer/addon downloads, Python dependencies and the separate Workbench app.*
+*Last measured package: `volatility_mcp-0.1.4-py3-none-any.whl`, 929,336,320 bytes (886.284180 MiB); measured on 2026-10-25 UTC from source revision `fe1e3597a70a08eb39ea15856bfdda77a93dbc49`. Full local release wheel includes four official symbol packs and the Linux catalog; excludes community Linux ISF downloads, analyzer/addon downloads, Python dependencies and the separate Workbench app.*
 
 The optional CryptoMem 0.5.0 profile adds opt-in English BIP-39, Bitcoin WIF and
 xprv/tprv validation, and explicitly ambiguous transaction-ID candidates. Secret
