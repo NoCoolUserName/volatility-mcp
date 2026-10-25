@@ -36,7 +36,7 @@ def profile():
         for item in source['files']:
             kind = item.get('kind', 'plugin')
             suffix = 'json' if kind in {'symbol', 'data'} else 'py'
-            allowed = {'linux'} if kind == 'symbol' else {'windows', 'linux'}
+            allowed = {'linux'} if kind == 'symbol' else ({'windows', 'linux', 'mac'} if kind == 'plugin' else {'windows', 'linux'})
             destination = Path(item['target'])
             identity = (kind, item['target'])
             if (kind not in {'plugin', 'symbol', 'data'}
@@ -53,7 +53,7 @@ def profile():
             if notice['path'] != 'LICENSE' or not re.fullmatch('[0-9a-f]{64}', notice['sha256']):
                 raise ValueError('Invalid upstream license notice')
         for name in source['plugins']:
-            if not re.fullmatch(r'(?:windows|linux)\.[a-z_][a-z0-9_]*\.[A-Za-z_][A-Za-z0-9_]*', name) or name in names:
+            if not re.fullmatch(r'(?:windows|linux|mac)\.[a-z_][a-z0-9_]*\.[A-Za-z_][A-Za-z0-9_]*', name) or name in names:
                 raise ValueError('Invalid or duplicate expected addon command')
             names.add(name)
     if not set(data.get('offline_plugins', [])) <= names:

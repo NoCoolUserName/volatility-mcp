@@ -24,7 +24,7 @@ plugins = {
         'description': 'SYNTHETIC PsList baseline', 'plugin_version': [0, 0, 0],
         'origin': 'installed_volatility', 'options': [option('--pid', 'int', nargs='*')]},
     plugin: {
-        'description': 'SYNTHETIC CryptoMem backend contract', 'plugin_version': [0, 2, 0],
+        'description': 'SYNTHETIC CryptoMem backend contract', 'plugin_version': [0, 4, 0],
         'origin': 'installed_volatility', 'source_file': str(source), 'target_os': 'windows',
         'manual_only': True,
         'source': {'kind': 'third_party', 'label': 'NoCoolUserName/volatility3-cryptomem',
@@ -36,6 +36,8 @@ plugins = {
 }
 linux = 'linux.cryptomem.CryptoMem'
 plugins[linux] = {**plugins[plugin], 'target_os': 'linux'}
+mac = 'mac.cryptomem.CryptoMem'
+plugins[mac] = {**plugins[plugin], 'target_os': 'mac'}
 if any(arg.endswith('catalog.py') for arg in sys.argv):
     if '--xpnet' in sys.argv:
         plugins['xpnet.XpNetScan'] = {
@@ -44,7 +46,8 @@ if any(arg.endswith('catalog.py') for arg in sys.argv):
     if (root / 'missing-dependency').exists():
         del plugins[plugin]
         del plugins[linux]
-        failures = ['volatility3.plugins.windows.cryptomem', 'volatility3.plugins.linux.cryptomem']
+        del plugins[mac]
+        failures = ['volatility3.plugins.windows.cryptomem', 'volatility3.plugins.linux.cryptomem', 'volatility3.plugins.mac.cryptomem']
     else:
         failures = []
     print(json.dumps({'version': 'SYNTHETIC', 'architecture': 'SYNTHETIC',
@@ -82,7 +85,7 @@ elif mode == 'badjson':
 elif mode == 'mutate':
     image.write_text('SYNTHETIC unexpected source change')
     print('[]')
-elif plugin not in sys.argv and linux not in sys.argv:
+elif plugin not in sys.argv and linux not in sys.argv and mac not in sys.argv:
     print(json.dumps([{'PID': 42, 'ImageFileName': 'synthetic.exe'}]))
 elif mode == 'empty':
     print('[]')

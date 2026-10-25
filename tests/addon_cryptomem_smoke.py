@@ -32,6 +32,8 @@ from volatility3.framework.layers.physical import BufferDataLayer
 from volatility3.plugins.windows import cryptomem, pslist
 from volatility3.plugins.linux import cryptomem as linux_cryptomem
 from volatility3.plugins.linux import pslist as linux_pslist
+from volatility3.plugins.mac import cryptomem as mac_cryptomem
+from volatility3.plugins.mac import pslist as mac_pslist
 
 # Only core row/schema helpers come from this checkout; detector code must be
 # imported normally from the analyzer installation above.
@@ -99,6 +101,14 @@ def fixture(data, os_name='windows', **config):
             stack.enter_context(patch.object(linux_pslist.PsList, 'list_tasks', side_effect=tasks))
             stack.enter_context(patch.object(linux_cryptomem.utility, 'array_to_string', return_value=process.comm))
             plugin_type = linux_cryptomem.CryptoMem
+        elif os_name == 'mac':
+            process.p_pid = 42
+            process.p_comm = 'synthetic.exe'
+            process.get_task = lambda: NS(map=NS(hdr=NS(nentries=1)))
+            process.get_map_iter = lambda: iter([NS(links=NS(start=0,end=len(data)),is_sub_map=0)])
+            stack.enter_context(patch.object(mac_pslist.PsList, 'list_tasks_tasks', side_effect=processes))
+            stack.enter_context(patch.object(mac_cryptomem.utility, 'array_to_string', return_value=process.p_comm))
+            plugin_type = mac_cryptomem.CryptoMem
         else:
             stack.enter_context(patch.object(pslist.PsList, 'list_processes', side_effect=processes))
             plugin_type = cryptomem.CryptoMem
@@ -224,6 +234,13 @@ class InstalledLinuxCryptoMemTests(InstalledCryptoMemTests):
     os_name = 'linux'
     module = linux_cryptomem
     pslist_module = linux_pslist
+    region = 'VMA'
+
+
+class InstalledMacCryptoMemTests(InstalledCryptoMemTests):
+    os_name = 'mac'
+    module = mac_cryptomem
+    pslist_module = mac_pslist
     region = 'VMA'
 
 

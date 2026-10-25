@@ -50,7 +50,7 @@ class CryptoMemBackendTests(unittest.TestCase):
         without_xp = self.backend.list_plugins()
         with_xp = VolatilityBackend(replace(self.config, enable_xpnet=True)).list_plugins()
         names = lambda catalog: {p['name'] for p in catalog['plugins']}
-        self.assertEqual(names(without_xp), {'windows.cryptomem.CryptoMem', 'linux.cryptomem.CryptoMem', 'windows.pslist.PsList'})
+        self.assertEqual(names(without_xp), {'windows.cryptomem.CryptoMem', 'linux.cryptomem.CryptoMem', 'mac.cryptomem.CryptoMem', 'windows.pslist.PsList'})
         self.assertEqual(names(with_xp) - names(without_xp), {'xpnet.XpNetScan'})
         item = self.backend.list_plugins(self.PLUGIN)['plugins'][0]
         self.assertTrue(item['manual_only'])
@@ -248,6 +248,10 @@ class CryptoMemBackendTests(unittest.TestCase):
 
 class LinuxCryptoMemBackendTests(CryptoMemBackendTests):
     PLUGIN = 'linux.cryptomem.CryptoMem'
+
+
+class MacCryptoMemBackendTests(CryptoMemBackendTests):
+    PLUGIN = 'mac.cryptomem.CryptoMem'
 
 
 if __name__ == '__main__':

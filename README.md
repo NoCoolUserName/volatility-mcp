@@ -1,6 +1,6 @@
 # volatility-mcp
 
-*11,142 lines of code*
+*11,177 lines of code*
 
 *Last measured package: `volatility_mcp-0.1.2-py3-none-any.whl`, 929,333,670 bytes (886.281652 MiB); measured on 2026-10-24 from source revision `5e3affb9c9fcf1be2e6b463194cef488518c7ff6`. Full release wheel includes four official symbol packs and the Linux catalog; excludes community Linux ISF downloads, analyzer/addon downloads, Python dependencies and the separate Workbench app.*
 
@@ -427,3 +427,10 @@ synthetic evaluation command is:
 
 See [coverage and evaluation](docs/COVERAGE_EVALUATION.md) for plans, state definitions,
 fixtures, supported versus unsupported tasks, and interpreting the result counters.
+
+CryptoMem 0.4.0 additionally exposes experimental `mac.cryptomem.CryptoMem` for
+legacy Intel64 captures through the same ten MCP tools. Exact Darwin symbols are
+required; the existing legacy Mac pack is not universal coverage. Nested submaps,
+Apple silicon/Intel32 Mac captures and modern macOS are unsupported. See
+[CryptoMem scope and validation](docs/CRYPTOMEM.md). Real-memory Mac validation
+remains outstanding.

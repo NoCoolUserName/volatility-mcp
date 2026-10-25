@@ -26,10 +26,10 @@ class AddonTests(unittest.TestCase):
                 ('py_module', 'Py_Module'), ('py_function', 'Py_Function'),
                 ('py_code', 'Py_Code'), ('py_stack_call', 'Py_Stack_Call'),
                 ('py_stack_var', 'Py_Stack_Var')))
-        self.assertEqual(len(names), 40)
+        self.assertEqual(len(names), 41)
         self.assertTrue(runtime_names <= names)
         self.assertEqual(set(data['manual_only_plugins']), runtime_names | {
-            'linux.openssh_sessionkeys.SSHKeys', 'windows.cryptomem.CryptoMem', 'linux.cryptomem.CryptoMem'})
+            'linux.openssh_sessionkeys.SSHKeys', 'windows.cryptomem.CryptoMem', 'linux.cryptomem.CryptoMem', 'mac.cryptomem.CryptoMem'})
         self.assertTrue(set(data['manual_only_plugins']) <= set(data['offline_plugins']))
         self.assertNotIn('windows.passwordmanagers.PasswordManager', data['manual_only_plugins'])
         self.assertIn('windows.passwordmanagers.PasswordManager', data['offline_plugins'])
@@ -39,6 +39,19 @@ class AddonTests(unittest.TestCase):
         self.assertTrue(all(source['license'] for source in data['sources']))
         self.assertTrue({'windows.cobaltstrike.CobaltStrike', 'windows.richheader.RichHeader',
                          'windows.zoneid3.ZoneID3', 'windows.pte_resolve.PteResolve'} <= names)
+
+    def test_mac_profile_rejects_escaping_or_nonplugin_destinations(self):
+        for target, kind in (('mac/../cryptomem.py', 'plugin'),
+                             ('mac/subdir/cryptomem.py', 'plugin'),
+                             ('other/cryptomem.py', 'plugin'),
+                             ('mac/layout.json', 'data'), ('mac/layout.json', 'symbol')):
+            data = addons.profile()
+            source = next(s for s in data['sources'] if 'mac.cryptomem.CryptoMem' in s['plugins'])
+            item = next(f for f in source['files'] if f['target'] == 'mac/cryptomem.py')
+            item.update(target=target, kind=kind, path='plugins/mac/' + Path(target).name)
+            with self.subTest(target=target, kind=kind), patch.object(Path, 'read_text', return_value=json.dumps(data)):
+                with self.assertRaisesRegex(ValueError, 'fixed plugin or symbol'):
+                    addons.profile()
 
     def test_download_and_adaptation_must_match_both_hashes(self):
         raw = b'# synthetic plugin\n'
