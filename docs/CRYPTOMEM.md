@@ -3,8 +3,8 @@
 CryptoMem is maintained in
 [NoCoolUserName/volatility3-cryptomem](https://github.com/NoCoolUserName/volatility3-cryptomem).
 That repository owns the detector, tests, and releases. The profile pins
-revision `f462c79dd249f2251698620485e1241a3b35d5cc` (CryptoMem 0.4.0 prerelease).
-Compatibility revision 11 adds experimental `mac.cryptomem.CryptoMem`, preserving
+revision `69f8d1f0c94b51b19da6de810e2b57a33df3d9c9` (CryptoMem 0.5.0 prerelease).
+Compatibility revision 12 adds opt-in mnemonic, key and transaction candidates, preserving
 the Windows and Linux commands and output schemas. All three commands use the
 existing ten MCP tools, manual selection and forced offline execution. Discovery
 of installed/bundled analyzer CryptoMem is independent of `enable_xpnet`; that
@@ -27,14 +27,15 @@ address candidates, plus a bounded subset of direct-address payment requests.
 Version 0.2.0 adds Monero standard addresses, subaddresses and integrated
 addresses, validating block Base58, type/length, mainnet/testnet/stagenet prefixes
 and Keccak checksums. Curve validity, wallet presence and activity are unverified.
-Monero URI parameters, wallet files, keys/seeds and transaction hashes are not parsed.
+Monero URI parameters, wallet files and Monero seed/key schemes are not parsed.
 ASCII and UTF-16LE matches have PID, process, layer, exact virtual offset and byte
 length. Format/checksum status is separate from interpretation. Nearby context
 or repeated occurrences do not prove wallet use, ownership, control or activity.
 
-No mnemonic/private-key extraction, wallet database parsing, transaction
-reconstruction, swap attribution, balances, API enrichment or automatic PDF
-generation is included. Ethereum-shaped addresses do not establish a chain.
+Opt-in English BIP-39 and WIF/xprv/tprv candidates are validated locally and
+masked. Transaction-ID matches are explicitly ambiguous candidates. No wallet
+database parsing, transaction reconstruction, swap attribution, balances, API
+enrichment or automatic PDF generation is included. Ethereum-shaped addresses do not establish a chain.
 Unknown or unsupported formats are not evidence of absence.
 
 ## Install and invoke
@@ -65,9 +66,8 @@ Select a PID from actual process evidence, then call the existing tool:
 
 Currency choices are `all`, `btc`, `eth`, `xrp`, `xmr`. PID is required and scalar.
 Use `--currency xmr` for Monero alone; `all` includes it automatically. CryptoMem exposes Windows, Linux and experimental Intel64 Mac commands; the **MCP tool count stays ten**.
-The profile accepts the previous 0.2.0 Windows source hash and unchanged format
-helper bytes while rejecting unrecognized local changes. Older 0.1.0 installs
-should first upgrade to the documented 0.2.0 profile in an isolated analyzer.
+The profile accepts reviewed 0.4.0 source hashes while rejecting unrecognized
+local changes. Older profiles may require staged upgrades in an isolated analyzer.
 Defaults are 67,108,864 scan bytes and 1,000 findings; hard maxima are 268,435,456
 bytes and 10,000 findings. Semantic bounds are validated by the plugin before
 scanning; existing MCP schemas validate required arguments, types and choices.
@@ -226,3 +226,46 @@ Validation is synthetic. Real-memory macOS validation remains outstanding. An
 address in memory establishes neither wallet ownership nor activity. Workbench
 needs a pin to this core release and a new package to embed the updated inventory;
 its existing UI/tools need no separate Mac detector.
+
+## Opt-in formats and secrets (0.5.0)
+
+Add `--detect-mnemonics`, `--detect-private-keys` and/or `--detect-txids` to the
+existing plugin arguments. All default to false; `--currency` still selects only
+address families. English BIP-39 supports 12/15/18/21/24 words, pinned word-list
+integrity, NFKD/wide English transcription and entropy checksum validation. WIF
+and xprv/tprv remain distinct formats with Base58Check, supported network/version,
+structure and scalar checks. No other language/scheme, encrypted-wallet recovery,
+raw binary key detection, yprv/zprv or wallet import is included.
+
+A bare 64-hex token (optionally `0x`) is a low-confidence candidate. An explicit
+transaction-ID/hash label raises confidence to medium and is preserved as a
+bounded label span. Chain stays unknown unless a label supplies a compatible
+hint, which is itself untrusted text. No transaction parsing or existence,
+confirmation, payment, balance, ownership or history claim follows. A valid
+mnemonic/key occurrence also does not establish wallet ownership, use or control.
+
+New detector runs produce `cryptomem-findings-v2.jsonl` and
+`cryptomem-scan-summary-v2.json` (schema 2), retaining existing renderer columns.
+V2 adds explicit confidence, ambiguity and secret classification, plus phrase
+word counts/boundary ambiguity and structured transaction-label context. Default
+address-only runs retain schema 1; recognizable secrets embedded in URI messages
+are suppressed. Read the standalone
+[extended contract](https://github.com/NoCoolUserName/volatility3-cryptomem/blob/v0.5.0/EXTENDED_FORMATS.md)
+for exact normalization/encoding and artifact fields.
+
+All ordinary renderer/artifact/summary/error paths mask secrets. Only explicit
+`--extract-secrets`, together with a secret detector, writes original and normalized
+full values to `cryptomem-secrets-v1.jsonl` through a mode-0600 POSIX handler. MCP
+requires a private configured output root and blocks complete extraction from
+`read_output`, `query_output`, `get_evidence` and `inspect_artifact`, including
+byte pages, partial/failed/cancelled runs and Volatility temporary files. Masked
+findings and renderer JSON remain available. Full extraction is local operator
+access only; never copy it into AI clients or shared reports. Windows-host
+extraction is unsupported; masked scans and Windows memory analysis remain.
+
+Installation validation uses isolated environments, generated buffers and public
+vectors. The real stdio MCP check runs the installed detector through all three
+adapters, verifies XP-independent discovery and the unchanged ten-tool surface,
+and exercises masked reads, private extraction, timeout and cancellation. It
+supplies synthetic process mappings and does not validate a captured kernel.
+Workbench requires its own tested backend pin/adoption and repackaging.

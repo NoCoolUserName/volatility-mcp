@@ -3,7 +3,7 @@ import ast
 import textwrap
 
 
-REVISION = 11
+REVISION = 12
 
 
 def replace_method(source, name, replacement):

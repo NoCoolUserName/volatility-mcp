@@ -66,6 +66,53 @@ class CryptoMemProtocolTests(unittest.IsolatedAsyncioTestCase):
             self.assertIn('SYNTHETIC partial output',Path(run['commands'][0]['stdout_path']).read_text())
             self.assert_child_gone()
 
+    async def test_secret_extraction_output_readers_remain_masked(self):
+        for mode in ('auto','legacy'):
+            async with Client(self.transport(timeout=10),mode=mode,read_timeout_seconds=20) as client:
+                for os_name in ('windows','linux','mac'):
+                    run=decode_result(await client.call_tool('run_plugin',{'image':'example.raw',
+                        'plugin':os_name+'.cryptomem.CryptoMem',
+                        'arguments':['--pid','42','--detect-mnemonics','--extract-secrets']}))
+                    self.assertEqual(run['status'],'success')
+                    self.assertNotIn('abandon '*11+'about',json.dumps(run))
+                    path=Path(run['commands'][0]['files_directory'])/'cryptomem-secrets-v1.jsonl'
+                    operations=[('read_output',{'path':str(path),'offset':5,'limit':10}),
+                        ('query_output',{'image':'example.raw','run_id':run['run_id'],'artifact':'json/files/'+path.name}),
+                        ('get_evidence',{'reference':{'source':{'image':'example.raw','run_id':run['run_id'],'artifact':'json/files/'+path.name}}}),
+                        ('inspect_artifact',{'image':'example.raw','run_id':run['run_id'],'artifact':'json/files/'+path.name,'operation':'strings'})]
+                    for tool,args in operations:
+                        result=await client.call_tool(tool,args)
+                        self.assertTrue(result.is_error,(tool,result))
+                        self.assertIn('local-only',str(result))
+                        self.assertNotIn('abandon '*11+'about',str(result))
+
+    async def test_secret_cancellation_preserves_private_output(self):
+        self.fixture.image.write_text('timeout')
+        async with Client(self.transport(timeout=10),mode='auto',read_timeout_seconds=20) as client:
+            task=asyncio.create_task(client.call_tool('run_plugin',{'image':'example.raw',
+                'plugin':self.PLUGIN,'arguments':['--pid','42','--detect-mnemonics','--extract-secrets']}))
+            for _ in range(250):
+                if (self.fixture.root/'analysis-started').exists():
+                    break
+                await asyncio.sleep(0.02)
+            self.assertTrue((self.fixture.root/'analysis-started').exists())
+            task.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await task
+            for _ in range(50):
+                await asyncio.sleep(0.1)
+                manifests=list(self.fixture.backend.outputs.glob('*/runs/*/manifest.json'))
+                if manifests:
+                    record=json.loads(manifests[0].read_text())
+                    if record['status']=='cancelled':
+                        break
+            self.assertEqual(record['status'],'cancelled')
+            self.assert_child_gone()
+            files=Path(record['commands'][0]['files_directory'])
+            for name in ('cryptomem-secrets-v1.jsonl','tmp_synthetic.vol3'):
+                result=await client.call_tool('read_output',{'path':str(files/name)})
+                self.assertTrue(result.is_error)
+
     def assert_child_gone(self):
         pid = int((self.fixture.root / 'analysis-started').read_text())
         with self.assertRaises(ProcessLookupError):

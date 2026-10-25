@@ -10,9 +10,9 @@ import sys
 import time
 
 
-def option(flag, kind='str', required=False, choices=None, nargs=None):
+def option(flag, kind='str', required=False, choices=None, nargs=None, action='store'):
     return dict(flag=flag, dest=flag[2:].replace('-', '_'), required=required,
-                nargs=nargs, type=kind, action='store', choices=choices,
+                nargs=nargs, type=kind, action=action, choices=choices,
                 help='SYNTHETIC backend contract', is_path=False)
 
 
@@ -24,7 +24,7 @@ plugins = {
         'description': 'SYNTHETIC PsList baseline', 'plugin_version': [0, 0, 0],
         'origin': 'installed_volatility', 'options': [option('--pid', 'int', nargs='*')]},
     plugin: {
-        'description': 'SYNTHETIC CryptoMem backend contract', 'plugin_version': [0, 4, 0],
+        'description': 'SYNTHETIC CryptoMem backend contract', 'plugin_version': [0, 5, 0],
         'origin': 'installed_volatility', 'source_file': str(source), 'target_os': 'windows',
         'manual_only': True,
         'source': {'kind': 'third_party', 'label': 'NoCoolUserName/volatility3-cryptomem',
@@ -32,7 +32,9 @@ plugins = {
                    'basis': 'SYNTHETIC fixture metadata, not verified installation'},
         'options': [option('--pid', 'int', required=True),
                     option('--currency', choices=['all', 'btc', 'eth', 'xrp', 'xmr']),
-                    option('--max-scan-bytes', 'int'), option('--max-results', 'int')]},
+                    option('--max-scan-bytes', 'int'), option('--max-results', 'int'),
+                    *[option(flag,action='store_true') for flag in ('--detect-mnemonics',
+                        '--detect-private-keys','--detect-txids','--extract-secrets')]]},
 }
 linux = 'linux.cryptomem.CryptoMem'
 plugins[linux] = {**plugins[plugin], 'target_os': 'linux'}
@@ -62,6 +64,21 @@ with (root / 'analysis-count.jsonl').open('a') as counter:
 (root / 'analysis-started').write_text(str(os.getpid()))
 (files / 'invocation.txt').write_text('SYNTHETIC execution; no memory analyzed\n')
 mode = image.read_text().strip()
+if '--extract-secrets' in sys.argv:
+    # Public BIP-39 test vector, NEVER recovered evidence.
+    (files / 'cryptomem-secrets-v1.jsonl').write_text(json.dumps({'value':'abandon '*11+'about'})+'\n')
+    (files / 'tmp_synthetic.vol3').write_text('abandon '*11+'about')
+    (files / 'cryptomem-findings-v2.jsonl').write_text(json.dumps({'value':'[REDACTED SECRET]'})+'\n')
+if any(flag in sys.argv for flag in ('--detect-mnemonics','--detect-private-keys','--detect-txids')):
+    if mode in ('timeout','incomplete'):
+        print(json.dumps([{'Kind':'mnemonic','Value':'[REDACTED SECRET]'}]),flush=True)
+        print('SYNTHETIC masked failure',file=sys.stderr,flush=True)
+        if mode=='timeout':
+            time.sleep(20)
+        raise SystemExit(1)
+    print(json.dumps([{'Kind':'mnemonic','Value':'[REDACTED SECRET]','Canonical':'[REDACTED SECRET]',
+                       'Confidence':'format_valid','Reason':'SYNTHETIC masked contract row'}]))
+    raise SystemExit(0)
 if mode == 'timeout':
     print('SYNTHETIC partial output', flush=True)
     time.sleep(20)
