@@ -49,14 +49,22 @@ support is unverified; Windows hosts are currently unsupported because process
 management uses POSIX primitives. A plugin importing successfully does
 not establish support for every guest OS, symbol set, or image.
 
-Download the **full release wheel** from [Releases](https://github.com/NoCoolUserName/volatility-mcp/releases/latest).
-It includes the four official symbol packs, so no separate symbol download is
-needed. Create the server environment and install that file:
+Download `volatility_mcp-0.1.4-py3-none-any.whl` and `SHA256SUMS` from the
+[v0.1.4 release](https://github.com/NoCoolUserName/volatility-mcp/releases/tag/v0.1.4)
+into the same directory. Verify the downloaded wheel before installing it:
+
+```sh
+(cd /path/to/downloads && shasum -a 256 -c SHA256SUMS)
+```
+
+The command must report `volatility_mcp-0.1.4-py3-none-any.whl: OK`.
+This **full release wheel** includes the four official symbol packs, so no separate
+symbol download is needed. Create the server environment and install that file:
 
 ```sh
 python3 -c 'import platform, sys; print(sys.executable, platform.machine())'
 python3 -m venv .venv
-.venv/bin/python -m pip install /path/to/volatility_mcp-0.1.1-py3-none-any.whl
+.venv/bin/python -m pip install /path/to/downloads/volatility_mcp-0.1.4-py3-none-any.whl
 ```
 
 Python dependencies and the separately installed Volatility analyzer are still
