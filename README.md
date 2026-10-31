@@ -4,22 +4,8 @@
 
 *Last measured package: `volatility_mcp-0.1.4-py3-none-any.whl`, 929,336,323 bytes (886.284183 MiB); measured on 2026-10-25 UTC from source revision `2887c77283da4a45860d8ac2f3042027401257a0`. Published full release wheel includes four official symbol packs and the Linux catalog; excludes community Linux ISF downloads, analyzer/addon downloads, Python dependencies and the separate Workbench app.*
 
-The optional CryptoMem 0.5.0 profile adds opt-in English BIP-39, Bitcoin WIF and
-xprv/tprv validation, and explicitly ambiguous transaction-ID candidates. Secret
-values stay masked; full extraction is explicit, private and local-only. Windows,
-Linux x86-64 and experimental legacy Intel64 Mac adapters share the scanner.
-Use matching captured-kernel symbols; other architectures, nested Mac submaps
-and real-memory Linux/macOS validation remain outstanding. See [CryptoMem setup and
-validation](docs/CRYPTOMEM.md). The standalone server still exposes ten MCP tools. The [symbol installer](docs/SYMBOLS.md)
-can provision a pinned 10,255-table Linux x86-64 collection into the same offline
-store, either in full or by exact kernel banner.
-
-Original project code is available under MIT and the Volatility Software License 1.0. Integrated Volatility distributions follow VSL's source and notice requirements; see [LICENSING.md](LICENSING.md) for the component map and release steps.
-
-A local, client-neutral MCP server for evidence-backed queries with **official
-Volatility 3**. It runs your separately installed Volatility executable, saves
-complete outputs and execution records, and exposes small, controlled tools over
-stdio. It makes no LLM API calls and needs no model API key.
+A local MCP server for querying memory acquisitions with **official Volatility 3**. It runs your separately installed Volatility executable, saves
+complete outputs and execution records, and exposes ten tools over stdio. It makes no LLM API calls and needs no model API key.
 
 An **optional investigation and reporting workflow** lives in the same repository.
 Individual queries do not require reports, templates, case-report metadata, or
@@ -31,6 +17,18 @@ interface for case selection, readiness, reports, evidence and follow-up questio
 This is an independent project, not endorsed by the Volatility Foundation,
 OpenAI, or Dragos. Original project material retains its MIT grant and is also offered under VSL; see
 [third-party notices](THIRD_PARTY_NOTICES.md).
+
+The optional CryptoMem 0.5.0 profile adds opt-in English BIP-39, Bitcoin WIF and
+xprv/tprv validation, and explicitly ambiguous transaction-ID candidates. Secret
+values stay masked; full extraction is explicit, private and local-only. Windows,
+Linux x86-64 and experimental legacy Intel64 Mac adapters share the scanner.
+Use matching captured-kernel symbols; other architectures, nested Mac submaps
+and real-memory Linux/macOS validation remain outstanding. See [CryptoMem setup and
+validation](docs/CRYPTOMEM.md). The standalone server still exposes ten MCP tools. The [symbol installer](docs/SYMBOLS.md)
+can provision a pinned 10,255-table Linux x86-64 collection into the same offline
+store, either in full or by exact kernel banner.
+
+Original project code is available under MIT and the Volatility Software License 1.0. Integrated Volatility distributions follow VSL's source and notice requirements; see [LICENSING.md](LICENSING.md) for the component map and release steps.
 
 ## Quick start 1: use the MCP server
 
@@ -257,8 +255,8 @@ lock prevents concurrent duplicate analysis within the same output root.
 
 Responses indicate `reused` and include hashing measurements; reuse receipts are
 saved separately without editing the original run. Full source hashes before and
-after each request remain mandatory, including hits. Hashing seconds, bytes, and
-file counts are recorded by phase; no integrity shortcuts were introduced.
+after each request are required, including cache hits. Hashing time, bytes, and
+file counts are recorded by phase.
 Catalog refresh and dependency/artifact hashing still take time, so a hit is not
 an instant lookup. Plugin timeouts exclude this overhead.
 
@@ -285,12 +283,12 @@ PteResolve set, plus automatic-investigation-eligible PasswordManager, manually 
 hashes, dependencies, source licenses and compatibility limitations; ordinary
 MCP queries never install plugins.
 
-The profile now includes [CryptoMem](docs/CRYPTOMEM.md), an independently maintained
+The profile includes [CryptoMem](docs/CRYPTOMEM.md), an independently maintained
 cryptocurrency artifact scanner. It adds one command while retaining existing
 plugins; the exact count depends on installed optional dependencies and addons.
 CryptoMem 0.2.0 supports Monero standard/subaddress/integrated address candidates
 through `--currency xmr` or `all`, including block encoding and Keccak checksum
-checks. This update adds no further command or runtime dependency.
+checks. Monero uses the same command and runtime dependencies.
 Runtime addons have explicit process/address/version requirements and synthetic
 fixture coverage; discovery does not establish support across OS/runtime builds.
 
@@ -387,7 +385,7 @@ remain independent of Workbench and model providers. See the
 
 ## Configuration and troubleshooting
 
-For clone/publication connectivity or conflicting GitHub authentication errors,
+For clone, push, or GitHub authentication errors,
 use the [GitHub access checks](docs/GITHUB_ACCESS.md). Test actual API and Git
 operations before treating a restricted session's DNS/auth-status error as an
 invalid credential.
