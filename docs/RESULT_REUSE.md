@@ -37,7 +37,7 @@ and its timestamps are retained; the response explicitly says it was reused.
 
 Symbol downloads, cache updates, or dependency/input changes during a run make it
 ineligible for reuse even if the analysis itself succeeded. A subsequent request
-can establish a stable reusable run. This deliberately favors conservative misses;
+can establish a stable reusable run. This favors rerunning uncertain requests;
 there is no timestamp-only or sampled hashing optimization. It is not protection
 against a malicious local user rewriting both artifacts and their provenance.
 If Volatility's user-defaults file (`~/.config/volatility3/vol.json`) exists,

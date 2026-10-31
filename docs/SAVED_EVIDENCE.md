@@ -48,7 +48,7 @@ Missing fields are listed separately. Integers beyond JavaScript's safe range ar
 returned as `{"$integer":"18446744073709551600"}`; the source JSON retains its
 original integer. This tag is accepted by integer filters/observable checks.
 
-There is deliberately no second persisted evidence store or database. Normalization
+There is no separate evidence store or database. Normalization
 is lazy and rebuilt from verified saved JSON on each call. Source files up to
 67.11 MB, 200,000 JSON nodes, and depth 64 are supported. Tree traversal has a
 10-second budget; bounded source reading/JSON decoding/hashing happens separately.

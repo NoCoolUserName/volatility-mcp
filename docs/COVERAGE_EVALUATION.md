@@ -1,6 +1,6 @@
 # Investigation coverage and offline evaluation
 
-Coverage is a read-only projection of durable run manifests, verified saved outputs,
+Coverage is a read-only view of saved run manifests, verified outputs,
 static inspections, reuse receipts, and explicitly declared plans. It is not another
 scheduler/database or an installed-plugin checklist. Retrieving or refreshing it
 never starts/retries analysis, inspects extracted bytes again, or hashes a memory

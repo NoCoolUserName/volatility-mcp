@@ -124,7 +124,7 @@ passed 15; Python's installed suite passed 12 with one preinstallation-only
 generation test skipped (that separate generation check passed before staging).
 The existing profile smoke, 20 first-batch fixtures and 7 sensitive-extraction
 fixtures also passed. Core's installed-wheel run completed 108 tests with one
-expected skip, real MCP negotiation, and packaged runtime source-license checks.
+expected skip, MCP negotiation, and packaged runtime source-license checks.
 These are contract/parser checks, not an OS/build accuracy score.
 
 Real-image accuracy across Windows/Linux builds, Go versions and Python builds
