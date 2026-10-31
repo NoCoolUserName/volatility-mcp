@@ -262,7 +262,7 @@ Read-only inspection of the real installed Volatility catalog helper confirmed
 version 2.28.2, 198 plugins, ten installed dependency packages, 1,898 inventoried
 runtime files and no import failures. It did not open a memory image or run a
 forensic plugin. This verifies inventory integration, not real-image cache-hit
-performance. Synthetic hashing timings are not benchmarks.
+performance. No benchmark claim is made from synthetic hashing timings.
 
 Two focused implementation reviews inspected the changed execution path,
 artifact/path confinement, invalidation inputs, lock lifetime, cancellation,
