@@ -14,7 +14,7 @@ plugin destination and existing manual/offline policy; tool count remains ten.
 - Actual stdio MCP discovery and invocation of Windows/Linux/Mac commands passed
   with XP enabled and disabled. Invalid synthetic captures return explicit missing
   kernel requirements, retain input hashes, stay offline and cannot be reused.
-- Simulated analyzer execution over actual MCP verifies Mac timeout and cancellation,
+- MCP transport tests with a simulated analyzer verify Mac timeout and cancellation,
   retained partial outputs, final manifests and child cleanup in auto/legacy modes.
 - Pinned Ruff, Gitleaks and diff whitespace checks passed.
 
@@ -131,7 +131,7 @@ output previews and bounded paging; FIFO rejection; private/idempotent setup;
 registration backup/rollback/concurrency checks; and report identity, references,
 artifact linkage, checksums, timestamps, and failure-status consistency.
 
-The stdio tests use a deliberately labeled fake analyzer but exchange actual MCP
+The stdio tests use a labeled fake analyzer and exchange MCP
 messages. Both protocol modes exercise discovery, execution, output reading, and
 history. No reporting configuration or report files are required or generated.
 Registration failure tests simulate the CLI and touch temporary files only.
@@ -442,7 +442,7 @@ Zero-new-analysis evidence:
   scope and stable coverage on repeated retrieval. Guards prohibited subprocesses
   and memory-image hashing. No real report, extraction or investigation was rerun.
 
-Actual browser integration: installed Chrome via existing Playwright tooling against
+Browser integration: installed Chrome via existing Playwright tooling against
 an isolated synthetic local server passed coverage summary, explicitly uncollected
 scope, attempt/evidence drill-down, refresh/reconnect, and the existing checked
 citation flow. No JS errors, Workbench jobs or Volatility launches. No live model
