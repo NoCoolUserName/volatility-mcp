@@ -31,5 +31,5 @@ The full `volatility_mcp-0.1.4-py3-none-any.whl` is 929,336,323 bytes
 `339dd2bb671893c9a3c5606486c4b9e7cbb824b86fd125d9980a4c86ae329975`.
 The guarded publisher and local download verification checked the wheel, manifest
 and all four embedded pack digests. Python 3.12/3.13 main CI, add-on installation,
-real MCP transport checks, code quality/secrets and CodeQL passed for that source.
+MCP transport checks, code quality/secrets and CodeQL passed for that source.
 This release remains independent of the active Linux community index.
