@@ -26,6 +26,50 @@ and addon source trusted.
   Volatility and its parsers run with the server account's privileges; subprocess
   separation is not an operating-system sandbox for hostile parser input.
 
+## Explicit parallel work
+
+Background job tools accept only explicitly selected image/plugin/argument
+requests through the same confinement and argument validation as synchronous
+execution. The full submission is checked before enqueueing. Case-scoped clients
+can submit, inspect, list, or cancel only jobs for their registered images.
+Polling saved jobs does not select additional work or retry a failed run.
+
+The configured concurrency limit bounds simultaneous analysis processes; it does
+not reserve CPU cores, memory, disk space, or storage bandwidth. Long-running
+plugins and complete raw output can still exhaust available resources. Use a
+lower limit on constrained machines. Job records, cancellation requests, run
+manifests and timing history stay in private configured outputs and may contain
+sensitive paths or arguments.
+
+Cancellation is cooperative. Poll the job until it reaches a terminal state;
+queued/running work and failed or interrupted scans are incomplete evidence.
+Graceful server shutdown cancels outstanding submitted work and waits for final
+records. A forced kill, power loss or crash can leave unfinished records or an
+analyzer process; persisted jobs are not permission to replay analysis. See
+[parallel execution](docs/PARALLEL_EXECUTION.md) for lifecycle and lock boundaries.
+
+## Symbol identity trust
+
+Run admission and reuse identify local symbol/cache stores through metadata:
+paths/types, regular-file size/mtime/ctime/device/inode, directory path/type,
+additions/removals and missing-root markers. They do not bulk-read symbol-file/archive contents. The inventory digest is not
+cryptographic verification of symbol bytes and trusts the local filesystem and
+operator-controlled store. A malicious local user or filesystem can exceed this
+boundary. Inventory errors do not trigger a full-store content-hash fallback.
+Symlinks and special entries are rejected before supported generated-file
+exclusions. Context explicitly records `symbol_content_verified: false`.
+
+Image, runtime/code, declared input-file and saved-output hashes remain in force.
+Installer download checksums remain separate, and the analyzer reads the symbols
+needed for its selected analysis. Keep those stores trusted and provision approved
+symbols explicitly; do not treat metadata identity as supply-chain attestation.
+
+The same metadata boundary covers installed/bundled symbol data found through
+catalog runtime discovery. Runtime readiness reads existing indexes and never
+silently verifies or reindexes the full store. Missing required XP cache/index
+readiness requires explicit `symbols-install` provisioning. Analysis, reuse and
+queued requests do not invoke that installer.
+
 ## Sensitive data and network use
 
 Memory can contain credentials, personal information, encryption keys, private

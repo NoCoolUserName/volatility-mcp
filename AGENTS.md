@@ -34,6 +34,48 @@ deferred.
 Shared public integration APIs live in `volatility_mcp.api`; keep dependencies one way.
 Do not add Workbench, model providers, or app assets to core. See docs/SEPARATION.md.
 
+## Mandatory symbol-store admission rule
+
+User instruction: prevent repeated bulk symbol-store reads and hashes during
+analysis. Run admission, result reuse, execution-context checks and queued jobs
+MUST NOT open/read/hash every symbol file or archive to establish symbol identity.
+This applies to supplemental/installed stores and execution caches. Use the
+implemented trusted local metadata inventory (relative paths, entry types, sizes,
+mtime/ctime, device/inode, additions/removals); do not describe its digest as
+cryptographic verification of symbol-file contents. Do not add a full-content
+fallback if inventory validation fails: retain the error or unavailable result.
+Regular files carry size/mtime_ns/ctime_ns/device/inode; directories carry path
+and kind only. Inventory missing roots explicitly and reject symlinks/special
+files before applying supported generated-file exclusions. Keep the declared
+`symbols_identity_method='trusted-local-filesystem-metadata-v1'` and
+`symbol_content_verified=False` semantics explicit; do not relabel metadata as
+symbol-byte verification.
+
+Keep source-image, runtime/code, declared input-file and saved-output integrity
+hashes. The separately authorized provisioning/install path still verifies package
+download checksums, and the analyzer may read the specific symbols it needs.
+Required private-cache preparation is separate from a full symbol-store identity
+scan; never copy/re-read the full installed symbol collection for every request.
+
+Apply this rule through the complete default caller chain, including catalog
+`runtime_files`, installed/bundled symbol-data roots, `_symbol_arguments` and
+`prepare_symbol_cache.py`. Do not disguise installed symbol data as runtime/code
+content hashing. Keep executable/Python code hashes, but inventory symbol data
+through metadata. Runtime cache readiness checks must be read-only: no implicit
+full-payload verification, index-all/manager.update, or silent bulk reindex.
+If a required XP cache/index is missing, fail with an actionable explicit
+`symbols-install` provisioning step. Only explicit provisioning may verify/index
+the full configured store. Queue execution and reuse must not call that installer.
+
+Any change touching symbol identity/admission must include a focused regression
+that fails if those paths bulk-read symbol contents and proves metadata mutation
+and additions/removals invalidate identity. Exercise the default execution/reuse
+and queued-job paths affected by the change, including catalog data collection
+and nested symbol preparation/readiness helpers. Reuse prior unchanged test evidence;
+run the required delta checks and final CI for the actual changed head. Preserve
+historical full-content-hash evidence as historical; do not relabel it as the new
+metadata-inventory behavior.
+
 ## README build metrics
 
 - Keep the italic lines-of-code stamp first immediately below the README title.

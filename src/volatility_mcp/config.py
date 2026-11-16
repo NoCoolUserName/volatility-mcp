@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import json
 import os
 from pathlib import Path
@@ -54,6 +54,7 @@ class Config:
     command_timeout: int = 300
     catalog_timeout: int = 60
     enable_xpnet: bool = True
+    max_concurrent_runs: int = field(default_factory=lambda: min(4, os.cpu_count() or 1))
 
     def __post_init__(self) -> None:
         for name in ("evidence_root", "output_root", "cache_path"):
@@ -66,10 +67,15 @@ class Config:
             raise ConfigurationError("output_root must not equal or contain evidence_root. Use a separate output directory.")
         if self.cache_path == self.evidence_root or self.evidence_root.is_relative_to(self.cache_path):
             raise ConfigurationError("cache_path must not equal or contain evidence_root.")
+        if self.output_root.is_relative_to(self.cache_path) or self.cache_path.is_relative_to(self.output_root):
+            raise ConfigurationError("cache_path and output_root must not overlap.")
         for name in ("command_timeout", "catalog_timeout"):
             value = getattr(self, name)
             if isinstance(value, bool) or not isinstance(value, int) or not 1 <= value <= 86400:
                 raise ConfigurationError(f"{name} must be an integer from 1 to 86400 seconds.")
+        if (isinstance(self.max_concurrent_runs, bool) or not isinstance(self.max_concurrent_runs, int)
+                or not 1 <= self.max_concurrent_runs <= 64):
+            raise ConfigurationError("max_concurrent_runs must be an integer from 1 to 64.")
         if not isinstance(self.enable_xpnet, bool):
             raise ConfigurationError("enable_xpnet must be true or false.")
 
