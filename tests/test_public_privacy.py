@@ -49,10 +49,10 @@ class PrivacyCheck(unittest.TestCase):
         else:
             self.git("commit", "--allow-empty", "-qm", subject, "-m", body, env=env)
 
-    def check(self, base=None, aliases=False, mode="direct", preserved=()):
+    def check(self, base=None, aliases=False, mode="direct", preserved=(), paths_only=False):
         return subprocess.run(
-            [sys.executable, str(SCANNER), "--owner", HANDLE, "--owner-id", OWNER_ID,
-             "--base", base or self.base, "--base-mode", mode]
+            [sys.executable, str(SCANNER), "--base", base or self.base, "--base-mode", mode]
+            + (["--paths-only"] if paths_only else ["--owner", HANDLE, "--owner-id", OWNER_ID])
             + (["--aliases-file", str(self.aliases)] if aliases else [])
             + [arg for sha in preserved for arg in ("--preserve-third-party", sha)],
             cwd=self.repo, text=True, capture_output=True,
@@ -148,6 +148,102 @@ class PrivacyCheck(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertNotIn("FabricatedPerson", result.stdout + result.stderr)
         self.assertNotIn("sample.txt", result.stdout + result.stderr)
+
+
+    def test_terminal_home_json_windows_and_mac_temp_paths_are_redacted(self):
+        slash = bytes([92])
+        cases = [
+            b"/" + b"Users/SyntheticProfile",
+            b"/" + b"home/SyntheticProfile",
+            b"/" + b"Volumes/SyntheticMount/case.raw",
+            b"C:" + slash + b"Users" + slash + b"SyntheticProfile" + slash + b"file.txt",
+            b"C:" + slash * 2 + b"Users" + slash * 2 + b"SyntheticProfile" + slash * 2 + b"file.txt",
+            b"D:" + b"/" + b"Users/SyntheticProfile/file.txt",
+            b"/private/" + b"var/folders/ab/SyntheticMachine/T/file.txt",
+            b"/" + b"var/folders/cd/AnotherSynthetic/T/file.txt",
+        ]
+        for value in cases:
+            with self.subTest(value=value):
+                (self.repo / "sample.txt").write_bytes(value)
+                self.git("add", "sample.txt")
+                self.commit("synthetic path fixture")
+                result = self.check()
+                self.assertEqual(result.returncode, 1)
+                self.assertNotIn("SyntheticProfile", result.stdout + result.stderr)
+                self.assertNotIn("SyntheticMachine", result.stdout + result.stderr)
+                self.base = self.git("rev-parse", "HEAD").stdout.strip()
+
+    def test_new_blob_is_checked_even_when_a_later_commit_removes_it(self):
+        (self.repo / "sample.txt").write_text("/" + "home/SyntheticProfile/private")
+        self.git("add", "sample.txt")
+        self.commit("temporary content")
+        (self.repo / "sample.txt").write_text("safe\n")
+        self.git("add", "sample.txt")
+        self.commit("remove temporary content")
+        result = self.check()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("changed file", result.stdout)
+        self.assertNotIn("SyntheticProfile", result.stdout + result.stderr)
+
+    def test_paths_in_binary_symlink_target_and_filename_are_checked(self):
+        link = self.repo / "link"
+        link.symlink_to("/" + "home/SyntheticProfile/private")
+        (self.repo / "binary.dat").write_bytes(b"\0" + b"/" + b"home/SyntheticProfile/private")
+        filename = "D:" + chr(92) + "Users" + chr(92) + "SyntheticProfile" + chr(92) + "file.txt"
+        (self.repo / filename).write_text("safe\n")
+        self.git("add", "link", "binary.dat", filename)
+        self.commit("synthetic entry kinds")
+        result = self.check()
+        self.assertEqual(result.returncode, 1)
+        self.assertNotIn("SyntheticProfile", result.stdout + result.stderr)
+        self.assertNotIn("binary.dat", result.stdout + result.stderr)
+
+    def test_paths_only_accepts_contributors_but_still_checks_metadata_and_messages(self):
+        self.commit("community change", "Co-authored-by: Public Contributor <public@example.invalid>",
+                    author_name="Public Contributor", author_email="public@example.invalid")
+        self.assertEqual(self.check(paths_only=True).returncode, 0)
+        self.assertEqual(self.check().returncode, 1)
+        self.base = self.git("rev-parse", "HEAD").stdout.strip()
+        self.commit("synthetic metadata path", author_name="/" + "home/SyntheticProfile")
+        self.assertEqual(self.check(paths_only=True).returncode, 1)
+        self.base = self.git("rev-parse", "HEAD").stdout.strip()
+        self.commit("synthetic message", "/" + "home/SyntheticProfile")
+        self.assertEqual(self.check(paths_only=True).returncode, 1)
+
+    def test_blob_limit_fails_closed_without_exposing_content(self):
+        (self.repo / "sample.txt").write_bytes(b"x" * (16 * 1024 * 1024 + 1))
+        self.git("add", "sample.txt")
+        self.commit("bounded synthetic data")
+        result = self.check()
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("could not complete", result.stdout)
+        self.assertNotIn("sample.txt", result.stdout + result.stderr)
+
+
+    def test_removed_repeated_blobs_still_obey_changed_entry_limit(self):
+        folder = self.repo / "entries"
+        folder.mkdir()
+        for index in range(4096):
+            (folder / str(index)).write_bytes(b"")
+        self.git("add", "entries")
+        self.commit("many identical synthetic blobs")
+        self.git("rm", "-qr", "entries")
+        self.commit("remove synthetic entries")
+        result = self.check()
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("could not complete", result.stdout)
+
+    def test_missing_tracked_file_fails_closed(self):
+        (self.repo / "sample.txt").unlink()
+        self.assertEqual(self.check().returncode, 2)
+
+
+    def test_removed_gitlink_fails_closed_without_recursive_scan(self):
+        self.git("update-index", "--add", "--cacheinfo", f"160000,{self.base},synthetic-submodule")
+        self.commit("synthetic gitlink")
+        self.git("update-index", "--force-remove", "synthetic-submodule")
+        self.commit("remove synthetic gitlink")
+        self.assertEqual(self.check().returncode, 2)
 
 
 if __name__ == "__main__":

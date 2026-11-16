@@ -137,3 +137,24 @@ pinned asset URLs, byte counts and SHA-256 digests, validates compressed ISF
 contents and exact banners, and shares the official-pack installation lock.
 Analysis tools never invoke this downloader. The catalog and installer read no
 evidence; the larger collection stays in the configured local symbol store.
+
+## Public path privacy check
+
+The public-path workflow scans tracked filenames/content and the changed blobs,
+messages and identity fields of up to 128 new commits, including content removed
+by a later commit in that range. Generic rules detect local home paths, escaped
+Windows profiles, literal volume mounts and macOS per-user temporary paths; findings withhold values.
+Binary content and symlink targets are inspected as data. A scan fails closed
+above 16 MiB per payload, 256 MiB total, 4,096 payloads or 4,096 tracked/changed
+entries rather than silently skipping. Git metadata is captured within the bounded
+commit range; the workflow also has a ten-minute timeout.
+Missing tracked files and unsupported Git submodule entries hold the check;
+submodule repositories are not scanned recursively.
+This targeted lint complements secret scanning; it cannot identify every private
+string. Optional private aliases remain local inputs.
+
+Pull-request checks execute the scanner from the trusted base checkout with
+read-only permissions. Proposed code is never executed by this workflow. The
+standalone scanner also supports --paths-only for repositories that want these
+path checks without adopting the core repository identity allowlist. The core
+workflow retains its existing identity policy and reviewed exact-commit mechanism.

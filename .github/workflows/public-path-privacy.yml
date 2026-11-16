@@ -15,6 +15,7 @@ jobs:
   tracked-files:
     if: github.event_name != 'pull_request_target'
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -27,12 +28,13 @@ jobs:
           REPO_OWNER: ${{ github.repository_owner }}
           REPO_OWNER_ID: ${{ github.repository_owner_id }}
         run: |
-          python3 scripts/check_public_privacy.py \
+          python3 -I scripts/check_public_privacy.py \
             --owner "$REPO_OWNER" --owner-id "$REPO_OWNER_ID" \
             --base "$BASE_SHA" --head "$HEAD_SHA" --base-mode direct
   proposed-pr:
     if: github.event_name == 'pull_request_target'
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       # This checkout and the executed scanner come from the trusted base branch.
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -56,6 +58,6 @@ jobs:
         run: |
           git -C proposed fetch --no-tags "https://github.com/$GITHUB_REPOSITORY.git" "$BASE_SHA"
           cd proposed
-          python3 ../trusted/scripts/check_public_privacy.py \
+          python3 -I ../trusted/scripts/check_public_privacy.py \
             --owner "$REPO_OWNER" --owner-id "$REPO_OWNER_ID" \
             --base "$BASE_SHA" --head "$HEAD_SHA" --base-mode merge-base
