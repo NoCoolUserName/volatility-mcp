@@ -12,6 +12,11 @@ descriptor-walk race/relocation regressions. Earlier intermediate package checks
 remain private historical evidence; the count above describes the frozen final
 runtime source, including the descriptor-walk fix.
 
+A subsequent default-only change sets concurrency to the smaller of four and the
+detected logical CPU count. Its focused regression passed for both larger and
+smaller hosts. The installed-suite evidence above is reused for unchanged behavior;
+the measured matrix used explicit limits, so its timing/results remain applicable.
+
 The change uses explicit submit/get/list/cancel jobs, bounded cross-process
 execution and trusted local symbol metadata inventory. Symbol admission and
 reuse do not bulk-read/hash symbol contents or silently verify/reindex the full

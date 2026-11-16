@@ -75,7 +75,7 @@ complete batch is validated before any job is queued. The optional
 `order='slowest-first'` uses known successful saved timings; it does not run
 benchmarks or select additional plugins. Unknown timings remain explicit.
 `Config.max_concurrent_runs` limits analysis across processes sharing the output
-root (1–64; default `min(8, os.cpu_count() or 1)`). The operator can set it with
+root (1–64; default `min(4, os.cpu_count() or 1)`). The operator can set it with
 `setup --max-concurrent-runs N`. It is a concurrency ceiling, not a resource or
 performance guarantee.
 

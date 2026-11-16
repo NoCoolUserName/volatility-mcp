@@ -46,7 +46,7 @@ validation, execution limits, saved evidence and verified result reuse.
 ## Scheduling and resources
 
 Trusted configuration `max_concurrent_runs` accepts integers 1–64. Its default is
-`min(8, os.cpu_count() or 1)`; setup accepts `--max-concurrent-runs N`. It caps work
+`min(4, os.cpu_count() or 1)`; setup accepts `--max-concurrent-runs N`. It caps work
 across processes sharing an output root. Clients using that root must agree on
 the setting; changing it requires an idle boundary and reloading clients. A
 conflicting active configuration fails rather than creating another capacity pool.
@@ -173,8 +173,9 @@ analyzer's normal selected-symbol reads.
 Limits 2 and 4 were a near tie: only 0.361 seconds apart in this single pass.
 They form a reasonable starting range for this measured host/workload; 8 and 12
 were slower and used more sampled memory. This does not establish an optimal
-default or show that more processes are generally better. The portable default
-remains the smaller of 8 and detected logical CPU count.
+default or show that more processes are generally better. The configurable starting default
+is the smaller of 4 and detected logical CPU count, informed by this measured
+workload rather than a claim of universal optimality.
 
 Wall time runs from immediately before submission until every job is terminal.
 It includes admission, per-job integrity hashing/metadata inventory, private-cache
