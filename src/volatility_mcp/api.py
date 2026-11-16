@@ -1,4 +1,9 @@
-"""Supported local integration surface (API revision 1); see docs/PUBLIC_API.md."""
+"""Supported local integration surface (API revision 1); see docs/PUBLIC_API.md.
+
+VolatilityBackend and CaseBackend include submit_jobs/get_job/list_jobs/cancel_job
+and shutdown_jobs for incremental clients. Existing synchronous methods retain their
+contracts. Applications must close submitted work with shutdown_jobs(wait=True).
+"""
 from importlib.resources import files
 from .config import Config, load_config
 from .backend import VolatilityBackend, EvidenceError, file_fingerprint, SUPPORTED_EXTENSIONS

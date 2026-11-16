@@ -1,8 +1,8 @@
 # Architecture
 
 CryptoMem 0.5.0 remains a separately maintained, hash-pinned add-on. New detectors
-are explicit Boolean plugin options on the same ten tools. The standalone plugin
-masks secret values before rendering; core contains no duplicate detector. A
+are explicit Boolean plugin options through the existing plugin argument contract.
+The standalone plugin masks secret values before rendering; core contains no duplicate detector. A
 shared local-only extraction guard runs before raw paging, structured queries,
 evidence resolution and artifact inspection. It also covers `.vol3` temporary
 files from interrupted extraction. Schema-1 address defaults remain; opt-in richer
@@ -33,9 +33,9 @@ standard library. A reporting client composes the report only when asked, using
 actual outputs plus the versioned report specification.
 
 The independently installed [Workbench](https://github.com/NoCoolUserName/volatility-workbench) provides
-a loopback browser UI and sequential case jobs. Its replaceable Codex app-server
+a loopback browser UI and case orchestration. Its replaceable Codex app-server
 adapter creates/resumes one conversation per case using existing authentication.
-A scoped backend reuses the same ten MCP tools, restricting inputs to explicitly
+A scoped backend reuses the same fourteen MCP tools, restricting inputs to explicitly
 registered case images and outputs to that case. UI-only dynamic tools package
 reports without adding reporting fields to core MCP calls. See
 [LOCAL_UI.md](LOCAL_UI.md) for architecture, launch, authentication and boundaries.
@@ -64,6 +64,7 @@ trusted and is never accepted as an MCP tool argument.
 | `cache_path` | Symbol cache; defaults to `~/.cache/volatility-mcp/symbols`. |
 | `command_timeout` | Plugin process timeout in seconds, default `300`. |
 | `catalog_timeout` | Plugin discovery timeout in seconds, default `60`. |
+| `max_concurrent_runs` | Concurrent analysis ceiling across an output root, 1–64; default `min(4, os.cpu_count() or 1)`. |
 | `enable_xpnet` | Enable the packaged fixed local compatibility addon, default `true`. |
 
 Directories are canonicalized and checked; an output root cannot equal or contain
@@ -101,6 +102,11 @@ writer racing the final comparison/rename; avoid concurrent configuration edits.
   list of strings, records source identity, and runs a process using `shell=False`.
   Global flags, caller-selected plugin directories, output overrides, traversal,
   shell syntax, unknown options, and unsafe input references are rejected.
+- `submit_jobs(jobs, order="input")` validates an explicit batch before queueing it;
+  `get_job(job_id)` returns its incremental state and final normal run result.
+  `list_jobs(offset=0, limit=100)` pages authorized job summaries (maximum 256);
+  `cancel_job(job_id)` requests cooperative cancellation. No tool chooses a
+  follow-up or retry. See [PARALLEL_EXECUTION.md](PARALLEL_EXECUTION.md).
 - `read_output(path, offset=0, limit=16384)` reads only inside the configured output
   root. Limits are byte counts (maximum 65,536); `next_offset` and `truncated` support
   paging. UTF-8 decoding uses replacement for invalid bytes; raw files retain exact
@@ -128,6 +134,22 @@ measurements. Only stable successful runs with intact artifacts qualify. A hit
 returns the original run ID/paths and a separate verification receipt. Old runs
 without reuse identity remain available but are not retrospectively certified.
 
+Symbol-store identity is a trusted local metadata inventory of paths and entry
+types; regular files include size, mtime/ctime and device/inode. Directories include
+path/type only. Additions/removals and missing-root markers affect identity.
+Context checks do not bulk-read symbol files or archives; an inventory digest does not verify
+their contents cryptographically. Source-image, runtime/code and saved-artifact
+hashes remain. Provisioning download checksums and normal analyzer reads of
+selected symbols remain separate from admission/reuse. The mandatory rule and
+regression requirement are recorded in [AGENTS.md](../AGENTS.md).
+
+Catalog-discovered installed/bundled symbol-data roots follow that metadata rule;
+they are not executable/Python code inputs to bulk runtime hashing. Runtime symbol
+readiness checks existing indexes read-only, without full-payload verification or
+`manager.update`/index-all. A missing required XP cache/index gives an actionable
+explicit `symbols-install` step. Full-store verification and indexing belong to
+explicit provisioning, never admission, reuse or queued analysis.
+
 On a miss, the plugin runs **once with the JSON renderer**. Complete raw stdout and
 stderr go directly to files; a human-readable view is generated from that saved JSON
 without rerunning analysis. Invalid/unsupported JSON leaves raw bytes intact and
@@ -139,9 +161,12 @@ The process timeout bounds plugin execution, not the entire tool's pre/post hash
 catalog loading, or artifact conversion. Clients need a longer timeout; the Codex
 registration helper uses at least 90 seconds for startup and 1,800 for tools,
 increasing these for configured limits. Large images may need longer settings.
-Analysis is serialized across processes sharing an output root using a POSIX file
-lock. Waiting duplicates recheck saved results after acquiring it; waiting is
-cancellable and bounded. Separate case/output roots do not share locks or results.
+Analysis uses POSIX request-identity locks and shared capacity slots across an
+output root. Equivalent requests wait, then recheck verified saved results; distinct
+requests can run concurrently up to `max_concurrent_runs`. Waiting is cancellable
+and bounded. Request-local backend state and identity-private mutable symbol caches
+prevent concurrent requests sharing those mutable fields. Separate output roots
+have independent pools, locks and results. See [PARALLEL_EXECUTION.md](PARALLEL_EXECUTION.md).
 Cancellation, timeout, client disconnect, and graceful SIGTERM kill the child
 process group and retain partial output/status. Uncatchable termination (such as SIGKILL) can
 leave a `running` manifest; a later session identifies it as interrupted or from
@@ -157,7 +182,9 @@ confinement uses POSIX process groups; Windows as an analysis host is unsupporte
 
 ```text
 output_root/
-  .execution.lock           # persistent lock inode; never remove during use
+  .execution.lock           # shared execution/exclusive maintenance gate
+  .execution/               # request-key locks, capacity policy/slots, private caches
+  .jobs/                    # job snapshots, owner leases and cancellation requests
   <image-stem>-<relative-path-hash>/
     reuse/<UTC timestamp>-<random ID>.json  # verification receipt, original run untouched
     inspections/<UTC timestamp>-<random ID>/  # derived static results, separate from original run
@@ -225,8 +252,9 @@ and resolve structured citations against their own verified artifacts. See
 
 `coverage.py` derives a case/image-scoped view from original run manifests, saved
 outputs, inspections, reuse receipts and optional append-only plan revisions.
-`get_coverage` is read-only; there is no parallel database, scheduler or automatic
-retry. Workbench joins its existing orchestration jobs/request failures separately.
+`get_coverage` is read-only; it does not enqueue work or retry analysis. Its saved
+evidence projection remains separate from explicit job scheduling. Workbench joins
+its existing orchestration jobs/request failures separately.
 New bundles package a hashed snapshot and required mechanical limitations summary.
 State/authority/budget definitions and the deterministic synthetic evaluation command
 are documented in [COVERAGE_EVALUATION.md](COVERAGE_EVALUATION.md).

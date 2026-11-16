@@ -1,11 +1,11 @@
 # volatility-mcp
 
-*11,727 lines of code*
+*13,020 lines of code*
 
 *Last measured package: `volatility_mcp-0.1.4-py3-none-any.whl`, 929,336,323 bytes (886.284183 MiB); measured on 2026-10-25 UTC from source revision `2887c77283da4a45860d8ac2f3042027401257a0`. Published full release wheel includes four official symbol packs and the Linux catalog; excludes community Linux ISF downloads, analyzer/addon downloads, Python dependencies and the separate Workbench app.*
 
 A local MCP server for querying memory acquisitions with **official Volatility 3**. It runs your separately installed Volatility executable, saves
-complete outputs and execution records, and exposes ten tools over stdio. It makes no LLM API calls and needs no model API key.
+complete outputs and execution records, and exposes fourteen tools over stdio. It makes no LLM API calls and needs no model API key.
 
 An **optional investigation and reporting workflow** lives in the same repository.
 Individual queries do not require reports, templates, case-report metadata, or
@@ -24,7 +24,7 @@ values stay masked; full extraction is explicit, private and local-only. Windows
 Linux x86-64 and experimental legacy Intel64 Mac adapters share the scanner.
 Use matching captured-kernel symbols; other architectures, nested Mac submaps
 and real-memory Linux/macOS validation remain outstanding. See [CryptoMem setup and
-validation](docs/CRYPTOMEM.md). The standalone server still exposes ten MCP tools. The [symbol installer](docs/SYMBOLS.md)
+validation](docs/CRYPTOMEM.md). The standalone server still exposes fourteen MCP tools. The [symbol installer](docs/SYMBOLS.md)
 can provision a pinned 10,255-table Linux x86-64 collection into the same offline
 store, either in full or by exact kernel banner.
 
@@ -191,6 +191,10 @@ image or malware is distributed here.
 | `get_image_info` | Save OS/banner discovery probes; keep failures and unknowns explicit. |
 | `list_plugins` | Discover installed plugin names; an exact/single match includes accepted arguments. |
 | `run_plugin` | Reuse a verified equivalent result or run a discovered plugin with validated arguments; preserve raw outputs, metadata, and derived files. |
+| `submit_jobs` | Queue explicitly selected plugin requests and return job IDs for incremental results. |
+| `get_job` | Read one submitted job, including its final result and artifact references. |
+| `list_jobs` | List persisted jobs visible to this backend or case scope. |
+| `cancel_job` | Request cancellation of queued or running work; preserve completed evidence. |
 | `read_output` | Read a saved text output in bounded chunks with a continuation offset and truncation status. |
 | `case_history` | Retrieve saved run history, commands, timestamps, hashes, and output locations. |
 | `get_coverage` | Read declared scope, saved attempts, effective results, reuse and unknowns; never collect or retry. |
@@ -220,6 +224,40 @@ covers U+0020..U+007E in ASCII or UTF-16LE, not all Unicode. See
 After upgrading, install the updated `requirements.lock.txt` and restart idle
 clients/Workbench to expose the updated MCP tools.
 
+### Incremental parallel analysis
+
+Keep using `run_plugin` for a single synchronous request, or call `submit_jobs`
+with an explicit list such as:
+
+```json
+{"jobs":[{"image":"example.vmem","plugin":"windows.pslist.PsList","arguments":[]},{"image":"example.vmem","plugin":"windows.dlllist.DllList","arguments":[]}],"order":"input"}
+```
+
+Discover exact installed plugin names and arguments first. Submission validates
+all requests before queueing any work and returns job IDs. Poll `get_job` for
+results as each finishes; `list_jobs` pages persisted job summaries and `cancel_job`
+requests cancellation. A client can inspect a completed result and submit a
+selected follow-up while other jobs continue. No automatic plugin selection,
+follow-up, retry, or report generation occurs.
+
+`max_concurrent_runs` bounds analysis processes (1–64; starting default the smaller
+of 4 and the detected logical CPU count). Set it through trusted configuration or
+`setup --max-concurrent-runs N`. Processes can compete for RAM, storage bandwidth,
+and cache access, so more concurrency need not be faster. `order: "slowest-first"`
+uses local successful observed durations; it runs no timing probes and imports no
+upstream timing defaults. See [parallel execution](docs/PARALLEL_EXECUTION.md) for
+ordering, locks, job lifetime, and interruption limits.
+
+A single local 16-request Windows workload on a 10-core/24 GiB host took
+123.322 seconds at limit 1, 79.693 at 2 and 79.332 at 4; limits 8 and 12 took
+104.535 and 105.617 seconds. Limits 2–4 were a near tie and a useful starting range
+for that measured workload, while larger limits were slower. All 80 executions
+succeeded without reuse; corresponding normalized results and integrity checks
+matched. Symbol identity inventory read zero content bytes. The
+[full table and timing boundaries](docs/PARALLEL_EXECUTION.md#local-measured-workload--2026-11-16)
+describe warmup exclusions, sampling and single-pass limits; this does not establish
+an optimal portable default.
+
 ### Execution, evidence, and recovery
 
 - Input paths must resolve inside the evidence root; symlink escapes, shell syntax,
@@ -237,7 +275,8 @@ clients/Workbench to expose the updated MCP tools.
 - Run records include source fingerprints and SHA-256 before/after execution,
   tool versions, exact arguments, timestamps, status, and artifact hashes. Local
   compatibility-addon runs also preserve the addon source and its hash.
-- Analysis is serialized across backend processes sharing an output root. Timeouts, cancellation,
+- Analysis uses bounded cross-process concurrency within an output root; equivalent
+  requests share a request-identity lock and recheck reusable results. Timeouts, cancellation,
   client disconnects, and graceful shutdown retain partial output and status.
   Forced termination can leave child processes or interrupted records; inspect
   them before retrying. Failed or incomplete work is never a clean finding.
@@ -249,9 +288,21 @@ clients/Workbench to expose the updated MCP tools.
 the discovery probes in `get_image_info`. Equivalent requests reuse a successful,
 integrity-verified run after restart, retaining its run ID and artifact paths.
 The identity includes the source fingerprint/SHA-256, typed arguments, file inputs,
-analyzer/plugin/dependency code and versions, symbols/cache content, and execution
-configuration. Changed context or damaged artifacts prevents reuse. A filesystem
-lock prevents concurrent duplicate analysis within the same output root.
+analyzer/plugin/dependency code and versions, trusted local symbol/cache metadata
+inventory, and execution configuration. Changed context or damaged artifacts prevents reuse. Request-identity
+filesystem locks prevent concurrent duplicate analysis within the same output root;
+shared slots bound distinct requests.
+
+Symbol identity inventories paths and entry types, with regular-file sizes,
+mtime/ctime and device/inode metadata, including additions/removals. Admission and reuse do not
+bulk-read or hash symbol-file/archive contents. This trusted-local inventory is
+not cryptographic verification of symbol bytes. Image, runtime and saved-output
+content hashes remain; provisioning checksums and the analyzer's selected symbol
+reads are separate. Installed/bundled symbol data is inventoried as metadata,
+including when found through the runtime catalog. Runtime readiness uses existing
+indexes without full-payload verification or bulk reindexing. A missing required
+XP index produces an explicit `symbols-install` recovery step; analysis never
+silently runs the installer. See [reuse identity](docs/RESULT_REUSE.md).
 
 Responses indicate `reused` and include hashing measurements; reuse receipts are
 saved separately without editing the original run. Full source hashes before and
@@ -261,7 +312,7 @@ Catalog refresh and dependency/artifact hashing still take time, so a hit is not
 an instant lookup. Plugin timeouts exclude this overhead.
 
 Older runs without the new identity are preserved but cannot be safely reused.
-Failed/incomplete runs are never hits. If symbols/cache or other inputs change
+Failed/incomplete runs are never hits. If symbol/cache inventory or other inputs change
 during a successful run, that run remains available but is not reuse-eligible;
 a subsequent request executes again against the stable context. Separate output
 roots do not share results or locks. See [RESULT_REUSE.md](docs/RESULT_REUSE.md)
@@ -438,7 +489,7 @@ See [coverage and evaluation](docs/COVERAGE_EVALUATION.md) for plans, state defi
 fixtures, supported versus unsupported tasks, and interpreting the result counters.
 
 CryptoMem 0.4.0 additionally exposes experimental `mac.cryptomem.CryptoMem` for
-legacy Intel64 captures through the same ten MCP tools. Exact Darwin symbols are
+legacy Intel64 captures through the same fourteen MCP tools. Exact Darwin symbols are
 required; the existing legacy Mac pack is not universal coverage. Nested submaps,
 Apple silicon/Intel32 Mac captures and modern macOS are unsupported. See
 [CryptoMem scope and validation](docs/CRYPTOMEM.md). Real-memory Mac validation

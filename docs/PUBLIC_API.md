@@ -7,7 +7,7 @@ applications must reject unsupported revisions before opening case state.
 | Interface | Responsibility |
 | --- | --- |
 | `Config`, `load_config` | Existing trusted operator configuration |
-| `VolatilityBackend` | Existing ten public tool methods, confinement, reuse, execution |
+| `VolatilityBackend` | Synchronous tools plus explicit background jobs, confinement, reuse, execution |
 | `CaseBackend(config, images)` | Restrict those tools to explicitly registered images |
 | `create_server`, `decode_result` | Official MCP server integration and result decoding |
 | `file_fingerprint`, `SUPPORTED_EXTENSIONS` | Integrity metadata and supported acquisitions |
@@ -61,3 +61,40 @@ Core 0.1.2 also exports `linux_symbol_catalog(banner=None)` and the operator-onl
 `install_linux_symbols(config, *, banner=None, source_dir=None, workers=4)`.
 These use the configured shared symbol store and existing offline index; see
 [Linux symbol provisioning](SYMBOLS.md). They never run as analysis side effects.
+
+## Explicit background jobs
+
+API revision 1 adds the same additive methods to `VolatilityBackend` and
+`CaseBackend`, and four MCP tools named `submit_jobs`, `get_job`, `list_jobs`, and
+`cancel_job`. Existing synchronous `run_plugin` and `get_image_info` remain
+available. Importing the API or polling jobs never starts analysis.
+
+`submit_jobs(jobs, order='input')` accepts an explicit list of
+`{image, plugin, arguments?: [...]}` records and returns `{jobs: [...]}`. The
+complete batch is validated before any job is queued. The optional
+`order='slowest-first'` uses known successful saved timings; it does not run
+benchmarks or select additional plugins. Unknown timings remain explicit.
+`Config.max_concurrent_runs` limits analysis across processes sharing the output
+root (1–64; default `min(4, os.cpu_count() or 1)`). The operator can set it with
+`setup --max-concurrent-runs N`. It is a concurrency ceiling, not a resource or
+performance guarantee.
+
+`get_job(job_id)` returns a full snapshot; `list_jobs(offset=0, limit=100)` returns
+summaries with `jobs`, authorized total `count`, `returned_count`, and `next_offset`.
+The maximum page size and batch size are 256. Follow `next_offset` and use
+`get_job` for the complete result. Scope filtering precedes counts and pagination.
+Snapshots contain `job_id`, `state`, `submitted_at`, `started_at`, `completed_at`,
+`image`, `plugin`, `arguments`, `result`, and `error`. A terminal `result` is the
+normal run result, including its manifest/artifact references and reuse status.
+Queued or running work is incomplete; failed, timed-out, cancelled and incomplete
+runs cannot establish absence. Callers may submit a later, explicitly selected
+job after inspecting prior results. No automatic follow-up, retry or report is
+created.
+
+`cancel_job(job_id)` requests cancellation; poll until terminal. Running children
+are reaped and partial output remains in the finalized run record. Completed
+results are preserved. Local clients must call `shutdown_jobs(wait=True)` during
+shutdown; the MCP server does this automatically, cancelling outstanding jobs and
+waiting for final evidence records. Job records persist under the configured
+output root. Case-scoped submission, listing, lookup and cancellation enforce the
+registered image set, including jobs submitted by another process.

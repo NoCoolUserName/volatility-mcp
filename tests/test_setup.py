@@ -32,6 +32,11 @@ class ConfigAndSetupTests(unittest.TestCase):
         self.assertEqual(config, Config.from_dict(config.to_dict()))
         self.assertNotIn("report", json.dumps(config.to_dict()))
 
+    def test_default_concurrency_uses_four_bounded_by_cpu_count(self):
+        for cpus, expected in ((16, 4), (2, 2)):
+            with self.subTest(cpus=cpus), patch('volatility_mcp.config.os.cpu_count', return_value=cpus):
+                self.assertEqual(Config(**self.values).max_concurrent_runs, expected)
+
     def test_python_symlink_keeps_venv_path(self):
         python = self.values["vol_python"]
         python.parent.mkdir(parents=True)
@@ -92,6 +97,16 @@ class ConfigAndSetupTests(unittest.TestCase):
         with self.assertRaises(ConfigurationError):
             cli.write_config(link, Config(**self.values))
         self.assertEqual(original.read_text(), "{}")
+
+    def test_setup_persists_explicit_concurrency_limit(self):
+        path = self.root / "config.json"
+        cli.write_config(path, Config(**self.values))
+        args = cli.parser().parse_args(["setup", "--config", str(path),
+            '--symbol-packs', 'none', '--max-concurrent-runs', '7'])
+        with patch.object(cli, "validate_vol", return_value={"architecture": "arm64"}):
+            outcome = cli.setup(args)
+        self.assertEqual(outcome['settings']['max_concurrent_runs'], 7)
+        self.assertEqual(load_config(path).max_concurrent_runs, 7)
 
     def test_setup_reuses_existing_config_without_install(self):
         path = self.root / "config.json"

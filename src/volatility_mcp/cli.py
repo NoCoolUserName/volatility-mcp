@@ -130,7 +130,7 @@ def setup(args: argparse.Namespace) -> dict:
         raise ConfigurationError("The current subprocess confinement uses POSIX process groups. Windows server operation is not yet supported.")
     selected = config_path(args.config)
     values = load_config(selected).to_dict() if selected.exists() else {}
-    for name in ("evidence_root", "output_root", "symbols", "cache_path", "command_timeout", "catalog_timeout", "vol_python", "vol_executable"):
+    for name in ("evidence_root", "output_root", "symbols", "cache_path", "command_timeout", "catalog_timeout", "max_concurrent_runs", "vol_python", "vol_executable"):
         value = getattr(args, name, None)
         if value is not None:
             values[name] = value
@@ -199,7 +199,7 @@ async def protocol_check(path: Path, config: Config) -> list[dict]:
         async with Client(transport, mode=mode, read_timeout_seconds=config.catalog_timeout + 30) as client:
             tool_list = await client.list_tools()
             names = sorted(tool.name for tool in tool_list.tools)
-            expected = {"list_memory_images", "get_image_info", "list_plugins", "run_plugin", "read_output", "case_history", "inspect_artifact", "query_output", "get_evidence", "get_coverage"}
+            expected = {"list_memory_images", "get_image_info", "list_plugins", "run_plugin", "read_output", "case_history", "inspect_artifact", "query_output", "get_evidence", "get_coverage", "submit_jobs", "get_job", "list_jobs", "cancel_job"}
             if not expected.issubset(names):
                 raise ConfigurationError(f"MCP server is missing expected tools: {sorted(expected - set(names))}")
             plugins = decode_result(await client.call_tool("list_plugins", {"query": "windows.info.Info"}))
@@ -384,6 +384,7 @@ def parser() -> argparse.ArgumentParser:
     configure.add_argument("--cache-path")
     configure.add_argument("--command-timeout", type=int)
     configure.add_argument("--catalog-timeout", type=int)
+    configure.add_argument("--max-concurrent-runs", type=int, help="Maximum simultaneous plugin runs across clients sharing the output root (1-64; default: up to 8, derived from logical CPU count)")
     configure.add_argument("--disable-xpnet", action="store_true")
     configure.add_argument("--install-volatility", action="store_true", help="Create an isolated official Volatility install only when none is configured")
     configure.add_argument("--vol-venv", default=str(Path.home() / "Forensics" / "volatility-env"))

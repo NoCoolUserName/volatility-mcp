@@ -27,7 +27,8 @@ with tempfile.TemporaryDirectory(prefix='core-package-') as temp:
     run(python,'-m','pip','check',cwd=temp)
     code=r'''
 import asyncio,json,sys,importlib.util
-from importlib.metadata import distribution
+from importlib.metadata import distribution, distributions
+import re
 from pathlib import Path
 from mcp import Client
 from mcp.client.stdio import StdioServerParameters
@@ -40,6 +41,15 @@ from volatility_mcp.linux_symbols import describe
 assert describe()['tables']==10255
 assert importlib.util.find_spec('volatility_workbench') is None
 core_dist=distribution('volatility-mcp')
+def normalize(name):
+    return re.sub(r'[-_.]+', '-', name).lower()
+locked={normalize(name):version for line in Path(sys.argv[1]).read_text().splitlines()
+        if line.strip() and not line.startswith('#') for name,version in [line.strip().split('==',1)]}
+installed={normalize(dist.metadata['Name']):dist.version for dist in distributions()}
+for name,version in installed.items():
+    if name not in {'volatility-mcp','pip','setuptools','wheel'}:
+        assert locked.get(name)==version, (name, version, locked.get(name))
+print('Installed dependency versions:', json.dumps(installed,sort_keys=True))
 assert core_dist.metadata['License-Expression']=='MIT OR LicenseRef-Volatility-Software-License-1.0'
 for name, marker in [('MIT.txt','MIT License'),('LicenseRef-Volatility-Software-License-1.0.txt','Volatility Software License')]:
     assert marker in core_dist.read_text('licenses/licenses/'+name)
@@ -56,10 +66,10 @@ async def check():
     for mode in ('legacy','auto'):
         async with Client(StdioServerParameters(command=sys.executable,args=['-m','volatility_mcp','serve','--config',str(path)]),mode=mode) as client:
             names={t.name for t in (await client.list_tools()).tools}
-            assert names=={'list_memory_images','list_plugins','get_image_info','run_plugin','read_output','case_history','inspect_artifact','query_output','get_evidence','get_coverage'}
+            assert names=={'list_memory_images','list_plugins','get_image_info','run_plugin','read_output','case_history','inspect_artifact','query_output','get_evidence','get_coverage','submit_jobs','get_job','list_jobs','cancel_job'}
 asyncio.run(check())
-print('Core wheel: no Workbench, packaged contract, ten tools in both protocol modes')
+print('Core wheel: no Workbench, packaged contract, fourteen tools in both protocol modes')
 '''
-    run(python,'-c',code,cwd=temp)
+    run(python,'-c',code,str(ROOT/'requirements.lock.txt'),cwd=temp)
     run(python,'-m','unittest','discover','-s',str(ROOT/'tests'),'-q',cwd=temp)
     run(python,'-m','volatility_mcp','report-check',str(ROOT/'examples/synthetic-case'),cwd=temp)

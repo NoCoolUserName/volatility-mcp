@@ -183,7 +183,14 @@ def build_catalog() -> dict[str, Any]:
         for path in Path(root).rglob('*'):
             if path.is_file() and path.suffix != '.pyc' and '__pycache__' not in path.parts:
                 runtime_files.add(str(path.absolute()))
+    symbol_roots = [str(Path(root).absolute()) for root in symbols.__path__]
+    runtime_files = {name for name in runtime_files if
+                     Path(name).suffix in {'.py', '.pyi', '.so', '.dylib', '.dll', '.pyd'} or
+                     not any(Path(name).is_relative_to(Path(root)) for root in symbol_roots)}
     return {
+        "symbol_roots": symbol_roots,
+        "symbol_cache": {"filename": constants.IDENTIFIERS_FILENAME,
+                         "schema_version": constants.CACHE_SQLITE_SCHEMA_VERSION},
         "version": version("volatility3"),
         "architecture": platform.machine(),
         "python_version": platform.python_version(),

@@ -33,7 +33,7 @@ class CryptoMemProtocolTests(unittest.IsolatedAsyncioTestCase):
     async def test_all_commands_discovery_invocation_and_failures(self):
         for xp in (False, True):
             async with Client(self.transport(xp=xp), mode='legacy', read_timeout_seconds=20) as client:
-                self.assertEqual(len((await client.list_tools()).tools), 10)
+                self.assertEqual(len((await client.list_tools()).tools), 14)
                 catalog = decode_result(await client.call_tool('list_plugins', {'query':'cryptomem'}))
                 self.assertEqual({p['name'] for p in catalog['plugins']},
                                  {'linux.cryptomem.CryptoMem','windows.cryptomem.CryptoMem','mac.cryptomem.CryptoMem'})

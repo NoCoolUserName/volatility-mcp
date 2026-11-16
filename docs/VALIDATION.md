@@ -1,3 +1,71 @@
+# Parallel execution and symbol metadata inventory — 2026-11-16
+
+The local installed-package check for the current parallel-execution change ran
+231 tests in 68.743 seconds, with one expected optional-addon skip. Dependency
+health (`pip check`) was clean. Actual SDK stdio discovery exposed fourteen tools
+in both legacy and auto protocol modes. The tested wheel was built from the
+frozen, uncommitted feature source; these results do not identify a later commit
+or establish hosted CI status.
+
+The final installed-package suite includes nine symbol-identity checks and three
+descriptor-walk race/relocation regressions. Earlier intermediate package checks
+remain private historical evidence; the count above describes the frozen final
+runtime source, including the descriptor-walk fix.
+
+A subsequent default-only change sets concurrency to the smaller of four and the
+detected logical CPU count. Its focused regression passed for both larger and
+smaller hosts. The installed-suite evidence above is reused for unchanged behavior;
+the measured matrix used explicit limits, so its timing/results remain applicable.
+
+The change uses explicit submit/get/list/cancel jobs, bounded cross-process
+execution and trusted local symbol metadata inventory. Symbol admission and
+reuse do not bulk-read/hash symbol contents or silently verify/reindex the full
+store. Context explicitly records `symbol_content_verified: false`; image,
+runtime/code, declared input-file and saved-artifact hashes remain. The metadata
+inventory is not cryptographic symbol-byte verification. See
+[PARALLEL_EXECUTION.md](PARALLEL_EXECUTION.md) and
+[RESULT_REUSE.md](RESULT_REUSE.md) for lifecycle and integrity boundaries.
+
+## Final local concurrency matrix
+
+The frozen runtime source completed 80 actual successful requests: the same
+16 preselected supported Windows requests at each concurrency limit, with no
+result reuse. Each parallel result matched its corresponding serial result after
+JSON object-key/row-dictionary ordering normalization, preserving recovered fields,
+duplicate rows, tree relationships and scalar-list order. Source/input integrity
+and runtime identity remained unchanged.
+
+| Configured limit | Wall seconds | Speedup vs serial | Observed peak analyzer processes |
+| --- | ---: | ---: | ---: |
+| 1 | 123.322 | 1.000× | 1 |
+| 2 | 79.693 | 1.547× | 2 |
+| 4 | 79.332 | 1.555× | 4 |
+| 8 | 104.535 | 1.180× | 7 |
+| 12 | 105.617 | 1.168× | 12 |
+
+The host had 10 Apple-silicon cores and 24 GiB RAM. Limits 2 and 4 were only
+0.361 seconds apart; this single pass does not establish a robust winner.
+Limits 8 and 12 were slower. All inventory measurements recorded zero symbol-content
+bytes read by identity bookkeeping, not a claim that the analyzer reads no symbols.
+
+Timing includes submission/admission, job hashing/inventory, private-cache
+creation/seeding, execution, finalization and monitoring. Initial offline warmup,
+per-level seed-cache copying and standalone catalog setup are excluded. Fresh
+per-level output/cache roots used the same primed seed, with an uncontrolled shared
+OS cache. Parallel worklists used observed serial durations, longest first.
+This was one sequential matrix on an active desktop, with no repetitions or
+confidence intervals. See the [parallel execution table](PARALLEL_EXECUTION.md#local-measured-workload--2026-11-16)
+for sampled memory and measurement limits. No private identifiers or recovered data
+are included in the public record.
+
+Earlier validation entries below remain historical evidence for their stated
+source and behavior. Their older tool counts and symbol-content hashing claims
+are not descriptions of this change. This documentation update does not repeat
+unchanged tests. Guest OS/plugin compatibility, recovery accuracy and hosted
+checks require their own evidence.
+
+---
+
 # Experimental Intel64 Mac CryptoMem integration — 2026-10-24
 
 CryptoMem 0.4.0 is pinned at `f462c79dd249f2251698620485e1241a3b35d5cc`
