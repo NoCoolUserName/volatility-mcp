@@ -93,6 +93,16 @@ class ConfigAndSetupTests(unittest.TestCase):
             cli.write_config(link, Config(**self.values))
         self.assertEqual(original.read_text(), "{}")
 
+    def test_setup_persists_explicit_concurrency_limit(self):
+        path = self.root / "config.json"
+        cli.write_config(path, Config(**self.values))
+        args = cli.parser().parse_args(["setup", "--config", str(path),
+            '--symbol-packs', 'none', '--max-concurrent-runs', '7'])
+        with patch.object(cli, "validate_vol", return_value={"architecture": "arm64"}):
+            outcome = cli.setup(args)
+        self.assertEqual(outcome['settings']['max_concurrent_runs'], 7)
+        self.assertEqual(load_config(path).max_concurrent_runs, 7)
+
     def test_setup_reuses_existing_config_without_install(self):
         path = self.root / "config.json"
         cli.write_config(path, Config(**self.values))

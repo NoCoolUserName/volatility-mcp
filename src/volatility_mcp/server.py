@@ -43,6 +43,7 @@ def create_server(config: Config, *, backend: VolatilityBackend | None = None) -
                 # Keep the process alive until those threads kill child groups and
                 # atomically finalize manifests. SIGKILL cannot be handled here.
                 with anyio.CancelScope(shield=True):
+                    await asyncio.to_thread(backend.shutdown_jobs, wait=True)
                     if workers:
                         await asyncio.gather(*tuple(workers), return_exceptions=True)
                 if installed_handler:
@@ -116,6 +117,45 @@ def create_server(config: Config, *, backend: VolatilityBackend | None = None) -
         Timeout is administrator-configured (300 seconds default). No report is generated.
         """
         return await invoke(backend.run_plugin, image, plugin, arguments, cancellable=True)
+
+    @mcp.tool(annotations=analysis)
+    async def submit_jobs(jobs: list[dict], order: Literal["input", "slowest-first"] = "input") -> dict:
+        """Queue only the explicitly selected plugin jobs; return immediately with job IDs.
+
+        Each job is {image, plugin, arguments?: [exact option strings]}. Validate the
+        complete batch before enqueueing anything. Configured concurrency bounds actual
+        analysis; input order is the default. slowest-first uses known saved timings
+        only, with no timing probes. No discovery, follow-up selection,
+        retry, or report generation is implied. Poll get_job for each saved result.
+        """
+        return await invoke(backend.submit_jobs, jobs, order)
+
+    @mcp.tool(annotations=read)
+    async def get_job(job_id: str) -> dict:
+        """Read one submitted job's state, timestamps, error and final normal run result.
+
+        Queued/running work is incomplete. A failed or cancelled result is never a
+        clean negative finding. Saved artifacts remain available through the usual tools.
+        """
+        return await invoke(backend.get_job, job_id)
+
+    @mcp.tool(annotations=read)
+    async def list_jobs(offset: int = 0, limit: int = 100) -> dict:
+        """Page authorized saved job summaries across sessions; never starts analysis.
+
+        Limit is at most 256. Follow next_offset; use get_job for complete results.
+        Counts and pagination include only the registered case images when scoped.
+        """
+        return await invoke(backend.list_jobs, offset, limit)
+
+    @mcp.tool(annotations=ToolAnnotations(read_only_hint=False, destructive_hint=False, open_world_hint=False))
+    async def cancel_job(job_id: str) -> dict:
+        """Cancel queued or running work by ID; preserve partial outputs and final metadata.
+
+        Cancellation is cooperative; poll get_job until terminal. Completed jobs keep
+        their existing result. Server shutdown cancels outstanding submitted work.
+        """
+        return await invoke(backend.cancel_job, job_id)
 
     @mcp.tool(annotations=read)
     async def read_output(path: str, offset: int = 0, limit: int = 16384) -> dict:

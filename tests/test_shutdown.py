@@ -15,6 +15,12 @@ import test_backend
 
 class ShutdownTests(unittest.IsolatedAsyncioTestCase):
     async def test_sigterm_reaps_analysis_and_finalizes_manifest(self):
+        await self.assert_sigterm_reaps_analysis(background=False)
+
+    async def test_sigterm_reaps_submitted_background_analysis(self):
+        await self.assert_sigterm_reaps_analysis(background=True)
+
+    async def assert_sigterm_reaps_analysis(self, *, background):
         fixture = test_backend.BackendTests()
         fixture.setUp()
         self.addCleanup(fixture.doCleanups)
@@ -28,12 +34,17 @@ class ShutdownTests(unittest.IsolatedAsyncioTestCase):
         config = fixture.root / 'config.json'
         config.write_text(json.dumps(replace(fixture.config, command_timeout=10).to_dict()))
         transport = StdioServerParameters(command=sys.executable,
+            env={'PYTHONPATH': os.environ['PYTHONPATH']} if 'PYTHONPATH' in os.environ else None,
             args=['-m', 'volatility_mcp', 'serve', '--config', str(config)])
         child = None
         try:
             async with Client(transport, mode='legacy', read_timeout_seconds=15) as client:
-                request = asyncio.create_task(client.call_tool('run_plugin',
-                    {'image': 'example.raw', 'plugin': 'windows.pslist.PsList'}))
+                params = {'image': 'example.raw', 'plugin': 'windows.pslist.PsList'}
+                if background:
+                    await client.call_tool('submit_jobs', {'jobs': [params]})
+                    request = None
+                else:
+                    request = asyncio.create_task(client.call_tool('run_plugin', params))
                 for _ in range(100):
                     paths = list(fixture.backend.outputs.glob('*/runs/*/json/files/pids.json'))
                     if paths:
@@ -44,7 +55,8 @@ class ShutdownTests(unittest.IsolatedAsyncioTestCase):
                 self.assertIsNotNone(child, 'The harmless analysis process never started')
                 os.kill(pids['server'], signal.SIGTERM)
                 try:
-                    await asyncio.wait_for(request, timeout=5)
+                    if request is not None:
+                        await asyncio.wait_for(request, timeout=5)
                 except Exception:
                     # The connection may close before the cancelled tool reply;
                     # the persisted record is the authoritative shutdown result.
