@@ -64,7 +64,7 @@ trusted and is never accepted as an MCP tool argument.
 | `cache_path` | Symbol cache; defaults to `~/.cache/volatility-mcp/symbols`. |
 | `command_timeout` | Plugin process timeout in seconds, default `300`. |
 | `catalog_timeout` | Plugin discovery timeout in seconds, default `60`. |
-| `max_concurrent_runs` | Concurrent analysis ceiling across an output root, 1–64; default `min(8, os.cpu_count() or 1)`. |
+| `max_concurrent_runs` | Concurrent analysis ceiling across an output root, 1–64; default `min(4, os.cpu_count() or 1)`. |
 | `enable_xpnet` | Enable the packaged fixed local compatibility addon, default `true`. |
 
 Directories are canonicalized and checked; an output root cannot equal or contain

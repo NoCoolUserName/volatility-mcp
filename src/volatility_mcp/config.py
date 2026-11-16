@@ -54,7 +54,7 @@ class Config:
     command_timeout: int = 300
     catalog_timeout: int = 60
     enable_xpnet: bool = True
-    max_concurrent_runs: int = field(default_factory=lambda: min(8, os.cpu_count() or 1))
+    max_concurrent_runs: int = field(default_factory=lambda: min(4, os.cpu_count() or 1))
 
     def __post_init__(self) -> None:
         for name in ("evidence_root", "output_root", "cache_path"):

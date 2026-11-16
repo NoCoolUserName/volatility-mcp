@@ -1,6 +1,6 @@
 # volatility-mcp
 
-*13,016 lines of code*
+*13,020 lines of code*
 
 *Last measured package: `volatility_mcp-0.1.4-py3-none-any.whl`, 929,336,323 bytes (886.284183 MiB); measured on 2026-10-25 UTC from source revision `2887c77283da4a45860d8ac2f3042027401257a0`. Published full release wheel includes four official symbol packs and the Linux catalog; excludes community Linux ISF downloads, analyzer/addon downloads, Python dependencies and the separate Workbench app.*
 
@@ -240,8 +240,8 @@ requests cancellation. A client can inspect a completed result and submit a
 selected follow-up while other jobs continue. No automatic plugin selection,
 follow-up, retry, or report generation occurs.
 
-`max_concurrent_runs` bounds analysis processes (1–64; default the smaller of
-8 and the detected logical CPU count). Set it through trusted configuration or
+`max_concurrent_runs` bounds analysis processes (1–64; starting default the smaller
+of 4 and the detected logical CPU count). Set it through trusted configuration or
 `setup --max-concurrent-runs N`. Processes can compete for RAM, storage bandwidth,
 and cache access, so more concurrency need not be faster. `order: "slowest-first"`
 uses local successful observed durations; it runs no timing probes and imports no
