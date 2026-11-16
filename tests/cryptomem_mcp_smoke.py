@@ -33,7 +33,7 @@ async def check(config_path):
             transport = StdioServerParameters(command=sys.executable,
                 args=['-m','volatility_mcp','serve','--config',str(path)])
             async with Client(transport, mode='legacy', read_timeout_seconds=120) as client:
-                assert len((await client.list_tools()).tools) == 10
+                assert len((await client.list_tools()).tools) == 14
                 catalog = decode_result(await client.call_tool('list_plugins', {'query':'cryptomem'}))
                 assert {p['name'] for p in catalog['plugins']} == {
                     'linux.cryptomem.CryptoMem','windows.cryptomem.CryptoMem','mac.cryptomem.CryptoMem'}

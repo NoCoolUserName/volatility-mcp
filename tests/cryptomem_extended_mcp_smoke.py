@@ -34,7 +34,7 @@ async def check(analyzer):
             path=root/'config.json';path.write_text(json.dumps(config.to_dict()))
             transport=StdioServerParameters(command=sys.executable,args=['-m','volatility_mcp','serve','--config',str(path)])
             async with Client(transport,mode=mode,read_timeout_seconds=120) as client:
-                assert len((await client.list_tools()).tools)==10
+                assert len((await client.list_tools()).tools)==14
                 catalog=decode_result(await client.call_tool('list_plugins',{'query':'cryptomem'}))
                 assert len(catalog['plugins'])==3 and not catalog['import_failures']
                 for item in catalog['plugins']:

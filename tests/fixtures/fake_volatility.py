@@ -40,7 +40,9 @@ if mode == 'slow':
 elif mode == 'empty':
     print('[]')
 elif mode == 'warm-cache':
-    (Path(sys.argv[sys.argv.index('--cache-path') + 1]) / 'fixture-symbol.json').write_text('SYNTHETIC symbol')
+    cached_symbol = Path(sys.argv[sys.argv.index('--cache-path') + 1]) / 'fixture-symbol.json'
+    if not cached_symbol.exists():
+        cached_symbol.write_text('SYNTHETIC symbol')
     print('[]')
 elif mode == 'timeout':
     print('SYNTHETIC partial stdout', flush=True)

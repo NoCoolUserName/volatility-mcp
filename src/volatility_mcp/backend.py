@@ -21,7 +21,7 @@ from . import __version__
 from .config import Config
 from .json_rows import iter_rows
 from .timestamps import utc_now, timestamped_id
-from .reuse import HashMeasurements, context_identity, digest, execution_lock, find_completed
+from .reuse import HashMeasurements, context_identity, digest, execution_lock, find_completed, isolated_cache
 from typing import Any
 import uuid
 
@@ -100,6 +100,8 @@ class VolatilityBackend:
         self._lock = threading.RLock()
         self.shutdown_event = threading.Event()
         self.session_id = uuid.uuid4().hex
+        self._jobs = None
+        self._jobs_lock = threading.Lock()
         for directory in (self.cases, self.outputs, self.symbol_cache):
             self._check_components(directory)
             directory.mkdir(mode=0o700, parents=True, exist_ok=True)
@@ -146,6 +148,25 @@ class VolatilityBackend:
         if not os.access(resolved, os.R_OK):
             raise EvidenceError(f"File is not readable: {resolved}. Grant your account read access.")
         return resolved
+
+    def authorize_saved_image(self, value: str) -> Path:
+        """Authorize a saved identity without requiring its acquisition to exist.
+
+        Metadata and cancellation read no evidence bytes. Execution continues to
+        use resolve_input, including its strict existence and symlink checks.
+        Subclasses must retain their case membership check on this path too.
+        """
+        validate_text(value, 'Saved image path')
+        candidate = Path(value)
+        if not candidate.is_absolute():
+            raise EvidenceError('Saved image identity must be absolute.')
+        try:
+            relative = candidate.relative_to(self.cases)
+        except ValueError as exc:
+            raise EvidenceError('Saved image identity is outside the configured evidence root.') from exc
+        if not relative.parts or relative.parts[0] == '_outputs' or candidate.is_relative_to(self.outputs):
+            raise EvidenceError('Saved image identity is not a source acquisition.')
+        return candidate
 
     def _safe_directory(self, directory: Path) -> Path:
         if not directory.is_relative_to(self.outputs):
@@ -313,26 +334,78 @@ class VolatilityBackend:
         return value
 
     def _symbol_arguments(self) -> list[str]:
-        """Use only administrator-configured symbols/cache; keep old typed-XP repair."""
+        """Use prepared local state; runtime never reindexes/hashes symbol data."""
         self._check_components(self.symbol_cache)
-        args = ["--cache-path", str(self.symbol_cache)]
+        args = ['--cache-path', str(self.symbol_cache)]
         if self.supplemental_symbols is None:
             return args
         self._check_components(self.supplemental_symbols)
         if not self.supplemental_symbols.is_dir():
-            raise EvidenceError("Configured symbols directory is missing; fix setup or supply matching symbols.")
+            raise EvidenceError('Configured symbols directory is missing; fix setup or supply matching symbols.')
         if not self._symbols_prepared:
-            prepared = subprocess.run(
-                [str(self.vol_python), "-I", str(self.project / "prepare_symbol_cache.py"),
-                 str(self.supplemental_symbols), str(self.symbol_cache)],
-                shell=False, stdin=subprocess.DEVNULL, capture_output=True, text=True,
-                timeout=self.config.catalog_timeout, cwd=self.project,
-            )
-            if prepared.returncode:
-                raise EvidenceError(f"Symbol cache preparation failed: {prepared.stderr[-2400:]}")
-            self._symbol_preparation = json.loads(prepared.stdout)
+            self._read_prepared_symbol_policy()
             self._symbols_prepared = True
-        return ["-s", str(self.supplemental_symbols), *args]
+        return ['-s', str(self.supplemental_symbols), *args]
+
+    def _read_prepared_symbol_policy(self):
+        """Read native XP preference metadata without opening symbol payloads."""
+        from .prepare_symbol_cache import RELATIVE_ISF, EXPECTED_GUID
+        import sqlite3
+        loose = self.supplemental_symbols / RELATIVE_ISF
+        audit = self.symbol_cache / 'preference.json'
+        archive = self.supplemental_symbols / 'windows.zip'
+        self._check_components(archive)
+        self._check_components(loose)
+        self._check_components(audit)
+        known_override = loose.exists() or audit.exists()
+        if not known_override and not archive.exists():
+            return
+        guidance = ('Prepared XP symbol preference is unavailable or incompatible. '
+                    'While analysis is idle, run volatility-mcp symbols-install '
+                    '--symbol-packs windows with the intended --config, then retry. '
+                    'Runtime analysis does not index or checksum the symbol store.')
+        native = self.catalog().get('symbol_cache', {})
+        filename = native.get('filename')
+        schema = native.get('schema_version')
+        if (not isinstance(filename, str) or Path(filename).name != filename or
+                not isinstance(schema, int) or isinstance(schema, bool)):
+            if known_override:
+                raise EvidenceError(guidance)
+            return
+        database = self.symbol_cache / filename
+        self._check_components(database)
+        identifier = f'ntkrnlpa.pdb|{EXPECTED_GUID}|1'.encode('latin-1')
+        if not database.exists() and not known_override:
+            return
+        rows = None
+        try:
+            with sqlite3.connect(database.as_uri() + '?mode=ro', uri=True, timeout=1) as connection:
+                rows = connection.execute('SELECT location, stats_types, local FROM cache '
+                    'WHERE identifier = ? AND operating_system = ?', (identifier, 'windows')).fetchall()
+                if not rows and not known_override:
+                    return
+                version_row = connection.execute('SELECT schema_version FROM database_info').fetchone()
+                if version_row != (schema,):
+                    raise ValueError('Installed symbol cache schema differs from prepared metadata.')
+            allowed = set()
+            if loose.is_file():
+                allowed.add(loose.as_uri())
+            if archive.is_file():
+                allowed.add(f'jar:file:{archive}!{RELATIVE_ISF.as_posix()}')
+            if (not rows or any(row[1] == 0 for row in rows) or
+                    rows[-1][0] not in allowed or rows[-1][1:] != (561, 1)):
+                raise ValueError('Prepared cache does not select the supported typed XP table.')
+        except (sqlite3.Error, OSError, ValueError) as exc:
+            if not known_override and rows is None:
+                # No established XP override in an arbitrary archive. The
+                # official analyzer handles its normal indexing/requirements.
+                return
+            raise EvidenceError(guidance + ' ' + str(exc)) from exc
+        self._symbol_preparation = {'method': 'read-only-prepared-native-cache',
+            'cache_database': str(database), 'schema_version': schema,
+            'identifier': identifier.decode('latin-1'), 'selected_uri': rows[-1][0],
+            'preferred_type_count': rows[-1][1], 'symbol_content_verified': False,
+            'runtime_indexing_performed': False}
 
     def _plugin_arguments(self) -> list[str]:
         """Only the shipped addon; no client-controlled plugin search path."""
@@ -344,13 +417,14 @@ class VolatilityBackend:
         return ["-p", str(self.local_plugins)]
 
     def _attempt(self, image: Path, plugin: str, arguments: list[str], run: Path,
-                 cancel_event: threading.Event, hashes: HashMeasurements, lock_fd: int) -> dict[str, Any]:
+                 cancel_event: threading.Event, hashes: HashMeasurements, lock_fd: int | tuple[int, ...]) -> dict[str, Any]:
         directory = self._safe_directory(run / "json")
         files = self._safe_directory(directory / "files")
         stdout, stderr = directory / "stdout.json", directory / "stderr.txt"
         argv = [str(self.vol_python), "-I", str(self.vol), "-q", *self._plugin_arguments(), *self._symbol_arguments(),
                 *(["--offline"] if plugin in OFFLINE_ADDONS else []),
                 "-f", str(image), "-o", str(files), "-r", "json", plugin, *arguments]
+        command_started = time.perf_counter()
         entry = {"renderer": "json", "argv": argv, "shell": False, "started_at": utc_now(),
                  "timeout_seconds": self.command_timeout, "stdout_path": str(stdout),
                  "stderr_path": str(stderr), "files_directory": str(files)}
@@ -364,7 +438,7 @@ class VolatilityBackend:
                     stdout=out, stderr=err, cwd=files, start_new_session=True,
                     # Keep the execution lock alive if the server is force-killed
                     # while its analyzer survives. A new client must not overlap it.
-                    pass_fds=(lock_fd,),
+                    pass_fds=(lock_fd,) if isinstance(lock_fd, int) else lock_fd,
                     umask=0o077,
                     env={k: v for k, v in os.environ.items()
                          if k not in {"PYTHONPATH", "PYTHONHOME", "VOLATILITY_PLUGINS"}})
@@ -391,6 +465,7 @@ class VolatilityBackend:
                     raise
                 entry.update(status="error", returncode=None, error=f"Cannot execute Volatility: {exc}")
         entry["completed_at"] = utc_now()
+        entry["elapsed_seconds"] = time.perf_counter() - command_started
         tail = self._tail(stderr)
         if re.search(r"This version of Windows is not supported:\s*5\.1\b", tail):
             entry["failure_category"] = "unsupported_windows_xp"
@@ -443,27 +518,90 @@ class VolatilityBackend:
             stream.seek(max(0, path.stat().st_size - 8192))
             return stream.read(8192).decode("utf-8", errors="replace")
 
+    def clone_for_execution(self):
+        """Isolate mutable request caches while retaining subclass authorization."""
+        import copy
+        worker = copy.copy(self)
+        worker._catalog = None
+        worker._symbols_prepared = False
+        worker._symbol_preparation = None
+        worker._lock = threading.RLock()
+        worker._jobs = None
+        worker._jobs_lock = threading.Lock()
+        worker.symbol_cache = self.config.cache_path
+        return worker
+
     def run_plugin(self, image: str, plugin: str, arguments: list[str] | None = None,
                    cancel_event: threading.Event | None = None) -> dict[str, Any]:
+        return self.clone_for_execution()._run_plugin(image, plugin, arguments, cancel_event)
+
+    def _job_manager(self):
+        from .execution import JobManager
+        with self._jobs_lock:
+            if self._jobs is None:
+                self._jobs = JobManager(self)
+            return self._jobs
+
+    def submit_jobs(self, jobs, order='input'):
+        return self._job_manager().submit(jobs, order)
+
+    def get_job(self, job_id):
+        return self._job_manager().get(job_id)
+
+    def list_jobs(self, offset=0, limit=100):
+        return self._job_manager().list(offset, limit)
+
+    def cancel_job(self, job_id):
+        return self._job_manager().cancel(job_id)
+
+    def shutdown_jobs(self, wait=True):
+        with self._jobs_lock:
+            manager = self._jobs
+        if manager is not None:
+            manager.shutdown(wait=wait)
+
+    def _run_plugin(self, image: str, plugin: str, arguments: list[str] | None = None,
+                   cancel_event: threading.Event | None = None) -> dict[str, Any]:
         event = cancel_event or threading.Event()
-        with self._lock, execution_lock(self, event) as lock_fd:
-            if event.is_set() or self.shutdown_event.is_set():
-                raise EvidenceError("Analysis cancelled before execution.")
-            source = self.resolve_input(image)
-            # Refresh schemas/versions for each request, including long-lived MCP
-            # processes whose analyzer environment may have been upgraded.
+        if event.is_set() or self.shutdown_event.is_set():
+            raise EvidenceError("Analysis cancelled before execution.")
+        source = self.resolve_input(image)
+        # Refresh schemas/versions for each request, including long-lived MCP
+        # processes whose analyzer environment may have been upgraded.
+        self._catalog = None
+        normalized, values = self._parse_arguments(plugin, arguments)
+        from .secret_outputs import CRYPTOMEM
+        if plugin in CRYPTOMEM and values.get('extract_secrets'):
+            if not (values.get('detect_mnemonics') or values.get('detect_private_keys')):
+                raise EvidenceError('Secret extraction requires an enabled secret detector.')
+            if self.outputs.stat().st_mode & 0o077:
+                raise EvidenceError('Secret extraction requires a private configured output root (mode 0700).')
+        hashes = HashMeasurements(file_fingerprint)
+        before = hashes.file(source, 'image_before')
+        case = self.case_directory(source)
+        self._symbols_prepared = False
+        context = context_identity(self, plugin, values, hashes)
+        context['server_versions'] = [__version__, platform.python_version(), version('mcp')]
+        key = digest({'image': before, 'plugin': plugin, 'arguments': values, 'context': context})
+        # Coordinate using configured immutable inputs, then use only an
+        # identity-private mutable cache under that lease. Duplicate requests
+        # wait without consuming slots, and recheck saved results after waiting.
+        coordination_key = key
+        with execution_lock(self, event, coordination_key) as lock_fd:
             self._catalog = None
-            normalized, values = self._parse_arguments(plugin, arguments)
-            from .secret_outputs import CRYPTOMEM
-            if plugin in CRYPTOMEM and values.get('extract_secrets'):
-                if not (values.get('detect_mnemonics') or values.get('detect_private_keys')):
-                    raise EvidenceError('Secret extraction requires an enabled secret detector.')
-                if self.outputs.stat().st_mode & 0o077:
-                    raise EvidenceError('Secret extraction requires a private configured output root (mode 0700).')
-            hashes = HashMeasurements(file_fingerprint)
-            before = hashes.file(source, 'image_before')
-            case = self.case_directory(source)
-            self._symbols_prepared = False
+            admitted_context = context_identity(self, plugin, values, hashes)
+            admitted_context['server_versions'] = [__version__, platform.python_version(), version('mcp')]
+            if admitted_context != context:
+                raise EvidenceError('Execution inputs changed while waiting; retry with stable inputs.')
+            def verify_seed():
+                self._catalog = None
+                seeded_context = context_identity(self, plugin, values, hashes)
+                seeded_context['server_versions'] = [__version__, platform.python_version(), version('mcp')]
+                if seeded_context != context:
+                    raise EvidenceError('Configured execution inputs changed during private cache preparation; no plugin started.')
+            self.symbol_cache = isolated_cache(self, coordination_key, event, verify_seed)
+            if hashes.file(self.resolve_input(str(source)), 'image_admission') != before:
+                raise EvidenceError('Evidence changed while waiting for execution; retry with stable inputs.')
             context = context_identity(self, plugin, values, hashes)
             context['server_versions'] = [__version__, platform.python_version(), version('mcp')]
             key = digest({'image': before, 'plugin': plugin, 'arguments': values, 'context': context})
@@ -600,8 +738,7 @@ class VolatilityBackend:
                              for item in commands]}
 
     def get_image_info(self, image: str, os_hint: str = "auto", cancel_event: threading.Event | None = None) -> dict[str, Any]:
-        with self._lock:
-            return self._get_image_info(image, os_hint, cancel_event)
+        return self.clone_for_execution()._get_image_info(image, os_hint, cancel_event)
 
     def _get_image_info(self, image: str, os_hint: str, cancel_event=None) -> dict[str, Any]:
         if os_hint not in {"auto", "windows", "linux", "mac"}:
