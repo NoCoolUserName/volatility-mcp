@@ -41,11 +41,15 @@ vendored into the core wheel.
 
 Core catalog discovery exposes the plugin, attribution and limitations through
 list_plugins; run_plugin and queued jobs use the existing execution and saved
-evidence paths. Core forces offline execution for this plugin. Workbench consumes
-that catalog without a second forensic implementation. Its existing manual-only
-filter and extraction consent middleware apply. It is excluded from automatic
-report suggestions. Core's manual-only field is selection guidance, not a separate
-authorization gate for direct MCP clients.
+evidence paths. Keyring follows the normal analyzer symbol/network behavior;
+core does not force Volatility's offline flag for it. The plugin itself reads the
+memory acquisition and does not contact recovered endpoints.
+
+Workbench consumes the same catalog. Keyring is eligible for automatic authorized
+Linux investigations and report suggestions, with no separate Keyring extraction
+approval. Its applicability still depends on the captured kernel and matching
+symbols. Linux symbol availability is not guaranteed by enabling normal analyzer
+network behavior; ordinary symbol provisioning remains available when needed.
 
 The MCP runtime must contain this updated profile, and the configured analyzer
 must contain the adapted plugin. An already packaged Workbench has its own pinned
@@ -93,7 +97,7 @@ unsupported and unsafe states, empty trees, missing symbols, unreadable branches
 cycles, long trees, short reads and payload/string limits. Community-addon CI runs
 it after the real pinned installer.
 
-Core profile/installer tests cover pins, hashes, rollback, manual/offline policy
+Core profile/installer tests cover pins, hashes, rollback, automatic-selection and network policy
 and source attribution. These are synthetic integration contracts, not proof of
 key recovery from a real Linux acquisition. Real-image accuracy and a kernel-build
 matrix remain outstanding.

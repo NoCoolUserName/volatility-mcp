@@ -29,9 +29,11 @@ class AddonTests(unittest.TestCase):
         self.assertEqual(len(names), 42)
         self.assertTrue(runtime_names <= names)
         self.assertEqual(set(data['manual_only_plugins']), runtime_names | {
-            'linux.keyring.Keyring', 'linux.openssh_sessionkeys.SSHKeys', 'windows.cryptomem.CryptoMem', 'linux.cryptomem.CryptoMem', 'mac.cryptomem.CryptoMem'})
+            'linux.openssh_sessionkeys.SSHKeys', 'windows.cryptomem.CryptoMem', 'linux.cryptomem.CryptoMem', 'mac.cryptomem.CryptoMem'})
         self.assertTrue(set(data['manual_only_plugins']) <= set(data['offline_plugins']))
         self.assertNotIn('windows.passwordmanagers.PasswordManager', data['manual_only_plugins'])
+        self.assertNotIn('linux.keyring.Keyring', data['manual_only_plugins'])
+        self.assertNotIn('linux.keyring.Keyring', data['offline_plugins'])
         self.assertIn('windows.passwordmanagers.PasswordManager', data['offline_plugins'])
         self.assertEqual(sum(f.get('kind') == 'symbol' for source in data['sources'] for f in source['files']), 2)
         self.assertIn('windows.simple_pteenum.SimplePteEnumerator', names)

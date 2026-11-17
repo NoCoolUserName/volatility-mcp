@@ -265,9 +265,11 @@ manual/offline execution policy. Plugin destinations now also permit a fixed
 accepts the reviewed 0.3.0 hashes for upgrades and preserves native plugins. See
 [scope and limitations](CRYPTOMEM.md#experimental-legacy-intel64-macos-adapter-040).
 
-## Linux kernel keyring (revision 13)
+## Linux kernel keyring (revision 14)
 
-The profile adds manually selected, offline linux.keyring.Keyring from
+The profile includes automatically eligible linux.keyring.Keyring from
 mischw/volatility3_plugins under MIT. The bounded adaptation fixes import,
-traversal, payload/state handling and timestamp issues. See
+traversal, payload/state handling and timestamp issues. It follows normal analyzer
+symbol/network behavior and is eligible for authorized Linux investigations and
+report suggestions without a separate extraction approval. See
 [assessment, installation, limitations and validation](KEYRING.md).
