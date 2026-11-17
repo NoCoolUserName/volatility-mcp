@@ -2,9 +2,9 @@
 
 *13,451 lines of code*
 
-*Latest measured local unbundled wheel: volatility_mcp-0.1.4-py3-none-any.whl, 1,032,458 bytes (0.984629 MiB); measured 2026-11-16 from base revision 8ef30392869f09aa807e3d02289b7c157ee4e1cc plus uncommitted keyring integration changes. Excludes symbol-pack archives, analyzer/addon downloads, dependencies and Workbench. Development artifact; not a replacement for a published release.*
+*Latest measured local unbundled wheel: volatility_mcp-0.1.4-py3-none-any.whl, 1,032,482 bytes (0.984652 MiB); measured 2026-11-16 from source revision 128625bc2ee8850f76ba257e0ffe80dccbbef95d. Excludes symbol-pack archives, analyzer/addon downloads, dependencies and Workbench. Development artifact; not a replacement for a published release.*
 
-*Latest measured local bundled wheel: volatility_mcp-0.1.4-py3-none-any.whl, 929,350,223 bytes (886.297439 MiB); measured 2026-11-16 from source revision f693241fcb0bc2ea20ab3af2c51e6a14c71fa2bc. Built for the local Workbench keyring integration with four official symbol packs and the Linux catalog; excludes community Linux ISF downloads, analyzer/addon downloads, Python dependencies and the Workbench app. This local artifact does not replace the published v0.1.4 release wheel.*
+*Latest measured local bundled wheel: volatility_mcp-0.1.4-py3-none-any.whl, 929,350,246 bytes (886.297461 MiB); measured 2026-11-16 from source revision 128625bc2ee8850f76ba257e0ffe80dccbbef95d. Built for the local Workbench keyring integration with four official symbol packs and the Linux catalog; excludes community Linux ISF downloads, analyzer/addon downloads, Python dependencies and the Workbench app. This local artifact does not replace the published v0.1.4 release wheel.*
 
 A local MCP server for querying memory acquisitions with **official Volatility 3**. It runs your separately installed Volatility executable, saves
 complete outputs and execution records, and exposes fourteen tools over stdio. It makes no LLM API calls and needs no model API key.
