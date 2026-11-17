@@ -3,7 +3,7 @@ import ast
 import textwrap
 
 
-REVISION = 12
+REVISION = 13
 
 
 def replace_method(source, name, replacement):
@@ -18,6 +18,9 @@ def replace_method(source, name, replacement):
 
 def adapt(filename, source, *, repository=None, target=None):
     """Only known pinned files enter here; installed hashes are checked separately."""
+    if repository == 'mischw/volatility3_plugins':
+        from .addon_keyring import adapt_keyring
+        return adapt_keyring(filename, source, replace_method)
     if repository == 'lorelyai/volatility3-bitlocker':
         from .addon_bitlocker import adapt_bitlocker
         return adapt_bitlocker(filename, source, replace_method)

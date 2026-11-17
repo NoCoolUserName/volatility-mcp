@@ -264,3 +264,10 @@ manual/offline execution policy. Plugin destinations now also permit a fixed
 `mac/<module>.py`; symbol/data destination rules are unchanged. The installer
 accepts the reviewed 0.3.0 hashes for upgrades and preserves native plugins. See
 [scope and limitations](CRYPTOMEM.md#experimental-legacy-intel64-macos-adapter-040).
+
+## Linux kernel keyring (revision 13)
+
+The profile adds manually selected, offline linux.keyring.Keyring from
+mischw/volatility3_plugins under MIT. The bounded adaptation fixes import,
+traversal, payload/state handling and timestamp issues. See
+[assessment, installation, limitations and validation](KEYRING.md).
