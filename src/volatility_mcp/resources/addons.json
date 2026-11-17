@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "profile": "community-2026-10",
-  "compatibility_revision": 12,
+  "compatibility_revision": 14,
   "volatility_version": "2.28.2",
   "offline_plugins": [
     "windows.cobaltstrike.CobaltStrike",
@@ -695,6 +695,30 @@
         {
           "path": "LICENSE",
           "sha256": "2231901cda44b37726b0b15aeeaa2de134fc1188ad113e0b454d8d601d83a422"
+        }
+      ]
+    },
+    {
+      "repository": "mischw/volatility3_plugins",
+      "commit": "2e733c847e7cd2a2fab34bf81205c2e004dd755b",
+      "license": "MIT; copyright (c) 2026 mischw; retain upstream LICENSE",
+      "files": [
+        {
+          "path": "linux/keyring.py",
+          "target": "linux/keyring.py",
+          "sha256": "1e0fc21ea9e60a2ad5b7b2713ac3b705dcd816901c5f934ead21d0d61f659b57",
+          "installed_sha256": "936952b62313f59d81854fbb229df5b82f344799e281bb4181f6ca30b5f659c3",
+          "dependencies": []
+        }
+      ],
+      "plugins": [
+        "linux.keyring.Keyring"
+      ],
+      "limitations": "Experimental Linux Intel64 kernel key_serial_tree enumeration; matching kernel ISF with key/rb_node/user_key_payload/public_key layouts required. Recovers user/logon and supported asymmetric payloads only; containers and unsupported types have explicit status, not recovered keys. Skips payloads of uninstantiated, negative, dead, revoked or invalidated keys. No freed-key carving, universal LUKS recovery, fscrypt, trusted/encrypted key decoding, ARM64 or Intel32 support. 4096 tree nodes, 65536 bytes per payload, 4 MiB aggregate payloads; strict bounded metadata reads and cycle detection. Unreadable/corrupt trees and budget exhaustion fail as incomplete. Layer/address provenance and UTC last-used time; no disk decryption. Eligible for automatic authorized Linux investigations and report suggestions; follows normal analyzer symbol/network behavior. Synthetic validation only; real Linux-image accuracy unvalidated.",
+      "notices": [
+        {
+          "path": "LICENSE",
+          "sha256": "769da1321ac2878a858e548a64bbd4cbba012c8f297e19206a46c5de4ba367c6"
         }
       ]
     }

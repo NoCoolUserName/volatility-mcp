@@ -65,3 +65,11 @@ implementation is not bundled in core; the opt-in inventory pins source and
 LICENSE hashes and archives the license with the local installation receipt.
 CryptoScan and protocol-specification attribution remain in that repository.
 See [docs/CRYPTOMEM.md](docs/CRYPTOMEM.md) for the deliberately limited capabilities.
+
+## Optional Linux keyring plugin
+
+[mischw/volatility3_plugins](https://github.com/mischw/volatility3_plugins),
+commit 2e733c847e7cd2a2fab34bf81205c2e004dd755b, is MIT, copyright (c) 2026
+mischw. The opt-in installer verifies and retains its full LICENSE and original
+source alongside the adaptation receipt. Fixes do not remove upstream notice
+requirements. See [keyring scope](docs/KEYRING.md).

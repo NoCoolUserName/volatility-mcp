@@ -59,6 +59,17 @@ class BackendTests(unittest.TestCase):
         ordinary = self.run_fixture()
         self.assertNotIn('--offline', json.loads(Path(ordinary['manifest_path']).read_text())['commands'][0]['argv'])
 
+    def test_keyring_uses_normal_execution_without_forced_offline(self):
+        from unittest.mock import patch
+        catalog = self.backend.catalog()
+        name = 'linux.keyring.Keyring'
+        catalog['plugins'][name] = dict(catalog['plugins']['windows.pslist.PsList'])
+        with patch.object(self.backend, 'catalog', return_value=catalog):
+            result = self.backend.run_plugin('example.raw', name, [])
+        manifest = json.loads(Path(result['manifest_path']).read_text())
+        self.assertEqual(result['status'], 'success')
+        self.assertNotIn('--offline', manifest['commands'][0]['argv'])
+
     def test_pypykatz_failure_is_actionable_not_empty_or_missing_installation(self):
         self.image.write_text('lsa-error')
         result = self.backend.run_plugin('example.raw', 'vol_pypykatz.pypykatz', [])
