@@ -1,6 +1,6 @@
 # volatility-mcp
 
-*13,451 lines of code*
+*13,489 lines of code*
 
 The server package is **1.03MB**, or **0.93GB** with the standard Windows, macOS and Linux symbol packs. The optional [full Linux symbol collection](docs/SYMBOLS.md#additional-linux-x86-64-collection) is a separate **20.97GB** download. Volatility and other dependencies are installed separately.
 

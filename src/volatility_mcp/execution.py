@@ -75,7 +75,6 @@ class JobManager:
 
     def get(self, job_id):
         record = self._read(job_id)
-        record['cancel_requested'] = self._path(job_id, '.cancel').exists()
         if record['state'] in ACTIVE:
             fd = _open_lock(self._path(job_id, '.lock'))
             try:
@@ -84,11 +83,14 @@ class JobManager:
                 except BlockingIOError:
                     pass
                 else:
-                    record['state'] = 'interrupted'
-                    record['error'] = ('Job owner is no longer active. Saved run artifacts may be partial; '
-                                       'inspect case_history before explicitly submitting new work.')
+                    record = self._read(job_id)
+                    if record['state'] in ACTIVE:
+                        record['state'] = 'interrupted'
+                        record['error'] = ('Job owner is no longer active. Saved run artifacts may be partial; '
+                                           'inspect case_history before explicitly submitting new work.')
             finally:
                 os.close(fd)
+        record['cancel_requested'] = self._path(job_id, '.cancel').exists()
         return record
 
     def list(self, offset=0, limit=100):
