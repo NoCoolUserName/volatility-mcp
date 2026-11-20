@@ -2,9 +2,7 @@
 
 *13,451 lines of code*
 
-*Latest measured local unbundled wheel: volatility_mcp-0.1.4-py3-none-any.whl, 1,032,482 bytes (0.001032 GB); measured 2026-11-16 from source revision 128625bc2ee8850f76ba257e0ffe80dccbbef95d. Excludes symbol-pack archives, analyzer/addon downloads, dependencies and Workbench. Development artifact; not a replacement for a published release.*
-
-*Latest measured local bundled wheel: volatility_mcp-0.1.4-py3-none-any.whl, 929,350,246 bytes (0.929350 GB); measured 2026-11-16 from source revision 128625bc2ee8850f76ba257e0ffe80dccbbef95d. Built for the local Workbench keyring integration with four official symbol packs and the Linux catalog; excludes community Linux ISF downloads, analyzer/addon downloads, Python dependencies and the Workbench app. This local artifact does not replace the published v0.1.4 release wheel.*
+The server package is **1.03MB**, or **0.93GB** with bundled Windows, macOS and Linux symbols. Volatility and other dependencies are installed separately.
 
 A local MCP server for querying memory acquisitions with **official Volatility 3**. It runs your separately installed Volatility executable, saves
 complete outputs and execution records, and exposes fourteen tools over stdio. It makes no LLM API calls and needs no model API key.
@@ -97,7 +95,7 @@ Use `setup --help` for an alternate Volatility environment location. Setup is
 idempotent: a suitable installation is reused, and existing evidence is retained.
 
 Setup verifies the included official Windows, macOS, and Linux symbol packs
-(about 0.93 GB), copies them to local writable storage, and builds their index
+(about 0.93GB), copies them to local writable storage, and builds their index
 without downloading them. Allow room for both the installed bundle and working
 copy. Use `--symbol-packs windows` for the Windows packs only, or
 `--symbol-packs none` for offline/custom provisioning. Existing installations can
@@ -250,7 +248,7 @@ uses local successful observed durations; it runs no timing probes and imports n
 upstream timing defaults. See [parallel execution](docs/PARALLEL_EXECUTION.md) for
 ordering, locks, job lifetime, and interruption limits.
 
-A single local 16-request Windows workload on a 10-core host with about 25.77 GB of RAM took
+A single local 16-request Windows workload on a 10-core host with about 25.77GB of RAM took
 123.322 seconds at limit 1, 79.693 at 2 and 79.332 at 4; limits 8 and 12 took
 104.535 and 105.617 seconds. Limits 2–4 were a near tie and a useful starting range
 for that measured workload, while larger limits were slower. All 80 executions
