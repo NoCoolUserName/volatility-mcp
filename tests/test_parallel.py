@@ -1,7 +1,9 @@
 """Harmless concurrent subprocess and durable queue acceptance checks."""
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
+import fcntl
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -11,6 +13,7 @@ from unittest.mock import patch
 
 from volatility_mcp.backend import VolatilityBackend
 from volatility_mcp.config import Config, ConfigurationError
+from volatility_mcp.reuse import _open_lock
 import test_backend
 
 
@@ -145,6 +148,43 @@ atexit.register(activity, 'end')
         self.assertEqual(len(records), 3)
         self.assertTrue(all(record['state'] not in {'queued', 'running', 'interrupted'} for record in records))
         self.assertTrue(all(record['completed_at'] for record in records))
+
+    def test_job_poll_rereads_terminal_record_after_owner_releases_lock(self):
+        manager = self.backend._job_manager()
+        job_id = 'completed-during-poll'
+        running = {'job_id': job_id, 'image': str(self.fixture.image), 'state': 'running',
+                   'result': None, 'error': None}
+        manager._save(running)
+        owner_fd = _open_lock(manager._path(job_id, '.lock'))
+        fcntl.flock(owner_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        original_read = manager._read
+        reads = 0
+
+        def finish_after_first_read(selected_id):
+            nonlocal reads, owner_fd
+            record = original_read(selected_id)
+            reads += 1
+            if reads == 1:
+                manager._save({**running, 'state': 'success', 'result': {'status': 'success'}})
+                os.close(owner_fd)
+                owner_fd = None
+            return record
+
+        try:
+            with patch.object(manager, '_read', side_effect=finish_after_first_read):
+                result = manager.get(job_id)
+        finally:
+            if owner_fd is not None:
+                os.close(owner_fd)
+        self.assertEqual(reads, 2)
+        self.assertEqual(result['state'], 'success')
+        self.assertEqual(result['result'], {'status': 'success'})
+        self.assertEqual(original_read(job_id)['state'], 'success')
+
+        manager._save({**running, 'job_id': 'abandoned-job'})
+        abandoned = manager.get('abandoned-job')
+        self.assertEqual(abandoned['state'], 'interrupted')
+        self.assertEqual(original_read('abandoned-job')['state'], 'running')
 
     def test_ordering_uses_only_matching_successful_argument_timings(self):
         self.fixture.image.write_text('normal')
