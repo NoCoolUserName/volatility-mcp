@@ -2,7 +2,7 @@
 
 *13,451 lines of code*
 
-The server package is **1.03MB**, or **0.93GB** with bundled Windows, macOS and Linux symbols. Volatility and other dependencies are installed separately.
+The server package is **1.03MB**, or **0.93GB** with the standard Windows, macOS and Linux symbol packs. The optional [full Linux symbol collection](docs/SYMBOLS.md#additional-linux-x86-64-collection) is a separate **20.97GB** download. Volatility and other dependencies are installed separately.
 
 A local MCP server for querying memory acquisitions with **official Volatility 3**. It runs your separately installed Volatility executable, saves
 complete outputs and execution records, and exposes fourteen tools over stdio. It makes no LLM API calls and needs no model API key.
