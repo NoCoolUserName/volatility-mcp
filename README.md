@@ -106,6 +106,22 @@ replacement. Ordinary MCP startup and analysis never trigger bulk installation. 
 do not cover every OS build. See [symbol setup](docs/SYMBOLS.md) for offline use,
 exact-match limitations, and recovery after interrupted setup.
 
+### Additional Linux symbols
+
+The included Linux catalog is an index of available symbol files. It lets you
+install just the files for a matching kernel instead of downloading the full
+**20.97GB** collection:
+
+- **Browse available symbols:** `volatility-mcp symbols-catalog`.
+- **Find an exact kernel match:** `volatility-mcp symbols-catalog --linux-banner 'FULL CAPTURED KERNEL BANNER'`.
+- **Download and install that match:** `volatility-mcp symbols-install --config /path/to/config.json --linux-banner 'FULL CAPTURED KERNEL BANNER'`.
+
+The catalog alone cannot support analysis; the matching symbol files must be
+installed first. Downloads are explicit: starting the MCP server or running an
+analysis does not fetch additional Linux symbols. See the
+[Linux symbol collection instructions](docs/SYMBOLS.md#additional-linux-x86-64-collection)
+for full-collection installation and offline use.
+
 Put `.raw`, `.mem`, `.vmem`, `.dmp`, `.lime`, or `.dd` acquisitions in the evidence
 root, optionally in case subfolders. These are accepted filename extensions,
 not a promise that every file or acquisition format is supported by Volatility.
