@@ -2,9 +2,7 @@
 
 *13,451 lines of code*
 
-*Latest measured local unbundled wheel: volatility_mcp-0.1.4-py3-none-any.whl, 1,032,482 bytes (0.001032 GB); measured 2026-11-16 from source revision 128625bc2ee8850f76ba257e0ffe80dccbbef95d. Excludes symbol-pack archives, analyzer/addon downloads, dependencies and Workbench. Development artifact; not a replacement for a published release.*
-
-*Latest measured local bundled wheel: volatility_mcp-0.1.4-py3-none-any.whl, 929,350,246 bytes (0.929350 GB); measured 2026-11-16 from source revision 128625bc2ee8850f76ba257e0ffe80dccbbef95d. Built for the local Workbench keyring integration with four official symbol packs and the Linux catalog; excludes community Linux ISF downloads, analyzer/addon downloads, Python dependencies and the Workbench app. This local artifact does not replace the published v0.1.4 release wheel.*
+The server package is **1.03MB**, or **0.93GB** with the standard Windows, macOS and Linux symbol packs. The optional [full Linux symbol collection](docs/SYMBOLS.md#additional-linux-x86-64-collection) is a separate **20.97GB** download. Volatility and other dependencies are installed separately.
 
 A local MCP server for querying memory acquisitions with **official Volatility 3**. It runs your separately installed Volatility executable, saves
 complete outputs and execution records, and exposes fourteen tools over stdio. It makes no LLM API calls and needs no model API key.
@@ -97,7 +95,7 @@ Use `setup --help` for an alternate Volatility environment location. Setup is
 idempotent: a suitable installation is reused, and existing evidence is retained.
 
 Setup verifies the included official Windows, macOS, and Linux symbol packs
-(about 0.93 GB), copies them to local writable storage, and builds their index
+(about 0.93GB), copies them to local writable storage, and builds their index
 without downloading them. Allow room for both the installed bundle and working
 copy. Use `--symbol-packs windows` for the Windows packs only, or
 `--symbol-packs none` for offline/custom provisioning. Existing installations can
@@ -107,6 +105,22 @@ fallback. An incomplete/corrupt bundle fails rather than silently downloading a
 replacement. Ordinary MCP startup and analysis never trigger bulk installation. These representative packs
 do not cover every OS build. See [symbol setup](docs/SYMBOLS.md) for offline use,
 exact-match limitations, and recovery after interrupted setup.
+
+### Additional Linux symbols
+
+The included Linux catalog is an index of available symbol files. It lets you
+install just the files for a matching kernel instead of downloading the full
+**20.97GB** collection:
+
+- **Browse available symbols:** `volatility-mcp symbols-catalog`.
+- **Find an exact kernel match:** `volatility-mcp symbols-catalog --linux-banner 'FULL CAPTURED KERNEL BANNER'`.
+- **Download and install that match:** `volatility-mcp symbols-install --config /path/to/config.json --linux-banner 'FULL CAPTURED KERNEL BANNER'`.
+
+The catalog alone cannot support analysis; the matching symbol files must be
+installed first. Downloads are explicit: starting the MCP server or running an
+analysis does not fetch additional Linux symbols. See the
+[Linux symbol collection instructions](docs/SYMBOLS.md#additional-linux-x86-64-collection)
+for full-collection installation and offline use.
 
 Put `.raw`, `.mem`, `.vmem`, `.dmp`, `.lime`, or `.dd` acquisitions in the evidence
 root, optionally in case subfolders. These are accepted filename extensions,
@@ -250,7 +264,7 @@ uses local successful observed durations; it runs no timing probes and imports n
 upstream timing defaults. See [parallel execution](docs/PARALLEL_EXECUTION.md) for
 ordering, locks, job lifetime, and interruption limits.
 
-A single local 16-request Windows workload on a 10-core host with about 25.77 GB of RAM took
+A single local 16-request Windows workload on a 10-core host with about 25.77GB of RAM took
 123.322 seconds at limit 1, 79.693 at 2 and 79.332 at 4; limits 8 and 12 took
 104.535 and 105.617 seconds. Limits 2–4 were a near tie and a useful starting range
 for that measured workload, while larger limits were slower. All 80 executions
